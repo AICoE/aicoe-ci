@@ -1,0 +1,31 @@
+apiVersion: tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: webhook-listener
+spec:
+  serviceAccountName: qebhwt
+  triggers:
+    # - name: github-check-run
+    #   interceptors:
+    #     - github:
+    #         secretRef:
+    #           secretName: github-secret
+    #           secretKey: webhooksecret
+    #         eventTypes:
+    #           - check_run
+    #   bindings:
+    #     - name: qebhwt-binding
+    #   template:
+    #     name: qebhwt-template
+    - name: github-pull-request
+      interceptors:
+        - github:
+            secretRef:
+              secretName: github-secret
+              secretKey: webhooksecret
+            eventTypes:
+              - pull_request
+      bindings:
+        - name: qebhwt-binding
+      template:
+        name: qebhwt-template

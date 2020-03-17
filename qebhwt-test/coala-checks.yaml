@@ -1,0 +1,127 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: coala-checks
+spec:
+  inputs:
+    resources:
+      - name: pr
+        type: pullRequest
+      - name: s2i-thoth
+        type: image
+  outputs:
+    resources:
+      - name: pr
+        type: pullRequest
+  steps:
+    - name: thoth-test
+      resources:
+        limits:
+          memory: "500Mi"
+          cpu: "1"
+        requests:
+          memory: "500Mi"
+          cpu: "1"
+      image: quay.io/pypa/manylinux2010_x86_64:latest # use $(s2i-thoth.params.url) in ocp4.x
+      workingDir: /workspace/pr
+      command: ["ls","-al"]
+
+    - name: thoth-base-test
+      resources:
+        limits:
+          memory: "500Mi"
+          cpu: "1"
+        requests:
+          memory: "500Mi"
+          cpu: "1"
+      image: quay.io/pypa/manylinux2010_x86_64:latest # use $(s2i-thoth.params.url) in ocp4.x
+      workingDir: /workspace/pr/github
+      command: ["/bin/bash"]
+      args:
+      - -c
+      - |
+        cat $(inputs.resources.pr.path)/base.json
+
+    - name: thoth-head-test
+      resources:
+        limits:
+          memory: "500Mi"
+          cpu: "1"
+        requests:
+          memory: "500Mi"
+          cpu: "1"
+      image: quay.io/pypa/manylinux2010_x86_64:latest # use $(s2i-thoth.params.url) in ocp4.x
+      workingDir: /workspace/pr/github
+      command: ["/bin/bash"]
+      args:
+      - -c
+      - |
+        cat $(inputs.resources.pr.path)/head.json
+
+    - name: thoth-pr-test
+      resources:
+        limits:
+          memory: "500Mi"
+          cpu: "1"
+        requests:
+          memory: "500Mi"
+          cpu: "1"
+      image: quay.io/pypa/manylinux2010_x86_64:latest # use $(s2i-thoth.params.url) in ocp4.x
+      workingDir: /workspace/pr/github
+      command: ["/bin/bash"]
+      args:
+      - -c
+      - |
+        cat $(inputs.resources.pr.path)/github/pr.json
+
+    - name: thoth-create-copy
+      resources:
+        limits:
+          memory: "500Mi"
+          cpu: "1"
+        requests:
+          memory: "500Mi"
+          cpu: "1"
+      image: quay.io/pypa/manylinux2010_x86_64:latest # use $(s2i-thoth.params.url) in ocp4.x
+      workingDir: /workspace/pr
+      command: ["/bin/bash"]
+      args:
+      - -c
+      - cp -r /workspace/pr/ /workspace/output/
+
+    - name: thoth-comment-test
+      resources:
+        limits:
+          memory: "500Mi"
+          cpu: "1"
+        requests:
+          memory: "500Mi"
+          cpu: "1"
+      image: quay.io/pypa/manylinux2010_x86_64:latest # use $(s2i-thoth.params.url) in ocp4.x
+      workingDir: /workspace/pr
+      command: ["/bin/bash"]
+      args:
+      - -c
+      - |
+        if [ -f "$(inputs.resources.pr.path)/github/pr.json" ]; then
+          echo "Thoth-CI at your service!"
+          echo "Thoth-CI at your service!" > /workspace/output/pr/comments/new
+        fi
+    # if [ -f "$(inputs.resources.pr.path)/labels/approved" ]; then
+    #   echo "PR is approved!"
+    # else
+    #   echo "PR is not approved!"
+    #   exit 1
+    # fi
+    # - name: check-thoth-coala
+    #   resources:
+    #     limits:
+    #       memory: "500Mi"
+    #       cpu: "1"
+    #     requests:
+    #       memory: "500Mi"
+    #       cpu: "1"
+    #   image: quay.io/thoth-station/thoth-coala:v0.9.9 # use $(s2i-thoth.params.url) in ocp4.x
+    #   command: ["coala --ci"]
+    #   args:
+    #     chdir: ["/workspace/pr/"]

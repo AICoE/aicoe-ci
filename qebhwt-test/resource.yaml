@@ -1,0 +1,10 @@
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: thoth-image
+spec:
+  type: image
+  params:
+    - name: url
+      value: quay.io/thoth-station/s2i-thoth-ubi8-py36:v0.8.0

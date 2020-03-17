@@ -1,0 +1,44 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: issue-close
+spec:
+  inputs:
+    params:
+      - name: pr_number
+        type: string
+      - name: event_action
+        type: string
+    resources:
+      - name: pr
+        type: pullRequest
+      - name: s2i-thoth
+        type: image
+  outputs:
+    resources:
+      - name: pr
+        type: pullRequest
+  steps:
+    - name: items-check
+      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(s2i-thoth.params.url) in ocp4.x
+      script: |
+        ls -al
+
+    - name: pr-items-check
+      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(s2i-thoth.params.url) in ocp4.x
+      workingDir: /workspace/pr
+      script: |
+        ls -al
+
+    - name: close-pr
+      resources:
+      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(s2i-thoth.params.url) in ocp4.x
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        echo $(inputs.params.event_action)
+        if [ "$(inputs.params.event_action)" == "closed" ]; then
+          cp -r /workspace/pr/ /workspace/output/
+          echo "Thanks for the contribution" > /workspace/output/pr/comments/close
+        fi

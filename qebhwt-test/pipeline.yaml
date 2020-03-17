@@ -1,0 +1,70 @@
+---
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: qebhwt-pipeline
+spec:
+  params:
+    - name: pr_number
+      type: string
+    - name: event_action
+      type: string
+  resources:
+    - name: git-repo
+      type: git
+    - name: s2i-thoth
+      type: image
+    - name: pr-source
+      type: pullRequest
+  tasks:
+    - name: issue-open-run
+      taskRef:
+        name: issue-open
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: event_action
+          value: $(params.event_action)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
+          - name: pr
+            resource: pr-source
+        outputs:
+          - name: pr
+            resource: pr-source
+    - name: issue-close-run
+      taskRef:
+        name: issue-close
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: event_action
+          value: $(params.event_action)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
+          - name: pr
+            resource: pr-source
+        outputs:
+          - name: pr
+            resource: pr-source
+    - name: qebhwt-task-run
+      taskRef:
+        name: qebhwt-task
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
+          - name: repo
+            resource: git-repo
+          - name: pr
+            resource: pr-source
+        outputs:
+          - name: pr
+            resource: pr-source

@@ -1,0 +1,51 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: qebhwt-template
+spec:
+  params:
+    - name: pr_number
+      description: Pull request ID.
+    - name: pr_url
+      description: The pr url.
+    - name: repo_url
+      description: The git repository url
+    - name: event_action
+      description: Action performed on Pull request.
+      default: noidea
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1alpha1
+      kind: PipelineRun
+      metadata:
+        name: qebhwt-pipeline-run-$(uid)
+      spec:
+        serviceAccountName: tekton-demo
+        pipelineRef:
+          name: qebhwt-pipeline
+        params:
+          - name: pr_number
+            value: $(params.pr_number)
+          - name: event_action
+            value: $(params.event_action)
+        resources:
+          - name: git-repo
+            resourceSpec:
+              type: git
+              params:
+                - name: revision
+                  value: master
+                - name: url
+                  value: $(params.repo_url)
+          - name: s2i-thoth
+            resourceRef:
+              name: thoth-image
+          - name: pr-source
+            resourceSpec:
+              type: pullRequest
+              params:
+                - name: url
+                  value: $(params.pr_url)
+              secrets:
+              - fieldName: authToken
+                secretName: auth-secret
+                secretKey: token

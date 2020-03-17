@@ -1,0 +1,90 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: qebhwt-task
+spec:
+  inputs:
+    params:
+      - name: pr_number
+        type: string
+    resources:
+      - name: pr
+        type: pullRequest
+      - name: s2i-thoth
+        type: image
+      - name: repo
+        type: git
+  outputs:
+    resources:
+      - name: pr
+        type: pullRequest
+  steps:
+    - name: items-check
+      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(s2i-thoth.params.url) in ocp4.x
+      script: |
+        ls -al
+
+    - name: repo-items-check
+      resources:
+      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(s2i-thoth.params.url) in ocp4.x
+      workingDir: /workspace/repo
+      script: |
+        ls -al
+
+    - name: pr-items-check
+      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(s2i-thoth.params.url) in ocp4.x
+      workingDir: /workspace/pr
+      script: |
+        ls -al
+
+    - name: git-init-op
+      resources:
+        limits:
+          memory: "500Mi"
+          cpu: "1"
+        requests:
+          memory: "500Mi"
+          cpu: "1"
+      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(s2i-thoth.params.url) in ocp4.x
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        cp -r /workspace/pr/ /workspace/output/
+        touch qwerty
+        echo $(inputs.params.pr_number)
+        git fetch origin pull/$(inputs.params.pr_number)/head:workbranch
+        git checkout workbranch
+
+    - name: repo-items-recheck
+      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(s2i-thoth.params.url) in ocp4.x
+      workingDir: /workspace/repo
+      script: |
+        ls -al
+
+    - name: run-coala
+      image: quay.io/thoth-station/thoth-coala:v0.10.0
+      workingDir: /workspace/repo
+      script: |
+        set +e
+        out=$(coala --ci 2>&1)
+        set -e
+        exit_code=$?
+        if [[ $exit_code -ne 0 ]]; then
+          code="failure"
+          description="The coala test failed!"
+          echo "Coala Test failed!" > /workspace/output/pr/comments/new
+          echo "Logs:" >> /workspace/output/pr/comments/new
+          echo $out >> /workspace/output/pr/comments/new
+        else
+          code="success"
+          description="The coala test succeeded!"
+        fi
+        cat <<EOF > /workspace/output/pr/status/coala.json
+        {
+          "state": "$code",
+          "target_url": "https://example.com/build/status",
+          "description": "$description",
+          "context": "continuous-integration/tekton"
+        }
+        EOF
