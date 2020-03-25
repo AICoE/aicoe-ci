@@ -2,7 +2,9 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: "qebhwt-pipeline-run-pvc"
+  name: "thoth-ci-pipeline-run-pvc"
+  labels:
+    app: thoth-ci
 spec:
   accessModes:
   - ReadWriteOnce
