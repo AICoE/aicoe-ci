@@ -21,6 +21,8 @@ spec:
       kind: PipelineRun
       metadata:
         name: thoth-ci-pipeline-run-$(uid)
+        labels:
+          app: thoth-ci
       spec:
         serviceAccountName: tekton-demo
         pipelineRef:
