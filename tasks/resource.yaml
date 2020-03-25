@@ -3,6 +3,8 @@ apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
   name: thoth-s2i
+  labels:
+    app: thoth-ci
 spec:
   type: image
   params:

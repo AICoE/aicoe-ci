@@ -1,7 +1,9 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
-  name: qebhwt-task
+  name: thoth-ci-task
+  labels:
+    app: thoth-ci
 spec:
   inputs:
     params:

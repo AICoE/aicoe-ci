@@ -2,6 +2,8 @@ apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
   name: issue-close
+  labels:
+    app: thoth-ci
 spec:
   inputs:
     params:
