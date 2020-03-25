@@ -39,3 +39,6 @@ Thoth-CI project uses components of TektonCD to provide custom CI/CD for AICoE.
   oc apply -f pipeline/triggerbinding.yaml
   oc apply -f pipeline/eventlistener.yaml
   ```
+
+_NOTE_: components can be searched/deleted by label app.<br>
+`--selector 'app=thoth-ci'`
