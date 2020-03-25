@@ -1,38 +1,41 @@
-# Tekton-as-CI
+# Thoth-CI
 
-Tekton-as-CI project uses components of TektonCD to provide custom CI/CD.
+Thoth-CI project uses components of TektonCD to provide custom CI/CD for AICoE.
 
 ## Want to step up an instance
 
-1. Setup Tekton Pipeline and Tekton Trigger in cluster.
-2. Create the resources for the example:
+- Setup Tekton Pipeline and Tekton Trigger in cluster.
 
-```bash
-oc apply -f serviceaccount.yaml
-oc apply -f role.yaml
-oc apply -f binding.yaml
-oc apply -f triggertemplate.yaml
-oc apply -f triggerbinding.yaml
-oc apply -f eventlistener.yaml
-```
+- If behind the VPN, one time setup components:
 
-1. Send a payload to the listener at port 8080<br>
-  port-forwarded with `oc port-forward $(oc get pod -o=name -l eventlistener=listener) 8080`
+  - Ultrahook: ultrahook passes the public internet request to services behind VPN
 
-```bash
-curl -X POST \
-  http://localhost:8080 \
-  -H 'Content-Type: application/json' \
-  -H 'X-Hub-Signature: sha1=2da37dcb9404ff17b714ee7a505c384758ddeb7b' \
-  -d '{
-    "action": "finished",
-    "installation": {
-        "id": 6181026
-    },
-    "repo_url": "https://github.com/pacospace/srcops-testing",
-    "check_run_id": 417079839,
-    "payload": {
-        "analysis_id": "adviser-f1d5d010"
-    }
-}'
-```
+    - ultrahook secret and deployment with destination as Thoth-CI listener
+
+- Setup other components required:
+
+  ```bash
+  oc apply -f custom-role/serviceaccount.yaml
+  oc apply -f custom-role/role.yaml
+  oc apply -f custom-role/binding.yaml
+  ```
+
+- Setup the CI/CD Pipeline
+
+  Tasks and Pipeline Resource
+
+  ```bash
+  oc apply -f tasks/resource.yaml
+  oc apply -f tasks/close-issue.yaml
+  oc apply -f tasks/open-issue.yaml
+  oc apply -f tasks/task.yaml
+  ```
+
+  Pipeline
+
+  ```bash
+  oc apply -f pipeline/pipeline.yaml
+  oc apply -f pipeline/triggertemplate.yaml
+  oc apply -f pipeline/triggerbinding.yaml
+  oc apply -f pipeline/eventlistener.yaml
+  ```
