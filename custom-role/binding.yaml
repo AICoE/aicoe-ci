@@ -1,3 +1,4 @@
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -11,3 +12,17 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: thoth-ci-role
+
+---
+kind: RoleBinding
+apiVersion: authorization.openshift.io/v1
+metadata:
+  name: thoth-ci-edit
+  labels:
+    app: thoth-ci
+subjects:
+- kind: ServiceAccount
+  name: thoth-ci
+roleRef:
+  kind: Role
+  name: edit
