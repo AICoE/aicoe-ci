@@ -1,4 +1,8 @@
-# Qeb-Hwt Tekton
+# Tekton-as-CI
+
+Tekton-as-CI project uses components of TektonCD to provide custom CI/CD.
+
+## Want to step up an instance
 
 1. Setup Tekton Pipeline and Tekton Trigger in cluster.
 2. Create the resources for the example:
