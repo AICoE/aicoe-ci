@@ -1,7 +1,9 @@
 apiVersion: tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
-  name: qebhwt-template
+  name: git-pr-template
+  labels:
+    app: thoth-ci
 spec:
   params:
     - name: pr_number
@@ -13,15 +15,16 @@ spec:
     - name: event_action
       description: Action performed on Pull request.
       default: noidea
+
   resourcetemplates:
     - apiVersion: tekton.dev/v1alpha1
       kind: PipelineRun
       metadata:
-        name: qebhwt-pipeline-run-$(uid)
+        name: thoth-ci-pipeline-run-$(uid)
       spec:
         serviceAccountName: tekton-demo
         pipelineRef:
-          name: qebhwt-pipeline
+          name: thoth-ci-pipeline
         params:
           - name: pr_number
             value: $(params.pr_number)

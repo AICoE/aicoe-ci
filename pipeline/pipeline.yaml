@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
-  name: qebhwt-pipeline
+  name: thoth-ci-pipeline
 spec:
   params:
     - name: pr_number
@@ -51,9 +51,9 @@ spec:
         outputs:
           - name: pr
             resource: pr-source
-    - name: qebhwt-task-run
+    - name: thoth-ci-task-run
       taskRef:
-        name: qebhwt-task
+        name: thoth-ci-task
       params:
         - name: pr_number
           value: $(params.pr_number)
