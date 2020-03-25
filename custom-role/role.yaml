@@ -2,6 +2,8 @@ kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: thoth-ci-role
+  labels:
+    app: thoth-ci
 rules:
 # Permissions for every EventListener deployment to function
 - apiGroups: ["tekton.dev"]
