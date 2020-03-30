@@ -24,7 +24,7 @@ spec:
         labels:
           app: thoth-ci
       spec:
-        serviceAccountName: tekton-demo
+        serviceAccountName: thoth-ci-webhook
         pipelineRef:
           name: thoth-ci-pipeline
         params:

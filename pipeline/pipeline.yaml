@@ -18,6 +18,7 @@ spec:
       type: image
     - name: pr-source
       type: pullRequest
+
   tasks:
     - name: issue-open-run
       taskRef:
@@ -36,6 +37,7 @@ spec:
         outputs:
           - name: pr
             resource: pr-source
+
     - name: issue-close-run
       taskRef:
         name: issue-close
@@ -53,9 +55,36 @@ spec:
         outputs:
           - name: pr
             resource: pr-source
+
     - name: thoth-ci-task-run
       taskRef:
         name: thoth-ci-task
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
+          - name: repo
+            resource: git-repo
+          - name: pr
+            resource: pr-source
+        outputs:
+          - name: pr
+            resource: pr-source
+
+    - name: pr-imagestream
+      taskRef:
+        name: oc-imagestream
+      params:
+        - name: ARGS
+          value:
+            - $(params.pr_number)
+
+    - name: pr-build-run
+      taskRef:
+        name: s2i-build
       params:
         - name: pr_number
           value: $(params.pr_number)

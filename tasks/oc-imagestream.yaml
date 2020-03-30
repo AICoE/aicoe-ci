@@ -1,0 +1,18 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: oc-imagestream
+spec:
+  inputs:
+    params:
+      - name: ARGS
+        description: The OpenShift CLI arguments to run
+        type: array
+        default:
+        - "help"
+  steps:
+    - name: oc
+      image: quay.io/openshift/origin-cli:latest
+      script: "oc create imagestream $1 --lookup-local=true"
+      args:
+        - "$(inputs.params.ARGS)"
