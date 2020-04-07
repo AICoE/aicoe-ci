@@ -9,6 +9,8 @@ spec:
   params:
     - name: pr_number
       type: string
+    - name: pr_repo
+      type: string
     - name: event_action
       type: string
   resources:
@@ -16,6 +18,8 @@ spec:
       type: git
     - name: s2i-thoth
       type: image
+    - name: image-base
+      type: image-base
     - name: pr-source
       type: pullRequest
 
@@ -56,46 +60,60 @@ spec:
           - name: pr
             resource: pr-source
 
-    - name: thoth-ci-task-run
+    - name: coala-run
       taskRef:
-        name: thoth-ci-task
+        name: coala-check
       params:
         - name: pr_number
           value: $(params.pr_number)
       resources:
         inputs:
-          - name: s2i-thoth
-            resource: s2i-thoth
-          - name: repo
-            resource: git-repo
           - name: pr
             resource: pr-source
+          - name: repo
+            resource: git-repo
+          - name: s2i-thoth
+            resource: s2i-thoth
         outputs:
           - name: pr
             resource: pr-source
 
-    - name: pr-imagestream
+    - name: pytest-run
       taskRef:
-        name: oc-imagestream
+        name: pytest-check
       params:
-        - name: ARGS
-          value:
-            - $(params.pr_number)
+        - name: pr_number
+          value: $(params.pr_number)
+      resources:
+        inputs:
+          - name: pr
+            resource: pr-source
+          - name: repo
+            resource: git-repo
+          - name: s2i-thoth
+            resource: s2i-thoth
+        outputs:
+          - name: pr
+            resource: pr-source
 
     - name: pr-build-run
       taskRef:
-        name: s2i-build
+        name: pr-s2i-build
       params:
         - name: pr_number
           value: $(params.pr_number)
+        - name: pr_repo
+          value: $(params.pr_repo)
       resources:
         inputs:
           - name: s2i-thoth
             resource: s2i-thoth
+          - name: image-base
+            resource: image-base
           - name: repo
             resource: git-repo
           - name: pr
             resource: pr-source
-        outputs:
-          - name: pr
-            resource: pr-source
+      runAfter:
+        - coala-run
+        - pytest-run

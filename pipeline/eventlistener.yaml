@@ -5,7 +5,7 @@ metadata:
   labels:
     app: thoth-ci
 spec:
-  serviceAccountName: thoth-ci
+  serviceAccountName: thoth-ci-webhook
   triggers:
     - name: github-pull-request
       interceptors:
@@ -19,6 +19,7 @@ spec:
         - name: git-pr-binding
       template:
         name: git-pr-template
+
     # - name: github-check-run
     #   interceptors:
     #     - github:
