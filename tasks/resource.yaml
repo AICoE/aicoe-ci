@@ -9,4 +9,17 @@ spec:
   type: image
   params:
     - name: url
-      value: quay.io/thoth-station/s2i-thoth-ubi8-py36:v0.8.0
+      value: quay.io/thoth-station/s2i-thoth-ubi8-py36:v0.11.12
+
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: image-base
+  labels:
+    app: thoth-ci
+spec:
+  type: image
+  params:
+    - name: url
+      value: image-registry.openshift-image-registry.svc:5000/thoth-ci

@@ -1,0 +1,99 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: pytest-check
+  labels:
+    app: thoth-ci
+spec:
+  inputs:
+    params:
+      - name: pr_number
+        type: string
+    resources:
+      - name: s2i-thoth
+        type: image
+      - name: pr
+        type: pullRequest
+      - name: repo
+        type: git
+  outputs:
+    resources:
+      - name: pr
+        type: pullRequest
+
+  steps:
+    - name: git-init-op
+      resources:
+        limits:
+          memory: "500Mi"
+          cpu: "1"
+        requests:
+          memory: "500Mi"
+          cpu: "1"
+      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(inputs.resources.s2i-thoth.url) in ocp4.x
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      command: ["/bin/bash"]
+      args:
+      - -c
+      - |
+        cp -r /workspace/pr/ /workspace/output/
+        git fetch origin pull/$(inputs.params.pr_number)/head:workbranch
+        git checkout workbranch
+
+    - name: check-pip-version
+      image: quay.io/thoth-station/thoth-pytest:v0.10.2
+      workingDir: /workspace/repo
+      command: ["/bin/bash"]
+      args:
+      - -c
+      - pip3 --version
+
+    - name: check-micropipenv
+      image: quay.io/thoth-station/thoth-pytest:v0.10.2
+      workingDir: /workspace/repo
+      command: ["/bin/bash"]
+      args:
+      - -c
+      - micropipenv --version
+
+    - name: run-micropipenv
+      image: quay.io/thoth-station/thoth-pytest:v0.10.2
+      workingDir: /workspace/repo
+      command: ["/bin/bash"]
+      args:
+      - -c
+      - micropipenv install --dev
+
+    - name: run-pytest
+      image: quay.io/thoth-station/thoth-pytest:v0.10.2
+      workingDir: /workspace/repo
+      command: ["/bin/bash"]
+      args:
+      - -c
+      - |
+        if [ ! -f setup.py ]; then
+          set +e
+          out=$(python3 setup.py test 2>&1)
+          set -e
+          exit_code=$?
+          if [[ $exit_code -ne 0 ]]; then
+            code="failure"
+            description="The pytest test failed!"
+            echo "Pytest Test failed!" > /workspace/output/pr/comments/new
+            echo "Logs:" >> /workspace/output/pr/comments/new
+            echo $out >> /workspace/output/pr/comments/new
+          else
+            code="success"
+            description="The pytest test succeeded!"
+          fi
+          cat <<EOF > /workspace/output/pr/status/pytest.json
+          {
+            "State": "$code",
+            "Target": "https://example.com/build/status",
+            "Desc": "$description",
+            "Label": "thoth-ci/pytest-check"
+          }
+        EOF
+        fi

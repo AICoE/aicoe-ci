@@ -40,7 +40,7 @@ spec:
         privileged: true
       script: |
         echo $(inputs.params.event_action)
+        cp -r /workspace/pr/ /workspace/output/
         if [ "$(inputs.params.event_action)" == "closed" ]; then
-          cp -r /workspace/pr/ /workspace/output/
           echo "Thanks for the contribution" > /workspace/output/pr/comments/close
         fi
