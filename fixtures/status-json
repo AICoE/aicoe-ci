@@ -1,0 +1,8 @@
+cat <<EOF > /workspace/output/pr/status/check.json
+{
+  "State": "$code",
+  "Target": "https://example.com/build/status",
+  "Desc": "$description",
+  "Label": "thoth-ci/check"
+}
+EOF
