@@ -44,18 +44,3 @@ spec:
         if [ "$(inputs.params.event_action)" == "opened" ] || [ "$(inputs.params.event_action)" == "reopened" ]; then
           echo "Thanks for Opening the Pull Request" > /workspace/output/pr/comments/open
         fi
-
-    - name: clean-status
-      resources:
-      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(s2i-thoth.params.url) in ocp4.x
-      workingDir: /workspace/output/pr
-      securityContext:
-        privileged: true
-      script: |
-        for f in /status/*.json; do
-          echo $f
-          if [[ -f $f ]] && [[ -w $f ]]; then
-              sed -i -- 's/success/pending/g' "$f"
-              sed -i -- 's/failure/pending/g' "$f"
-          fi
-        done
