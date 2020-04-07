@@ -2,12 +2,12 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: thoth-ci-binding
+  name: thoth-ci-webhook-binding
   labels:
     app: thoth-ci
 subjects:
 - kind: ServiceAccount
-  name: thoth-ci
+  name: thoth-ci-webhook
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -17,12 +17,12 @@ roleRef:
 kind: RoleBinding
 apiVersion: authorization.openshift.io/v1
 metadata:
-  name: thoth-ci-edit
+  name: thoth-ci-webhook-edit
   labels:
     app: thoth-ci
 subjects:
 - kind: ServiceAccount
-  name: thoth-ci
+  name: thoth-ci-webhook
 roleRef:
   kind: Role
   name: edit
