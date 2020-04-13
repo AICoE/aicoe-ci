@@ -63,5 +63,7 @@ We welcome contributions, The following components can be worked on:
   oc apply -f pipeline/eventlistener.yaml
   ```
 
+Or all in one with `kustomize build . | oc --namespace ... -f -`
+
 _NOTE_: components can be searched/deleted by label app.<br>
 `--selector 'app=thoth-ci'`

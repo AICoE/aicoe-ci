@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - tasks/resource.yaml
+  - tasks/close-issue.yaml
+  - tasks/open-issue.yaml
+  - tasks/coala-checks.yaml
+  - tasks/pytest-checks.yaml
+  - tasks/pr-build.yaml
+  - pipeline/pipeline.yaml
+  - pipeline/triggertemplate.yaml
+  - pipeline/triggerbinding.yaml
+  - pipeline/eventlistener.yaml
