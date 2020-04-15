@@ -1,0 +1,4 @@
+creation_rules:
+  - encrypted_regex: '^(data|stringData)$'
+    pgp: "34AFE2A7C8E00ED66916D95DA9FBD7DE773B2A34, 87FC5D0ACF3AA48FCC029086262A80E41BCEEBF7"
+    gcp_kms: "projects/aicoe-thoth-ops/locations/global/keyRings/sops/cryptoKeys/sops-key"

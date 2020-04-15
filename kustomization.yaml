@@ -11,3 +11,6 @@ resources:
   - pipeline/triggertemplate.yaml
   - pipeline/triggerbinding.yaml
   - pipeline/eventlistener.yaml
+generators:
+  - ./secret-generator.yaml
+
