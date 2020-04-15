@@ -6,11 +6,12 @@ metadata:
     app: thoth-ci
 rules:
 # Permissions for every EventListener deployment to function
-- apiGroups: ["tekton.dev"]
-  resources: ["eventlisteners", "triggerbindings", "triggertemplates", "tasks", "taskruns"]
+- apiGroups: ["triggers.tekton.dev"]
+  resources: ["eventlisteners", "triggerbindings", "triggertemplates"]
   verbs: ["get"]
 - apiGroups: [""]
-  resources: ["configmaps"]
+  # secrets are only needed for Github/Gitlab interceptors, serviceaccounts only for per trigger authorization
+  resources: ["configmaps", "secrets", "serviceaccounts"]
   verbs: ["get", "list", "watch"]
 # Permissions to create resources in associated TriggerTemplates
 - apiGroups: ["tekton.dev"]
