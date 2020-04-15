@@ -5,20 +5,21 @@ metadata:
 spec:
   inputs:
     params:
-    - default: .
-      description: The location of the path to run s2i from.
-      name: PATH_CONTEXT
-    - default: 'true'
-      description: Verify the TLS on the registry endpoint (for push/pull to a non-TLS
-        registry)
-      name: TLSVERIFY
-    - name: LOGLEVEL
-      description: Log level when running the S2I binary
-      default: '0'
-    - name: pr_number
-      type: string
-    - name: pr_repo
-      type: string
+      - default: .
+        description: The location of the path to run s2i from.
+        name: PATH_CONTEXT
+      - default: "true"
+        description:
+          Verify the TLS on the registry endpoint (for push/pull to a non-TLS
+          registry)
+        name: TLSVERIFY
+      - name: LOGLEVEL
+        description: Log level when running the S2I binary
+        default: "0"
+      - name: pr_number
+        type: string
+      - name: pr_repo
+        type: string
     resources:
       - name: s2i-thoth
         type: image
@@ -30,84 +31,84 @@ spec:
         type: git
 
   steps:
-  - name: oc-create-image
-    image: quay.io/openshift/origin-cli:latest
-    command: ["/bin/bash"]
-    args:
-    - -c
-    - oc create imagestream $(inputs.params.pr_repo)-$(inputs.params.pr_number) --lookup-local=true
+    - name: oc-create-image
+      image: quay.io/openshift/origin-cli:latest
+      command: ["/bin/bash"]
+      args:
+        - -c
+        - oc create imagestream $(inputs.params.pr_repo)-$(inputs.params.pr_number) --lookup-local=true
 
-  - name: git-init-op
-    resources:
-      limits:
-        memory: "500Mi"
-        cpu: "1"
-      requests:
-        memory: "500Mi"
-        cpu: "1"
-    image: $(inputs.resources.s2i-thoth.url)
-    workingDir: /workspace/repo
-    securityContext:
-      privileged: true
-    command: ["/bin/bash"]
-    args:
-    - -c
-    - |
-      cp -r /workspace/pr/ /workspace/output/
-      git fetch origin pull/$(inputs.params.pr_number)/head:workbranch
-      git checkout workbranch
+    - name: git-init-op
+      resources:
+        limits:
+          memory: "500Mi"
+          cpu: "1"
+        requests:
+          memory: "500Mi"
+          cpu: "1"
+      image: $(inputs.resources.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      command: ["/bin/bash"]
+      args:
+        - -c
+        - |
+          cp -r /workspace/pr/ /workspace/output/
+          git fetch origin pull/$(inputs.params.pr_number)/head:workbranch
+          git checkout workbranch
 
-  - command:
-    - /usr/local/bin/s2i
-    - --loglevel=$(inputs.params.LOGLEVEL)
-    - build
-    - $(inputs.params.PATH_CONTEXT)
-    - $(inputs.resources.s2i-thoth.url)
-    - --as-dockerfile
-    - /gen-source/Dockerfile.gen
-    image: quay.io/openshift-pipeline/s2i:nightly
-    name: generate
-    volumeMounts:
-    - mountPath: /gen-source
-      name: gen-source
-    workingDir: /workspace/repo
+    - command:
+        - /usr/local/bin/s2i
+        - --loglevel=$(inputs.params.LOGLEVEL)
+        - build
+        - $(inputs.params.PATH_CONTEXT)
+        - $(inputs.resources.s2i-thoth.url)
+        - --as-dockerfile
+        - /gen-source/Dockerfile.gen
+      image: quay.io/openshift-pipeline/s2i:nightly
+      name: generate
+      volumeMounts:
+        - mountPath: /gen-source
+          name: gen-source
+      workingDir: /workspace/repo
 
-  - command:
-    - buildah
-    - bud
-    - --tls-verify=$(inputs.params.TLSVERIFY)
-    - --layers
-    - -f
-    - /gen-source/Dockerfile.gen
-    - -t
-    - $(inputs.params.pr_repo)-$(inputs.params.pr_number)
-    - .
-    image: quay.io/buildah/stable
-    name: build
-    securityContext:
-      privileged: true
-    volumeMounts:
-    - mountPath: /var/lib/containers
-      name: varlibcontainers
-    - mountPath: /gen-source
-      name: gen-source
-    workingDir: /gen-source
+    - command:
+        - buildah
+        - bud
+        - --tls-verify=$(inputs.params.TLSVERIFY)
+        - --layers
+        - -f
+        - /gen-source/Dockerfile.gen
+        - -t
+        - $(inputs.params.pr_repo)-$(inputs.params.pr_number)
+        - .
+      image: quay.io/buildah/stable
+      name: build
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - mountPath: /var/lib/containers
+          name: varlibcontainers
+        - mountPath: /gen-source
+          name: gen-source
+      workingDir: /gen-source
 
-  - command:
-    - buildah
-    - push
-    - --tls-verify=$(inputs.params.TLSVERIFY)
-    - $(inputs.params.pr_repo)-$(inputs.params.pr_number)
-    - docker://$(inputs.resources.image-base.url)/$(inputs.params.pr_repo)-$(inputs.params.pr_number)
-    image: quay.io/buildah/stable
-    name: push
-    securityContext:
-      privileged: true
-    volumeMounts:
-    - mountPath: /var/lib/containers
-      name: varlibcontainers
+    - command:
+        - buildah
+        - push
+        - --tls-verify=$(inputs.params.TLSVERIFY)
+        - $(inputs.params.pr_repo)-$(inputs.params.pr_number)
+        - docker://$(inputs.resources.image-base.url)/$(inputs.params.pr_repo)-$(inputs.params.pr_number)
+      image: quay.io/buildah/stable
+      name: push
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - mountPath: /var/lib/containers
+          name: varlibcontainers
   volumes:
-  - emptyDir: {}
-    name: varlibcontainers
-  - emptyDir: {}
-    name: gen-source
+    - emptyDir: {}
+      name: varlibcontainers
+    - emptyDir: {}
+      name: gen-source
