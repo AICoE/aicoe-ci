@@ -1,5 +1,6 @@
 secrets.yaml
 secrets-*.yaml
 thoth-ci.2020-04-14.private-key.pem
+application_default_credentials.json
 .env
 .vscode
