@@ -19,7 +19,7 @@ spec:
       default: noidea
 
   resourcetemplates:
-    - apiVersion: tekton.dev/v1alpha1
+    - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
       metadata:
         name: thoth-ci-pipeline-run-$(uid)
