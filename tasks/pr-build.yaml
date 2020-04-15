@@ -35,7 +35,7 @@ spec:
     command: ["/bin/bash"]
     args:
     - -c
-    - oc apply imagestream $(inputs.params.pr_repo)-$(inputs.params.pr_number) --lookup-local=true
+    - oc create imagestream $(inputs.params.pr_repo)-$(inputs.params.pr_number) --lookup-local=true
 
   - name: git-init-op
     resources:
