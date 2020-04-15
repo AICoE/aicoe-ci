@@ -33,7 +33,6 @@ spec:
         ls -al
 
     - name: open-pr
-      resources:
       image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(s2i-thoth.params.url) in ocp4.x
       workingDir: /workspace/repo
       securityContext:
