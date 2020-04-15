@@ -31,12 +31,21 @@ spec:
         type: git
 
   steps:
+<<<<<<< HEAD
     - name: oc-create-image
       image: quay.io/openshift/origin-cli:latest
       command: ["/bin/bash"]
       args:
       - -c
       - oc get imagestream $(params.pr_repo) || oc apply imagestream $(params.pr_repo) --lookup-local=true
+=======
+  - name: oc-create-image
+    image: quay.io/openshift/origin-cli:latest
+    command: ["/bin/bash"]
+    args:
+    - -c
+    - oc get imagestream $(params.pr_repo) || oc apply imagestream $(params.pr_repo) --lookup-local=true
+>>>>>>> updated tasks to be compatible with v1beta1
 
     - name: git-init-op
       resources:
