@@ -1,40 +1,39 @@
-apiVersion: tekton.dev/v1alpha1
+apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: coala-check
   labels:
     app: thoth-ci
 spec:
-  inputs:
-    params:
-      - name: pr_number
-        type: string
-    resources:
+  params:
+    - name: pr_number
+      type: string
+  resources:
+    inputs:
       - name: s2i-thoth
         type: image
       - name: pr
         type: pullRequest
       - name: repo
         type: git
-  outputs:
-    resources:
+    outputs:
       - name: pr
         type: pullRequest
 
   steps:
     - name: items-check
-      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(inputs.resources.s2i-thoth.url) in ocp4.x
+      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
       command: ["/bin/bash"]
       args: ['-c', 'ls -al']
 
     - name: repo-items-recheck
-      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(inputs.resources.s2i-thoth.url) in ocp4.x
+      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
       workingDir: /workspace/repo
       command: ["/bin/bash"]
       args: ['-c', 'ls -al']
 
     - name: output-items-recheck
-      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(inputs.resources.s2i-thoth.url) in ocp4.x
+      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
       workingDir: /workspace/output
       command: ["/bin/bash"]
       args: ['-c', 'ls -al']
@@ -47,7 +46,7 @@ spec:
         requests:
           memory: "500Mi"
           cpu: "1"
-      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(inputs.resources.s2i-thoth.url) in ocp4.x
+      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
       workingDir: /workspace/repo
       securityContext:
         privileged: true
@@ -56,7 +55,7 @@ spec:
       - -c
       - |
         cp -r /workspace/pr/ /workspace/output/
-        git fetch origin pull/$(inputs.params.pr_number)/head:workbranch
+        git fetch origin pull/$(params.pr_number)/head:workbranch
         git checkout workbranch
 
     - name: run-coala
