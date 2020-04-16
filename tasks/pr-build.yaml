@@ -9,7 +9,7 @@ spec:
       default: .
       description: The location of the path to run s2i from.
     - name: TLSVERIFY
-      default: "true"
+      default: "false"
       description:
         Verify the TLS on the registry endpoint (for push/pull to a non-TLS
         registry)
@@ -59,8 +59,8 @@ spec:
       image: quay.io/openshift/origin-cli:latest
       command: ["/bin/bash"]
       args:
-      - -c
-      - oc get imagestream $(params.pr_repo)-$(params.pr_number) || oc create imagestream $(params.pr_repo)-$(params.pr_number) --lookup-local=true
+        - -c
+        - oc get imagestream $(params.pr_repo)-$(params.pr_number) || oc create imagestream $(params.pr_repo)-$(params.pr_number) --lookup-local=true
 
     - name: git-init-op
       resources:
@@ -76,11 +76,11 @@ spec:
         privileged: true
       command: ["/bin/bash"]
       args:
-      - -c
-      - |
-        cp -r /workspace/pr/ /workspace/output/
-        git fetch origin pull/$(params.pr_number)/head:workbranch
-        git checkout workbranch
+        - -c
+        - |
+          cp -r /workspace/pr/ /workspace/output/
+          git fetch origin pull/$(params.pr_number)/head:workbranch
+          git checkout workbranch
 
     - name: generate
       command:
