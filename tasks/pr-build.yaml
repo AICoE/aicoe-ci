@@ -4,21 +4,45 @@ metadata:
   name: pr-s2i-build
 spec:
   params:
-    - default: .
+    # buildah params
+    - name: PATH_CONTEXT
+      default: .
       description: The location of the path to run s2i from.
-      name: PATH_CONTEXT
-    - default: "true"
+    - name: TLSVERIFY
+      default: "true"
       description:
         Verify the TLS on the registry endpoint (for push/pull to a non-TLS
         registry)
-      name: TLSVERIFY
     - name: LOGLEVEL
       description: Log level when running the S2I binary
       default: "0"
+    # s2i thoth params
+    - name: THOTH_ADVISE
+      description: Advise the recommended stack by Thoth.
+      default: "1"
+    - name: THOTH_ERROR_FALLBACK
+      description: Fallback to the lock file present in the repository if the submitted Thoth analysis fails.
+      default: "1"
+    - name: THOTH_DRY_RUN
+      description: Submit stack to Thoth, but do not use the recommended one.
+      default: "0"
+    - name: "THAMOS_DEBUG"
+      description: "Thamos enable debug mode."
+      default: "0"
+    - name: "THAMOS_VERBOSE"
+      description: Run thamos in verbose mode.
+      default: "1"
+    - name: THOTH_PROVENANCE_CHECK
+      description: Provenance check is verify the stack.
+      default: "1"
+    - name: THAMOS_NO_PROGRESSBAR
+      description: Disable progressbar for thamos.
+      default: "1"
+    # pull request params
     - name: pr_number
-      type: string
+      description: Pull Request number.
     - name: pr_repo
-      type: string
+      description: Pull Request repository.
   resources:
     inputs:
       - name: s2i-thoth
@@ -36,7 +60,7 @@ spec:
       command: ["/bin/bash"]
       args:
       - -c
-      - oc get imagestream $(params.pr_repo) || oc create imagestream $(params.pr_repo) --lookup-local=true
+      - oc get imagestream $(params.pr_repo)-$(params.pr_number) || oc create imagestream $(params.pr_repo)-$(params.pr_number) --lookup-local=true
 
     - name: git-init-op
       resources:
@@ -77,6 +101,18 @@ spec:
       command:
         - buildah
         - bud
+        - --build-arg
+        - THOTH_ADVISE=$(params.THOTH_ADVISE)
+        - --build-arg
+        - THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK)
+        - --build-arg
+        - THOTH_DRY_RUN=$(params.THOTH_DRY_RUN)
+        - --build-arg
+        - THAMOS_DEBUG=$(params.THAMOS_DEBUG)
+        - --build-arg
+        - THAMOS_VERBOSE=$(params.THAMOS_VERBOSE)
+        - --build-arg
+        - THOTH_PROVENANCE_CHECK=$(params.THOTH_PROVENANCE_CHECK)
         - --tls-verify=$(params.TLSVERIFY)
         - --layers
         - -f
@@ -87,25 +123,6 @@ spec:
       image: quay.io/buildah/stable
       securityContext:
         privileged: true
-      env:
-        - name: "THOTH_ADVISE"
-          value: "1"
-        - name: "THOTH_ERROR_FALLBACK"
-          value: "1"
-        - name: "THOTH_HOST"
-          value: "khemenu.thoth-station.ninja"
-        - name: "THAMOS_VERBOSE"
-          value: "1"
-        - name: "THAMOS_NO_PROGRESSBAR"
-          value: "1"
-        - name: "THAMOS_CONFIG_TEMPLATE"
-          value: ".thoth.yaml"
-        - name: "THAMOS_CONFIG_EXPAND_ENV"
-          value: "1"
-        - name: "THOTH_DRY_RUN"
-          value: "0"
-        - name: "THAMOS_DEBUG"
-          value: "0"
       volumeMounts:
         - mountPath: /var/lib/containers
           name: varlibcontainers
@@ -119,7 +136,7 @@ spec:
         - push
         - --tls-verify=$(params.TLSVERIFY)
         - $(params.pr_repo)-$(params.pr_number)
-        - docker://$(resources.inputs.image-base.url)/$(params.pr_repo):$(params.pr_number)
+        - docker://image-registry.openshift-image-registry.svc:5000/thoth-ci/$(params.pr_repo)-$(params.pr_number)
       image: quay.io/buildah/stable
       securityContext:
         privileged: true
