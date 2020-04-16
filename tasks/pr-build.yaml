@@ -98,6 +98,7 @@ spec:
       workingDir: /workspace/repo
 
     - name: build
+      image: quay.io/buildah/stable
       command:
         - buildah
         - bud
@@ -120,7 +121,6 @@ spec:
         - -t
         - $(params.pr_repo)-$(params.pr_number)
         - .
-      image: quay.io/buildah/stable
       securityContext:
         privileged: true
       volumeMounts:
@@ -131,20 +131,21 @@ spec:
       workingDir: /gen-source
 
     - name: push
+      image: quay.io/buildah/stable
       command:
         - buildah
         - push
         - --tls-verify=$(params.TLSVERIFY)
         - $(params.pr_repo)-$(params.pr_number)
-        - docker://image-registry.openshift-image-registry.svc:5000/thoth-ci/$(params.pr_repo)-$(params.pr_number)
-      image: quay.io/buildah/stable
+        - docker://$(resources.inputs.image-base.url)/$(params.pr_repo)-$(params.pr_number)
       securityContext:
         privileged: true
       volumeMounts:
-        - mountPath: /var/lib/containers
-          name: varlibcontainers
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
+
   volumes:
-    - emptyDir: {}
-      name: varlibcontainers
-    - emptyDir: {}
-      name: gen-source
+    - name: varlibcontainers
+      emptyDir: {}
+    - name: gen-source
+      emptyDir: {}
