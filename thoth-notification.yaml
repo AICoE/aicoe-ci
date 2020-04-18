@@ -1,0 +1,31 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: chat-notification-
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      containers:
+        - name: chat-notification
+          image: registry.access.redhat.com/ubi8/ubi
+          command:
+            - "curl"
+            - "-X"
+            - "POST"
+            - "-H"
+            - "Content-Type: application/json; charset=UTF-8"
+            - "-d"
+            - "{'text':'I have just successfully synchronized an ArgoCD application: thoth-ci, see https://server-argocd.apps.thoth01.lab.upshift.rdu2.redhat.com/applications/thoth-ci-prod'}"
+            - "$(THOTH_DEVOPS_WEBHOOK_URL)"
+          env:
+            - name: THOTH_DEVOPS_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: chat-notification
+                  key: thoth-devops
+      restartPolicy: Never
+  backoffLimit: 2

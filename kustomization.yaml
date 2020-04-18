@@ -11,6 +11,14 @@ resources:
   - pipeline/triggertemplate.yaml
   - pipeline/triggerbinding.yaml
   - pipeline/eventlistener.yaml
+  - thoth-notification.yaml
 generators:
   - ./secret-generator.yaml
-
+# workaround from https://www.gitmemory.com/issue/argoproj/argo-cd/1639/494999921
+patchesJson6902:
+  - path: job-generate-name.yaml
+    target:
+      group: batch
+      version: v1
+      kind: Job
+      name: chat-notification-
