@@ -19,7 +19,7 @@ spec:
     # s2i thoth params
     - name: THOTH_ADVISE
       description: Advise the recommended stack by Thoth.
-      default: "1"
+      default: "0"
     - name: THOTH_ERROR_FALLBACK
       description: Fallback to the lock file present in the repository if the submitted Thoth analysis fails.
       default: "1"
@@ -60,7 +60,7 @@ spec:
       command: ["/bin/bash"]
       args:
         - -c
-        - oc get imagestream $(params.pr_repo)-$(params.pr_number) || oc create imagestream $(params.pr_repo)-$(params.pr_number) --lookup-local=true
+        - oc get imagestream $(params.pr_repo) || oc create imagestream $(params.pr_repo) --lookup-local=true
 
     - name: git-init-op
       resources:
@@ -137,7 +137,7 @@ spec:
         - push
         - --tls-verify=$(params.TLSVERIFY)
         - $(params.pr_repo)-$(params.pr_number)
-        - docker://$(resources.inputs.image-base.url)/$(params.pr_repo)-$(params.pr_number)
+        - docker://$(resources.inputs.image-base.url)/$(params.pr_repo):$(params.pr_number)
       securityContext:
         privileged: true
       volumeMounts:
