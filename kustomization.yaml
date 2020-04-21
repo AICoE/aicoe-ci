@@ -12,6 +12,9 @@ resources:
   - pipeline/triggerbinding.yaml
   - pipeline/eventlistener.yaml
   - thoth-notification.yaml
+  - catalog/buildah/buildah.yaml
+  - catalog/git/git-clone.yaml
+  - catalog/argocd/argocd.yaml
 generators:
   - ./secret-generator.yaml
 # workaround from https://www.gitmemory.com/issue/argoproj/argo-cd/1639/494999921
