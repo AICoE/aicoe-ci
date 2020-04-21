@@ -21,24 +21,18 @@ spec:
         type: pullRequest
 
   steps:
-    - name: items-check
-      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
-      command: ["/bin/bash"]
-      args: ['-c', 'ls -al']
-
-    - name: repo-items-recheck
+    - name: git-init-op
       image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
       workingDir: /workspace/repo
-      command: ["/bin/bash"]
-      args: ['-c', 'ls -al']
+      securityContext:
+        privileged: true
+      script: |
+        cp -r /workspace/pr/ /workspace/output/
+        git fetch origin pull/$(params.pr_number)/head:workbranch
+        git checkout workbranch
 
-    - name: output-items-recheck
-      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
-      workingDir: /workspace/output
-      command: ["/bin/bash"]
-      args: ['-c', 'ls -al']
-
-    - name: git-init-op
+    - name: run-coala
+      image: quay.io/thoth-station/thoth-coala:v0.10.2
       resources:
         limits:
           memory: "500Mi"
@@ -46,26 +40,8 @@ spec:
         requests:
           memory: "500Mi"
           cpu: "1"
-      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
       workingDir: /workspace/repo
-      securityContext:
-        privileged: true
-      command: ["/bin/bash"]
-      args:
-      - -c
-      - |
-        cp -r /workspace/pr/ /workspace/output/
-        git fetch origin pull/$(params.pr_number)/head:workbranch
-        git checkout workbranch
-
-    - name: run-coala
-      image: quay.io/thoth-station/thoth-coala:v0.10.2
-      workingDir: /workspace/repo
-      command: ["/bin/bash"]
-      args:
-      - -c
-      - |
-        echo "Coala Test"
+      script: |
         set +e
         out=$(coala --ci 2>&1)
         set -e
@@ -73,9 +49,9 @@ spec:
         if [[ $exit_code -ne 0 ]]; then
           code="failure"
           description="The coala test failed!"
-          echo "Coala Test failed!" > /workspace/output/pr/comments/new
-          echo "Logs:" >> /workspace/output/pr/comments/new
-          echo $out >> /workspace/output/pr/comments/new
+          # echo "Coala Test failed!" > /workspace/output/pr/comments/new
+          # echo "Logs:" >> /workspace/output/pr/comments/new
+          # echo $out >> /workspace/output/pr/comments/new
         else
           code="success"
           description="The coala test succeeded!"
