@@ -19,7 +19,7 @@ spec:
             - "-H"
             - "Content-Type: application/json; charset=UTF-8"
             - "-d"
-            - "{'text':'I have just successfully synchronized an ArgoCD application: thoth-ci, see https://server-argocd.apps.thoth01.lab.upshift.rdu2.redhat.com/applications/thoth-ci-prod'}"
+            - "{'threadKey': 'argocd-sync-succeeded-thoth-ci', 'text':'I have just successfully synchronized an ArgoCD application: thoth-ci, see https://server-argocd.apps.thoth01.lab.upshift.rdu2.redhat.com/applications/thoth-ci-prod'}"
             - "$(THOTH_DEVOPS_WEBHOOK_URL)"
           env:
             - name: THOTH_DEVOPS_WEBHOOK_URL
