@@ -1,0 +1,32 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Condition
+metadata:
+  name: retest-comment-check
+spec:
+  params:
+    - name: pr_comment
+      type: string
+    - name: pr_comment_author_association
+      type: string
+  resources:
+    - name: pr
+      type: pullRequest
+    - name: s2i-thoth
+      type: image
+  check:
+    image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
+    workingDir: /workspace/repo
+    securityContext:
+      privileged: true
+    script: |
+      author="$(params.pr_comment_author_association)"
+      if [ "$author" == "NONE" ] || [ "$author" == "FIRST_TIMER" ]; then
+          echo "Skipping PR, author association is not an valid: $author"
+          exit 1
+      fi
+
+      if [ "$(params.pr_comment)" == "/retest" ] || [ "$(params.pr_comment)" == "DEFAULT" ]; then
+          exit 0
+      else
+          exit 1
+      fi

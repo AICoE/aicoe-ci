@@ -1,0 +1,33 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Condition
+metadata:
+  name: deploy-comment-check
+spec:
+  params:
+    - name: pr_comment
+      type: string
+    - name: pr_comment_author_association
+      type: string
+  resources:
+    - name: pr
+      type: pullRequest
+    - name: s2i-thoth
+      type: image
+  check:
+    image: $(resources.inputs.s2i-thoth.url)
+    workingDir: /workspace/repo
+    securityContext:
+      privileged: true
+    script: |
+      # Skip if the comment was not opened by an OWNER or MEMBER
+      author="$(params.pr_comment_author_association)"
+      if [ "$author" -ne "OWNER" ] || [ "$author" -ne "MEMBER" ]; then
+          echo "Skipping PR, author is not an OWNER or MEMBER: $author"
+          exit 1
+      fi
+
+      if [ "$(params.pr_comment)" == "/deploy" ]; then
+          exit 0
+      else
+          exit 1
+      fi
