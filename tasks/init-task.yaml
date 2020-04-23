@@ -1,0 +1,75 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: init-task
+  labels:
+    app: thoth-ci
+spec:
+  params:
+    - name: event_action
+      type: string
+    - name: pr_merged
+      type: string
+    - name: pr_comment
+      type: string
+    - name: pr_comment_author
+      type: string
+    - name: pr_comment_author_association
+      type: string
+  resources:
+    inputs:
+      - name: pr
+        type: pullRequest
+      - name: s2i-thoth
+        type: image
+    outputs:
+      - name: pr
+        type: pullRequest
+  steps:
+    - name: init-ops
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        cp -r /workspace/pr/ /workspace/output/
+        if [ "$(params.event_action)" == "opened" ]; then
+          echo "Thanks for Opening the Pull Request.
+          I can assist you with following commands:
+            /retest : To Rerun the test checks.
+            /deploy : To deploy the commit in test environment.
+          " > /workspace/output/pr/comments/open
+        elif [ "$(params.event_action)" == "closed" ] && [ "$(params.pr_merged)" == "true" ]; then
+          echo "Successfully Merged.
+          Thanks for the contribution." > /workspace/output/pr/comments/close
+        elif [ "$(params.event_action)" == "closed" ]; then
+          echo "You can Re-Open the Pull Request.
+          Thanks for the contribution." > /workspace/output/pr/comments/close
+        fi
+
+        author_association="$(params.pr_comment_author_association)"
+        msg=""
+        case $(params.pr_comment) in
+          "/retest" )
+            if [ "$author_association" == "NONE" ] || [ "$author_association" == "FIRST_TIMER" ]; then
+              msg="Hi @$(params.pr_comment_author)
+              Unauthorised to run /retest command."
+            fi;;
+          "/deploy" )
+            if [ "$author_association" != "OWNER" ] || [ "$author_association" != "MEMBER" ]; then
+              msg="Hi @$(params.pr_comment_author)
+              Unauthorised to run /deploy command.
+              Need to be either an OWNER or MEMBER."
+            fi;;
+          /* )
+            msg="Hi @$(params.pr_comment_author)
+            you may command me for:
+              /retest : To Rerun the test checks.
+              /deploy : To deploy the commit in test environment."
+            ;;
+          * )
+            exit 0;;
+        esac
+        if [[ ! -z "$msg" ]]; then
+          echo "$msg" > /workspace/output/pr/comments/comment
+        fi
