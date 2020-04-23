@@ -7,11 +7,19 @@ metadata:
     app: thoth-ci
 spec:
   params:
+    - name: event_action
+      type: string
     - name: pr_number
       type: string
     - name: pr_repo
       type: string
-    - name: event_action
+    - name: pr_merged
+      type: string
+    - name: pr_comment
+      type: string
+    - name: pr_comment_author
+      type: string
+    - name: pr_comment_author_association
       type: string
   resources:
     - name: git-repo
@@ -24,32 +32,20 @@ spec:
       type: pullRequest
 
   tasks:
-    - name: issue-open-run
+    - name: init-task-run
       taskRef:
-        name: issue-open
+        name: init-task
       params:
-        - name: pr_number
-          value: $(params.pr_number)
         - name: event_action
           value: $(params.event_action)
-      resources:
-        inputs:
-          - name: s2i-thoth
-            resource: s2i-thoth
-          - name: pr
-            resource: pr-source
-        outputs:
-          - name: pr
-            resource: pr-source
-
-    - name: issue-close-run
-      taskRef:
-        name: issue-close
-      params:
-        - name: pr_number
-          value: $(params.pr_number)
-        - name: event_action
-          value: $(params.event_action)
+        - name: pr_comment
+          value: $(params.pr_comment)
+        - name: pr_comment_author
+          value: $(params.pr_comment_author)
+        - name: pr_comment_author_association
+          value: $(params.pr_comment_author_association)
+        - name: pr_merged
+          value: $(params.pr_merged)
       resources:
         inputs:
           - name: s2i-thoth
@@ -63,6 +59,27 @@ spec:
     - name: coala-run
       taskRef:
         name: coala-check
+      conditions:
+        - conditionRef: action-check
+          params:
+            - name: event_action
+              value: $(params.event_action)
+          resources:
+            - name: s2i-thoth
+              resource: s2i-thoth
+            - name: pr
+              resource: pr-source
+        - conditionRef: retest-comment-check
+          params:
+            - name: pr_comment
+              value: $(params.pr_comment)
+            - name: pr_comment_author_association
+              value: $(params.pr_comment_author_association)
+          resources:
+            - name: s2i-thoth
+              resource: s2i-thoth
+            - name: pr
+              resource: pr-source
       params:
         - name: pr_number
           value: $(params.pr_number)
@@ -77,10 +94,33 @@ spec:
         outputs:
           - name: pr
             resource: pr-source
+      runAfter:
+        - init-task-run
 
     - name: pytest-run
       taskRef:
         name: pytest-check
+      conditions:
+        - conditionRef: action-check
+          params:
+            - name: event_action
+              value: $(params.event_action)
+          resources:
+            - name: s2i-thoth
+              resource: s2i-thoth
+            - name: pr
+              resource: pr-source
+        - conditionRef: retest-comment-check
+          params:
+            - name: pr_comment
+              value: $(params.pr_comment)
+            - name: pr_comment_author_association
+              value: $(params.pr_comment_author_association)
+          resources:
+            - name: s2i-thoth
+              resource: s2i-thoth
+            - name: pr
+              resource: pr-source
       params:
         - name: pr_number
           value: $(params.pr_number)
@@ -95,10 +135,78 @@ spec:
         outputs:
           - name: pr
             resource: pr-source
+      runAfter:
+        - init-task-run
 
     - name: pr-build-run
       taskRef:
         name: pr-s2i-build
+      conditions:
+        - conditionRef: action-check
+          params:
+            - name: event_action
+              value: $(params.event_action)
+          resources:
+            - name: s2i-thoth
+              resource: s2i-thoth
+            - name: pr
+              resource: pr-source
+        - conditionRef: retest-comment-check
+          params:
+            - name: pr_comment
+              value: $(params.pr_comment)
+            - name: pr_comment_author_association
+              value: $(params.pr_comment_author_association)
+          resources:
+            - name: s2i-thoth
+              resource: s2i-thoth
+            - name: pr
+              resource: pr-source
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: pr_repo
+          value: $(params.pr_repo)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
+          - name: image-base
+            resource: image-base
+          - name: repo
+            resource: git-repo
+          - name: pr
+            resource: pr-source
+        outputs:
+          - name: pr
+            resource: pr-source
+      runAfter:
+        - init-task-run
+
+    - name: pr-build-release-run
+      taskRef:
+        name: release-to-quay
+      conditions:
+        - conditionRef: action-check
+          params:
+            - name: event_action
+              value: $(params.event_action)
+          resources:
+            - name: s2i-thoth
+              resource: s2i-thoth
+            - name: pr
+              resource: pr-source
+        - conditionRef: deploy-comment-check
+          params:
+            - name: pr_comment
+              value: $(params.pr_comment)
+            - name: pr_comment_author_association
+              value: $(params.pr_comment_author_association)
+          resources:
+            - name: s2i-thoth
+              resource: s2i-thoth
+            - name: pr
+              resource: pr-source
       params:
         - name: pr_number
           value: $(params.pr_number)
@@ -115,5 +223,4 @@ spec:
           - name: pr
             resource: pr-source
       runAfter:
-        - coala-run
-        - pytest-run
+        - init-task-run
