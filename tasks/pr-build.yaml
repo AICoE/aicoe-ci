@@ -53,14 +53,15 @@ spec:
         type: pullRequest
       - name: repo
         type: git
+    outputs:
+      - name: pr
+        type: pullRequest
 
   steps:
     - name: oc-create-image
       image: quay.io/openshift/origin-cli:latest
-      command: ["/bin/bash"]
-      args:
-        - -c
-        - oc get imagestream $(params.pr_repo) || oc create imagestream $(params.pr_repo) --lookup-local=true
+      script: |
+        oc get imagestream $(params.pr_repo) || oc create imagestream $(params.pr_repo) --lookup-local=true
 
     - name: git-init-op
       resources:
@@ -74,10 +75,7 @@ spec:
       workingDir: /workspace/repo
       securityContext:
         privileged: true
-      command: ["/bin/bash"]
-      args:
-        - -c
-        - |
+      script: |
           cp -r /workspace/pr/ /workspace/output/
           git fetch origin pull/$(params.pr_number)/head:workbranch
           git checkout workbranch
@@ -143,6 +141,30 @@ spec:
       volumeMounts:
         - name: varlibcontainers
           mountPath: /var/lib/containers
+
+    - name: run-build
+      image: quay.io/openshift/origin-cli:latest
+      script: |
+        set +e
+        out=$(buildah images $(params.pr_repo)-$(params.pr_number):latest 2>&1)
+        set -e
+        exit_code=$?
+        if [[ $exit_code -ne 0 ]]; then
+          code="failure"
+          description="The image build test failed!"
+        else
+          code="success"
+          description="The image build test succeeded!"
+        fi
+        cat <<EOF > /workspace/output/pr/status/build.json
+        {
+          "State": "$code",
+          "Target": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/",
+          "Desc": "$description",
+          "Label": "thoth-ci/build-check"
+        }
+        EOF
+
 
   volumes:
     - name: varlibcontainers
