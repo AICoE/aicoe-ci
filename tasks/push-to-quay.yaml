@@ -34,7 +34,7 @@ spec:
         - docker://quay.io/thoth-station/$(params.pr_repo):$(params.pr_number)  # quay.io/thoth-station this is to be parameterized
       volumeMounts:
         - name: quay-creds
-          mountPath: /pushsecret/.dockerconfigjson
+          mountPath: /pushsecret
           readOnly: true
 
   volumes:
