@@ -1,0 +1,24 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: git-issue-comment-binding
+  labels:
+    app: thoth-ci
+spec:
+  params:
+  - name: event_action
+    value: $(body.action)
+  - name: pr_number
+    value: $(body.issue.number)
+  - name: pr_repo
+    value: $(body.repository.name)
+  - name: pr_url
+    value: $(body.issue.html_url)
+  - name: repo_url
+    value: $(body.repository.html_url)
+  - name: pr_comment
+    value: $(body.comment.body)
+  - name: pr_comment_author
+    value: $(body.comment.user.login)
+  - name: pr_comment_author_association
+    value: $(body.comment.author_association)

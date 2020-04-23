@@ -1,0 +1,20 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: git-pr-binding
+  labels:
+    app: thoth-ci
+spec:
+  params:
+  - name: event_action
+    value: $(body.action)
+  - name: pr_number
+    value: $(body.number)
+  - name: pr_repo
+    value: $(body.pull_request.base.repo.name)
+  - name: pr_url
+    value: $(body.pull_request.html_url)
+  - name: repo_url
+    value: $(body.pull_request.base.repo.html_url)
+  - name: pr_merged
+    value: $(body.pull_request.merged)

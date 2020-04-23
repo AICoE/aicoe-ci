@@ -1,0 +1,47 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: thoth-ci-listener
+  labels:
+    app: thoth-ci
+spec:
+  serviceAccountName: thoth-ci-webhook
+  triggers:
+    - name: github-pull-request
+      interceptors:
+        - github:
+            secretRef:
+              secretName: github-secret
+              secretKey: webhooksecret
+            eventTypes:
+              - pull_request
+      bindings:
+        - name: git-pr-binding
+      template:
+        name: git-pr-template
+
+    - name: github-pull-request-comment
+      interceptors:
+        - github:
+            secretRef:
+              secretName: github-secret
+              secretKey: webhooksecret
+            eventTypes:
+              - issue_comment
+      bindings:
+        - name: git-issue-comment-binding
+      template:
+        name: git-pr-template
+
+    # - name: github-check-run
+    #   interceptors:
+    #     - github:
+    #         secretRef:
+    #           secretName: github-secret
+    #           secretKey: webhooksecret
+    #         eventTypes:
+    #           - check_run
+    #   bindings:
+    #     - name: qebhwt-binding
+    #   template:
+    #     name: qebhwt-template
