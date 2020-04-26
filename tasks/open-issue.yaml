@@ -16,23 +16,25 @@ spec:
         type: pullRequest
       - name: s2i-thoth
         type: image
+      - name: ubi8
+        type: image
     outputs:
       - name: pr
         type: pullRequest
   steps:
     - name: items-check
-      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
+      image: registry.access.redhat.com/ubi8/ubi-minimal # use $(resources.inputs.ubi8.url) in ocp4.x
       script: |
         ls -al
 
     - name: pr-items-check
-      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
+      image: registry.access.redhat.com/ubi8/ubi-minimal # use $(resources.inputs.ubi8.url) in ocp4.x
       workingDir: /workspace/pr
       script: |
         ls -al
 
     - name: open-pr
-      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
+      image: registry.access.redhat.com/ubi8/ubi-minimal # use $(resources.inputs.ubi8.url) in ocp4.x
       workingDir: /workspace/repo
       securityContext:
         privileged: true

@@ -3,23 +3,28 @@ apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
   name: thoth-s2i
-  labels:
-    app: thoth-ci
 spec:
   type: image
   params:
     - name: url
       value: quay.io/thoth-station/s2i-thoth-ubi8-py36:v0.11.14
-
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
   name: image-base
-  labels:
-    app: thoth-ci
 spec:
   type: image
   params:
     - name: url
       value: image-registry.openshift-image-registry.svc:5000/thoth-ci
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: ubi8
+spec:
+  type: image
+  params:
+    - name: url
+      value: registry.access.redhat.com/ubi8/ubi-minimal
