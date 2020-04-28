@@ -38,6 +38,10 @@ spec:
       params:
         - name: event_action
           value: $(params.event_action)
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: pr_repo
+          value: $(params.pr_repo)
         - name: pr_comment
           value: $(params.pr_comment)
         - name: pr_comment_author

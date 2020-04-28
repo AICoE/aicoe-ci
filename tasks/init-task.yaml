@@ -8,6 +8,10 @@ spec:
   params:
     - name: event_action
       type: string
+    - name: pr_number
+      type: string
+    - name: pr_repo
+      type: string
     - name: pr_merged
       type: string
     - name: pr_comment
@@ -29,6 +33,13 @@ spec:
     - name: init-ops
       image: $(resources.inputs.s2i-thoth.url)
       workingDir: /workspace/repo
+      resources:
+        limits:
+          memory: "500Mi"
+          cpu: "1"
+        requests:
+          memory: "500Mi"
+          cpu: "1"
       securityContext:
         privileged: true
       script: |
@@ -72,4 +83,11 @@ spec:
         esac
         if [[ ! -z "$msg" ]]; then
           echo "$msg" > /workspace/output/pr/comments/comment
+        fi
+
+    - name: oc-create-image
+      image: quay.io/openshift/origin-cli:latest
+      script: |
+        if [ "$(params.event_action)" == "closed" ] && [ "$(params.pr_merged)" == "true" ]; then
+          oc delete pipelinerun pipelinerun-$(params.pr_repo)-pr-$(params.pr_number)-$(uid)
         fi
