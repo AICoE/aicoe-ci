@@ -31,6 +31,16 @@ spec:
         git fetch origin pull/$(params.pr_number)/head:workbranch
         git checkout workbranch
 
+    - name: set-running-state
+      image: registry.access.redhat.com/ubi8/ubi-minimal
+      script: |
+        cat <<EOF > /workspace/output/pr/status/coala.json
+        {
+          "State": "running",
+          "Label": "thoth-ci/coala-check"
+        }
+        EOF
+
     - name: run-coala
       image: quay.io/thoth-station/thoth-coala:v0.10.2
       resources:
