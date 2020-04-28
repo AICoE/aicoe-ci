@@ -8,7 +8,7 @@ resources:
   - tasks/push-to-quay.yaml
   - tasks/pytest-checks.yaml
   - tasks/resource.yaml
-  - tasks/tag-release-tasks.yaml
+  - tasks/tag-release-task.yaml
   - pipeline/pipeline.yaml
   - pipeline/tag-release-pipeline.yaml
   - manifests/thoth-notification.yaml
