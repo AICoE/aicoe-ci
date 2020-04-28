@@ -2,26 +2,26 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - tasks/resource.yaml
-  - tasks/close-issue.yaml
-  - tasks/open-issue.yaml
   - tasks/coala-checks.yaml
   - tasks/pytest-checks.yaml
   - tasks/pr-build.yaml
   - pipeline/pipeline.yaml
-  - pipeline/triggertemplate.yaml
-  - pipeline/triggerbinding.yaml
-  - pipeline/eventlistener.yaml
-  - thoth-notification.yaml
+  - manifests/thoth-notification.yaml
   - catalog/buildah/buildah.yaml
   - catalog/git/git-clone.yaml
   - catalog/argocd/argocd.yaml
+  - trigger/eventlistener.yaml
+  - trigger/git-issue-comment-binding.yaml
+  - trigger/git-pr-binding.yaml
+  - trigger/triggertemplate.yaml
 generators:
-  - ./secret-generator.yaml
+  - ./manifests/secret-generator.yaml
 # workaround from https://www.gitmemory.com/issue/argoproj/argo-cd/1639/494999921
 patchesJson6902:
-  - path: job-generate-name.yaml
+  - path: manifests/job-generate-name.yaml
     target:
       group: batch
       version: v1
       kind: Job
       name: chat-notification-
+      namespace: argocd
