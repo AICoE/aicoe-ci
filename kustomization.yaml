@@ -8,7 +8,9 @@ resources:
   - tasks/push-to-quay.yaml
   - tasks/pytest-checks.yaml
   - tasks/resource.yaml
+  - tasks/tag-release-tasks.yaml
   - pipeline/pipeline.yaml
+  - pipeline/tag-release-pipeline.yaml
   - manifests/thoth-notification.yaml
   - manifests/binding.yaml
   - manifests/role.yaml
@@ -19,7 +21,9 @@ resources:
   - trigger/eventlistener.yaml
   - trigger/git-issue-comment-binding.yaml
   - trigger/git-pr-binding.yaml
-  - trigger/triggertemplate.yaml
+  - trigger/git-pr-template.yaml
+  - trigger/git-tag-binding.yaml
+  - trigger/git-tag-template.yaml
 generators:
   - ./manifests/secret-generator.yaml
 # workaround from https://www.gitmemory.com/issue/argoproj/argo-cd/1639/494999921
