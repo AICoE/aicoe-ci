@@ -115,7 +115,7 @@ spec:
         - -f
         - /gen-source/Dockerfile.gen
         - -t
-        - $(params.repo_name)-$(params.git_ref)
+        - $(params.repo_name)
         - .
       securityContext:
         privileged: true
@@ -133,7 +133,7 @@ spec:
         - push
         - --authfile=/pushsecret/.dockerconfigjson
         - --tls-verify=$(params.TLSVERIFY)
-        - $(params.repo_name)-$(params.git_ref)
+        - $(params.repo_name)
         - docker://quay.io/thoth-station/$(params.repo_name):$(params.git_ref)  # quay.io/thoth-station this is to be parameterized
       securityContext:
         privileged: true
