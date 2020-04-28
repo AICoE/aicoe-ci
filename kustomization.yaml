@@ -1,10 +1,13 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - tasks/resource.yaml
   - tasks/coala-checks.yaml
-  - tasks/pytest-checks.yaml
+  - tasks/init-task.yaml
+  - tasks/pr-build-release-quay.yaml
   - tasks/pr-build.yaml
+  - tasks/push-to-quay.yaml
+  - tasks/pytest-checks.yaml
+  - tasks/resource.yaml
   - pipeline/pipeline.yaml
   - manifests/thoth-notification.yaml
   - catalog/buildah/buildah.yaml
