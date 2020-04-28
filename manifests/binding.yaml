@@ -23,5 +23,4 @@ subjects:
   - kind: ServiceAccount
     name: thoth-ci-webhook
 roleRef:
-  kind: Role
   name: edit
