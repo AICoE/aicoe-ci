@@ -1,0 +1,16 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: git-tag-binding
+  labels:
+    app: thoth-ci
+spec:
+  params:
+  - name: git_ref
+    value: $(body.ref)
+  - name: git_ref_type
+    value: $(body.ref_type)
+  - name: repo_name
+    value: $(body.repository.name)
+  - name: repo_url
+    value: $(body.repository.html_url)

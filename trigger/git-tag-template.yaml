@@ -1,0 +1,50 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: git-tag-template
+  labels:
+    app: thoth-ci
+spec:
+  params:
+    - name: git_ref
+      description: Git reference value.
+    - name: git_ref_type
+      description: Type of ref Tag or Branch.
+    - name: repo_name
+      description: The git repository title.
+    - name: repo_url
+      description: The git repository url
+
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        name:  pipelinerun-tag-release
+        labels:
+          app: thoth-ci
+      spec:
+        serviceAccountName: thoth-ci
+        pipelineRef:
+          name: tag-release-pipeline
+        params:
+          - name: git_ref
+            value: $(params.git_ref)
+          - name: git_ref_type
+            value: $(params.git_ref_type)
+          - name: repo_name
+            value: $(params.repo_name)
+        resources:
+          - name: git-repo
+            resourceSpec:
+              type: git
+              params:
+                - name: revision
+                  value: master
+                - name: url
+                  value: $(params.repo_url)
+          - name: s2i-thoth
+            resourceRef:
+              name: thoth-s2i
+          - name: image-base
+            resourceRef:
+              name: image-base

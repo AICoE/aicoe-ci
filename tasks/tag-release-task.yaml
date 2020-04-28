@@ -1,0 +1,154 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: tag-release
+spec:
+  params:
+    # buildah params
+    - name: PATH_CONTEXT
+      default: .
+      description: The location of the path to run s2i from.
+    - name: TLSVERIFY
+      default: "false"
+      description:
+        Verify the TLS on the registry endpoint (for push/pull to a non-TLS
+        registry)
+    - name: LOGLEVEL
+      description: Log level when running the S2I binary
+      default: "0"
+    # s2i thoth params
+    - name: THOTH_ADVISE
+      description: Advise the recommended stack by Thoth.
+      default: "0"
+    - name: THOTH_ERROR_FALLBACK
+      description: Fallback to the lock file present in the repository if the submitted Thoth analysis fails.
+      default: "1"
+    - name: THOTH_DRY_RUN
+      description: Submit stack to Thoth, but do not use the recommended one.
+      default: "0"
+    - name: "THAMOS_DEBUG"
+      description: "Thamos enable debug mode."
+      default: "0"
+    - name: "THAMOS_VERBOSE"
+      description: Run thamos in verbose mode.
+      default: "1"
+    - name: THOTH_PROVENANCE_CHECK
+      description: Provenance check is verify the stack.
+      default: "1"
+    - name: THAMOS_NO_PROGRESSBAR
+      description: Disable progressbar for thamos.
+      default: "1"
+    # tag params
+    - name: git_ref
+      description: Git reference value.
+    - name: git_ref_type
+      description: Type of ref Tag or Branch.
+    - name: repo_name
+      description: The git repository title.
+
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+      - name: image-base
+        type: image
+      - name: repo
+        type: git
+
+  steps:
+    - name: repo-items-recheck
+      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
+      workingDir: /workspace/repo
+      command: ["/bin/bash"]
+      args: ['-c', 'ls -al']
+
+    - name: git-init-op
+      resources:
+        limits:
+          memory: "500Mi"
+          cpu: "1"
+        requests:
+          memory: "500Mi"
+          cpu: "1"
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+          git fetch origin --tags
+          git checkout tags/$(params.git_ref) -b workbranch
+
+    - name: generate
+      command:
+        - /usr/local/bin/s2i
+        - --loglevel=$(params.LOGLEVEL)
+        - build
+        - $(params.PATH_CONTEXT)
+        - $(resources.inputs.s2i-thoth.url)
+        - --as-dockerfile
+        - /gen-source/Dockerfile.gen
+      image: quay.io/openshift-pipeline/s2i:nightly
+      volumeMounts:
+        - mountPath: /gen-source
+          name: gen-source
+      workingDir: /workspace/repo
+
+    - name: build
+      image: quay.io/buildah/stable
+      command:
+        - buildah
+        - bud
+        - --build-arg
+        - THOTH_ADVISE=$(params.THOTH_ADVISE)
+        - --build-arg
+        - THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK)
+        - --build-arg
+        - THOTH_DRY_RUN=$(params.THOTH_DRY_RUN)
+        - --build-arg
+        - THAMOS_DEBUG=$(params.THAMOS_DEBUG)
+        - --build-arg
+        - THAMOS_VERBOSE=$(params.THAMOS_VERBOSE)
+        - --build-arg
+        - THOTH_PROVENANCE_CHECK=$(params.THOTH_PROVENANCE_CHECK)
+        - --tls-verify=$(params.TLSVERIFY)
+        - --layers
+        - -f
+        - /gen-source/Dockerfile.gen
+        - -t
+        - $(params.repo_name)-$(params.git_ref)
+        - .
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - mountPath: /var/lib/containers
+          name: varlibcontainers
+        - mountPath: /gen-source
+          name: gen-source
+      workingDir: /gen-source
+
+    - name: push
+      image: quay.io/buildah/stable
+      command:
+        - buildah
+        - push
+        - --authfile=/pushsecret/.dockerconfigjson
+        - --tls-verify=$(params.TLSVERIFY)
+        - $(params.repo_name)-$(params.git_ref)
+        - docker://quay.io/thoth-station/$(params.repo_name):$(params.git_ref)  # quay.io/thoth-station this is to be parameterized
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
+        - name: quay-creds
+          mountPath: /pushsecret/
+          readOnly: true
+
+  volumes:
+    - name: varlibcontainers
+      emptyDir: {}
+    - name: gen-source
+      emptyDir: {}
+    - name: quay-creds
+      secret:
+        secretName: thoth-station-thoth-pusher-secret  # Name of the secret to be parameterized
