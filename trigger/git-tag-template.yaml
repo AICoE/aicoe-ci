@@ -19,7 +19,7 @@ spec:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
       metadata:
-        name:  pipelinerun-tag-release
+        name:  pipelinerun-tag-release-$(uid)
         labels:
           app: thoth-ci
       spec:
