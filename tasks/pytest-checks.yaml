@@ -31,6 +31,16 @@ spec:
         git fetch origin pull/$(params.pr_number)/head:workbranch
         git checkout workbranch
 
+    - name: set-running-state
+      image: registry.access.redhat.com/ubi8/ubi-minimal
+      script: |
+        cat <<EOF > /workspace/output/pr/status/pytest.json
+        {
+          "State": "running",
+          "Label": "thoth-ci/pytest-check"
+        }
+        EOF
+
     - name: check-pip-version
       image: quay.io/thoth-station/thoth-pytest:v0.10.2
       workingDir: /workspace/repo

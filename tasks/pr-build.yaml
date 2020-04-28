@@ -76,9 +76,19 @@ spec:
       securityContext:
         privileged: true
       script: |
-          cp -r /workspace/pr/ /workspace/output/
-          git fetch origin pull/$(params.pr_number)/head:workbranch
-          git checkout workbranch
+        cp -r /workspace/pr/ /workspace/output/
+        git fetch origin pull/$(params.pr_number)/head:workbranch
+        git checkout workbranch
+
+    - name: set-running-state
+      image: registry.access.redhat.com/ubi8/ubi-minimal
+      script: |
+        cat <<EOF > /workspace/output/pr/status/build.json
+        {
+          "State": "running",
+          "Label": "thoth-ci/build-check"
+        }
+        EOF
 
     - name: generate
       command:
@@ -164,7 +174,6 @@ spec:
           "Label": "thoth-ci/build-check"
         }
         EOF
-
 
   volumes:
     - name: varlibcontainers
