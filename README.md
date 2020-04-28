@@ -31,39 +31,7 @@ We welcome contributions, The following components can be worked on:
 
     - ultrahook secret and deployment with destination as Thoth-CI listener
 
-- Setup other components required:
-
-  ```bash
-  oc apply -f custom-role/serviceaccount.yaml
-  oc apply -f custom-role/role.yaml
-  oc apply -f custom-role/binding.yaml
-  ```
-
-- Setup the CI/CD Pipeline
-
-  Tasks and Pipeline Resource
-
-  ```bash
-  oc apply -f tasks/resource.yaml
-
-  # Few tasks already contributed:
-  oc apply -f tasks/close-issue.yaml
-  oc apply -f tasks/open-issue.yaml
-  oc apply -f tasks/coala-checks.yaml
-  oc apply -f tasks/pytest-checks.yaml
-  oc apply -f tasks/pr-build.yaml
-  ```
-
-  Pipeline
-
-  ```bash
-  oc apply -f pipeline/pipeline.yaml
-  oc apply -f pipeline/triggertemplate.yaml
-  oc apply -f pipeline/triggerbinding.yaml
-  oc apply -f pipeline/eventlistener.yaml
-  ```
-
-Or all in one with `kustomize build . | oc --namespace ... -f -`
+Create the application with `kustomize build . | oc --namespace ... -f -`
 
 _NOTE_: components can be searched/deleted by label app.<br>
 `--selector 'app=thoth-ci'`

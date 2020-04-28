@@ -10,6 +10,9 @@ resources:
   - tasks/resource.yaml
   - pipeline/pipeline.yaml
   - manifests/thoth-notification.yaml
+  - manifests/binding.yaml
+  - manifests/role.yaml
+  - manifests/serviceaccount.yaml
   - catalog/buildah/buildah.yaml
   - catalog/git/git-clone.yaml
   - catalog/argocd/argocd.yaml
