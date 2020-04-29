@@ -31,16 +31,6 @@ spec:
         git fetch origin pull/$(params.pr_number)/head:workbranch
         git checkout workbranch
 
-    - name: set-running-state
-      image: registry.access.redhat.com/ubi8/ubi-minimal
-      script: |
-        cat <<EOF > /workspace/output/pr/status/pytest.json
-        {
-          "State": "running",
-          "Label": "thoth-ci/pytest-check"
-        }
-        EOF
-
     - name: check-pip-version
       image: quay.io/thoth-station/thoth-pytest:v0.10.2
       workingDir: /workspace/repo
@@ -52,19 +42,6 @@ spec:
       workingDir: /workspace/repo
       script: |
         micropipenv --version
-
-    - name: run-micropipenv
-      image: quay.io/thoth-station/thoth-pytest:v0.10.2
-      resources:
-        limits:
-          memory: "500Mi"
-          cpu: "1"
-        requests:
-          memory: "500Mi"
-          cpu: "1"
-      workingDir: /workspace/repo
-      script: |
-        micropipenv install --dev
 
     - name: run-pytest
       image: quay.io/thoth-station/thoth-pytest:v0.10.2
@@ -78,6 +55,7 @@ spec:
       workingDir: /workspace/repo
       script: |
         if [[ -f setup.py ]]; then
+          micropipenv install --dev
           set +e
           out=$(python3 setup.py test 2>&1)
           exit_code=$?

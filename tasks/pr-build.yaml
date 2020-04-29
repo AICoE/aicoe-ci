@@ -153,7 +153,7 @@ spec:
           mountPath: /var/lib/containers
 
     - name: run-build
-      image: quay.io/openshift/origin-cli:latest
+      image: quay.io/buildah/stable
       script: |
         set +e
         out=$(buildah images $(params.pr_repo)-$(params.pr_number):latest 2>&1)
