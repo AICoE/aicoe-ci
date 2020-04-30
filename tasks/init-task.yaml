@@ -78,8 +78,6 @@ spec:
               /retest : To Rerun the test checks.
               /deploy : To deploy the commit in test environment."
             ;;
-          * )
-            exit 0;;
         esac
         if [ ! -z "$msg" ]; then
           echo "$msg" > /workspace/output/pr/comments/comment
@@ -89,5 +87,5 @@ spec:
       image: quay.io/openshift/origin-cli:latest
       script: |
         if [ "$(params.event_action)" == "closed" -a "$(params.pr_merged)" == "true" ]; then
-          oc delete pipelinerun pipelinerun-$(params.pr_repo)-pr-$(params.pr_number)-$(uid)
+          oc delete pipelinerun  --selector component=pipelinerun-$(params.pr_repo)-pr-$(params.pr_number)
         fi

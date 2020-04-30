@@ -37,6 +37,7 @@ spec:
         name:  pipelinerun-$(params.pr_repo)-pr-$(params.pr_number)-$(uid)
         labels:
           app: thoth-ci
+          component: pipelinerun-$(params.pr_repo)-pr-$(params.pr_number)
       spec:
         serviceAccountName: thoth-ci
         pipelineRef:
