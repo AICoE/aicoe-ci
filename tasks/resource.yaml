@@ -14,12 +14,22 @@ spec:
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
+  name: ubi8-minimal
+spec:
+  type: image
+  params:
+    - name: url
+      value: registry.access.redhat.com/ubi8/ubi-minimal:latest
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
   name: ubi8
 spec:
   type: image
   params:
     - name: url
-      value: registry.access.redhat.com/ubi8/ubi-minimal
+      value: registry.access.redhat.com/ubi8/ubi:latest
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
