@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: release-to-quay
+  name: pr-build-release
 spec:
   params:
     # buildah params
@@ -17,6 +17,15 @@ spec:
       description: Log level when running the S2I binary
       default: "0"
     # s2i thoth params
+    - name: ENABLE_PIPENV
+      description: Set this variable to use Pipenv.
+      default: '1'
+    - name: UPGRADE_PIP_TO_LATEST
+      description: Set this variable to have the 'pip' program and related python packages be upgraded.
+      default: '1'
+    - name: WEB_CONCURRENCY
+      description: Set this to change the default setting for the number of workers.
+      default: '1'
     - name: THOTH_ADVISE
       description: Advise the recommended stack by Thoth.
       default: "0"
@@ -56,13 +65,6 @@ spec:
 
   steps:
     - name: git-init-op
-      resources:
-        limits:
-          memory: "500Mi"
-          cpu: "1"
-        requests:
-          memory: "500Mi"
-          cpu: "1"
       image: $(resources.inputs.s2i-thoth.url)
       workingDir: /workspace/repo
       securityContext:
@@ -92,6 +94,12 @@ spec:
       command:
         - buildah
         - bud
+        - --build-arg
+        - ENABLE_PIPENV=$(params.ENABLE_PIPENV)
+        - --build-arg
+        - UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST)
+        - --build-arg
+        - WEB_CONCURRENCY=$(params.WEB_CONCURRENCY)
         - --build-arg
         - THOTH_ADVISE=$(params.THOTH_ADVISE)
         - --build-arg

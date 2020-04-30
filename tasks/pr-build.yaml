@@ -17,6 +17,15 @@ spec:
       description: Log level when running the S2I binary
       default: "0"
     # s2i thoth params
+    - name: ENABLE_PIPENV
+      description: Set this variable to use Pipenv.
+      default: '1'
+    - name: UPGRADE_PIP_TO_LATEST
+      description: Set this variable to have the 'pip' program and related python packages be upgraded.
+      default: '1'
+    - name: WEB_CONCURRENCY
+      description: Set this to change the default setting for the number of workers.
+      default: '1'
     - name: THOTH_ADVISE
       description: Advise the recommended stack by Thoth.
       default: "0"
@@ -58,19 +67,7 @@ spec:
         type: pullRequest
 
   steps:
-    - name: oc-create-image
-      image: quay.io/openshift/origin-cli:latest
-      script: |
-        oc get imagestream $(params.pr_repo) || oc create imagestream $(params.pr_repo) --lookup-local=true
-
     - name: git-init-op
-      resources:
-        limits:
-          memory: "500Mi"
-          cpu: "1"
-        requests:
-          memory: "500Mi"
-          cpu: "1"
       image: $(resources.inputs.s2i-thoth.url)
       workingDir: /workspace/repo
       securityContext:
@@ -79,16 +76,6 @@ spec:
         cp -r /workspace/pr/ /workspace/output/
         git fetch origin pull/$(params.pr_number)/head:workbranch
         git checkout workbranch
-
-    - name: set-running-state
-      image: registry.access.redhat.com/ubi8/ubi-minimal
-      script: |
-        cat <<EOF > /workspace/output/pr/status/build.json
-        {
-          "State": "running",
-          "Label": "thoth-ci/build-check"
-        }
-        EOF
 
     - name: generate
       command:
@@ -110,6 +97,12 @@ spec:
       command:
         - buildah
         - bud
+        - --build-arg
+        - ENABLE_PIPENV=$(params.ENABLE_PIPENV)
+        - --build-arg
+        - UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST)
+        - --build-arg
+        - WEB_CONCURRENCY=$(params.WEB_CONCURRENCY)
         - --build-arg
         - THOTH_ADVISE=$(params.THOTH_ADVISE)
         - --build-arg
@@ -137,20 +130,6 @@ spec:
         - mountPath: /gen-source
           name: gen-source
       workingDir: /gen-source
-
-    - name: push
-      image: quay.io/buildah/stable
-      command:
-        - buildah
-        - push
-        - --tls-verify=$(params.TLSVERIFY)
-        - $(params.pr_repo)-$(params.pr_number)
-        - docker://$(resources.inputs.image-base.url)/$(params.pr_repo):$(params.pr_number)
-      securityContext:
-        privileged: true
-      volumeMounts:
-        - name: varlibcontainers
-          mountPath: /var/lib/containers
 
     - name: run-build
       image: quay.io/buildah/stable

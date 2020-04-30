@@ -189,7 +189,7 @@ spec:
 
     - name: pr-build-release-run
       taskRef:
-        name: release-to-quay
+        name: pr-build-release
       conditions:
         - conditionRef: action-check
           params:
