@@ -26,8 +26,8 @@ spec:
       type: git
     - name: s2i-thoth
       type: image
-    - name: image-base
-      type: image-base
+    - name: ubi
+      type: image
     - name: pr-source
       type: pullRequest
 
@@ -52,8 +52,8 @@ spec:
           value: $(params.pr_merged)
       resources:
         inputs:
-          - name: s2i-thoth
-            resource: s2i-thoth
+          - name: ubi
+            resource: ubi
           - name: pr
             resource: pr-source
         outputs:
@@ -69,10 +69,8 @@ spec:
             - name: event_action
               value: $(params.event_action)
           resources:
-            - name: s2i-thoth
-              resource: s2i-thoth
-            - name: pr
-              resource: pr-source
+            - name: ubi
+              resource: ubi
         - conditionRef: retest-comment-check
           params:
             - name: pr_comment
@@ -80,10 +78,8 @@ spec:
             - name: pr_comment_author_association
               value: $(params.pr_comment_author_association)
           resources:
-            - name: s2i-thoth
-              resource: s2i-thoth
-            - name: pr
-              resource: pr-source
+            - name: ubi
+              resource: ubi
       params:
         - name: pr_number
           value: $(params.pr_number)
@@ -110,10 +106,8 @@ spec:
             - name: event_action
               value: $(params.event_action)
           resources:
-            - name: s2i-thoth
-              resource: s2i-thoth
-            - name: pr
-              resource: pr-source
+            - name: ubi
+              resource: ubi
         - conditionRef: retest-comment-check
           params:
             - name: pr_comment
@@ -121,10 +115,8 @@ spec:
             - name: pr_comment_author_association
               value: $(params.pr_comment_author_association)
           resources:
-            - name: s2i-thoth
-              resource: s2i-thoth
-            - name: pr
-              resource: pr-source
+            - name: ubi
+              resource: ubi
       params:
         - name: pr_number
           value: $(params.pr_number)
@@ -151,10 +143,8 @@ spec:
             - name: event_action
               value: $(params.event_action)
           resources:
-            - name: s2i-thoth
-              resource: s2i-thoth
-            - name: pr
-              resource: pr-source
+            - name: ubi
+              resource: ubi
         - conditionRef: retest-comment-check
           params:
             - name: pr_comment
@@ -162,10 +152,8 @@ spec:
             - name: pr_comment_author_association
               value: $(params.pr_comment_author_association)
           resources:
-            - name: s2i-thoth
-              resource: s2i-thoth
-            - name: pr
-              resource: pr-source
+            - name: ubi
+              resource: ubi
       params:
         - name: pr_number
           value: $(params.pr_number)
@@ -175,8 +163,6 @@ spec:
         inputs:
           - name: s2i-thoth
             resource: s2i-thoth
-          - name: image-base
-            resource: image-base
           - name: repo
             resource: git-repo
           - name: pr
@@ -196,10 +182,8 @@ spec:
             - name: event_action
               value: $(params.event_action)
           resources:
-            - name: s2i-thoth
-              resource: s2i-thoth
-            - name: pr
-              resource: pr-source
+            - name: ubi
+              resource: ubi
         - conditionRef: deploy-comment-check
           params:
             - name: pr_comment
@@ -207,10 +191,8 @@ spec:
             - name: pr_comment_author_association
               value: $(params.pr_comment_author_association)
           resources:
-            - name: s2i-thoth
-              resource: s2i-thoth
-            - name: pr
-              resource: pr-source
+            - name: ubi
+              resource: ubi
       params:
         - name: pr_number
           value: $(params.pr_number)
@@ -220,8 +202,6 @@ spec:
         inputs:
           - name: s2i-thoth
             resource: s2i-thoth
-          - name: image-base
-            resource: image-base
           - name: repo
             resource: git-repo
           - name: pr

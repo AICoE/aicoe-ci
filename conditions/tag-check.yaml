@@ -18,7 +18,6 @@ spec:
       type: image
   check:
     image: $(resources.inputs.ubi.url)
-    workingDir: /workspace/repo
     securityContext:
       privileged: true
     script: |

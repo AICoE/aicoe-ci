@@ -22,7 +22,7 @@ spec:
 
   steps:
     - name: git-init-op
-      image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
+      image: $(resources.inputs.s2i-thoth.url)
       workingDir: /workspace/repo
       securityContext:
         privileged: true

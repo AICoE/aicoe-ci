@@ -24,14 +24,14 @@ spec:
     inputs:
       - name: pr
         type: pullRequest
-      - name: s2i-thoth
+      - name: ubi
         type: image
     outputs:
       - name: pr
         type: pullRequest
   steps:
     - name: init-ops
-      image: $(resources.inputs.s2i-thoth.url)
+      image: $(resources.inputs.ubi.url)
       workingDir: /workspace/repo
       resources:
         limits:

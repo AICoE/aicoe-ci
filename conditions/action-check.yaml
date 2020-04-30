@@ -7,13 +7,10 @@ spec:
     - name: event_action
       type: string
   resources:
-    - name: pr
-      type: pullRequest
-    - name: s2i-thoth
+    - name: ubi
       type: image
   check:
-    image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
-    workingDir: /workspace/repo
+    image: $(resources.inputs.ubi.url)
     securityContext:
       privileged: true
     script: |

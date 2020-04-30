@@ -43,7 +43,7 @@ spec:
       default: "1"
     - name: THOTH_PROVENANCE_CHECK
       description: Provenance check is verify the stack.
-      default: "1"
+      default: "0"
     - name: THAMOS_NO_PROGRESSBAR
       description: Disable progressbar for thamos.
       default: "1"
@@ -55,8 +55,6 @@ spec:
   resources:
     inputs:
       - name: s2i-thoth
-        type: image
-      - name: image-base
         type: image
       - name: pr
         type: pullRequest

@@ -9,13 +9,10 @@ spec:
     - name: pr_comment_author_association
       type: string
   resources:
-    - name: pr
-      type: pullRequest
-    - name: s2i-thoth
+    - name: ubi
       type: image
   check:
-    image: $(resources.inputs.s2i-thoth.url)
-    workingDir: /workspace/repo
+    image: $(resources.inputs.ubi.url)
     securityContext:
       privileged: true
     script: |

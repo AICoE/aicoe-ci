@@ -69,9 +69,9 @@ spec:
           - name: s2i-thoth
             resourceRef:
               name: thoth-s2i
-          - name: image-base
+          - name: ubi
             resourceRef:
-              name: image-base
+              name: ubi8
           - name: pr-source
             resourceSpec:
               type: pullRequest

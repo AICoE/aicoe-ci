@@ -16,6 +16,9 @@ spec:
     - name: LOGLEVEL
       description: Log level when running the S2I binary
       default: "0"
+    - name: BASE_REPO
+      description: Base repository on quay.
+      default: "thoth-station"
     # s2i thoth params
     - name: ENABLE_PIPENV
       description: Set this variable to use Pipenv.
@@ -43,7 +46,7 @@ spec:
       default: "1"
     - name: THOTH_PROVENANCE_CHECK
       description: Provenance check is verify the stack.
-      default: "1"
+      default: "0"
     - name: THAMOS_NO_PROGRESSBAR
       description: Disable progressbar for thamos.
       default: "1"
@@ -55,8 +58,6 @@ spec:
   resources:
     inputs:
       - name: s2i-thoth
-        type: image
-      - name: image-base
         type: image
       - name: pr
         type: pullRequest
@@ -136,7 +137,7 @@ spec:
         - --authfile=/pushsecret/.dockerconfigjson
         - --tls-verify=$(params.TLSVERIFY)
         - $(params.pr_repo)-$(params.pr_number)
-        - docker://quay.io/thoth-station/$(params.pr_repo):$(params.pr_number)  # quay.io/thoth-station this is to be parameterized
+        - docker://quay.io/$(params.BASE_REPO)/$(params.pr_repo):$(params.pr_number)  # quay.io/thoth-station this is to be parameterized
       securityContext:
         privileged: true
       volumeMounts:
