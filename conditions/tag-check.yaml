@@ -10,16 +10,19 @@ spec:
       description: Type of ref Tag or Branch.
     - name: repo_name
       description: The git repository title.
+    - name: BASE_REPO
+      description: Base repository on quay.
+      default: "thoth-station"
   resources:
-    - name: s2i-thoth
+    - name: ubi
       type: image
   check:
-    image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
+    image: $(resources.inputs.ubi.url)
     workingDir: /workspace/repo
     securityContext:
       privileged: true
     script: |
-      STATUS=$(curl -s -o /dev/null -w '%{http_code}' "https://quay.io/api/v1/repository/thoth-station/$(params.repo_name)")
+      STATUS=$(curl -s -o /dev/null -w '%{http_code}' "https://quay.io/api/v1/repository/$(params.BASE_REPO)/$(params.repo_name)")
       if [ $STATUS -eq 200 -a "$(params.git_ref_type)" == "tag" ]; then
           exit 0
       else
