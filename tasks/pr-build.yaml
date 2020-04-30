@@ -154,6 +154,9 @@ spec:
 
     - name: run-build
       image: quay.io/buildah/stable
+      volumeMounts:
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
       script: |
         set +e
         out=$(buildah images $(params.pr_repo)-$(params.pr_number):latest 2>&1)
