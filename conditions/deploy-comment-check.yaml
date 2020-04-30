@@ -19,9 +19,8 @@ spec:
     securityContext:
       privileged: true
     script: |
-      # Skip if the comment was not opened by an OWNER or MEMBER
-      author="$(params.pr_comment_author_association)"
-      if [ "$author" -ne "OWNER" ] || [ "$author" -ne "MEMBER" ]; then
+      author_association="$(params.pr_comment_author_association)"
+      if ! { [ "$author_association" != "OWNER" -o "$author_association" != "MEMBER" ]; }; then
           echo "Skipping PR, author is not an OWNER or MEMBER: $author"
           exit 1
       fi

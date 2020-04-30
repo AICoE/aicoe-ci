@@ -25,6 +25,18 @@ spec:
     - name: tag-release-run
       taskRef:
         name: tag-release
+      conditions:
+        - conditionRef: tag-check
+          params:
+            - name: git_ref
+              value: $(params.git_ref)
+            - name: git_ref_type
+              value: $(params.git_ref_type)
+            - name: repo_name
+              value: $(params.repo_name)
+          resources:
+            - name: s2i-thoth
+              resource: s2i-thoth
       params:
         - name: git_ref
           value: $(params.git_ref)

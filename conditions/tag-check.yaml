@@ -1,0 +1,27 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Condition
+metadata:
+  name: tag-check
+spec:
+  params:
+    - name: git_ref
+      description: Git reference value.
+    - name: git_ref_type
+      description: Type of ref Tag or Branch.
+    - name: repo_name
+      description: The git repository title.
+  resources:
+    - name: s2i-thoth
+      type: image
+  check:
+    image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest # use $(resources.inputs.s2i-thoth.url) in ocp4.x
+    workingDir: /workspace/repo
+    securityContext:
+      privileged: true
+    script: |
+      STATUS=$(curl -s -o /dev/null -w '%{http_code}' "https://quay.io/api/v1/repository/thoth-station/$(params.repo_name)")
+      if [ $STATUS -eq 200 -a "$(params.git_ref_type)" == "tag" ]; then
+          exit 0
+      else
+          exit 1
+      fi
