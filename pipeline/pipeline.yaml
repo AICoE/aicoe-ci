@@ -13,6 +13,8 @@ spec:
       type: string
     - name: pr_repo
       type: string
+    - name: repo_full_name
+      type: string
     - name: pr_merged
       type: string
     - name: pr_comment

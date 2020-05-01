@@ -12,6 +12,8 @@ spec:
     value: $(body.issue.number)
   - name: pr_repo
     value: $(body.repository.name)
+  - name: repo_full_name
+    value: $(body.repository.full_name)
   - name: pr_url
     value: $(body.issue.html_url)
   - name: repo_url

@@ -11,10 +11,12 @@ spec:
   - name: pr_number
     value: $(body.number)
   - name: pr_repo
-    value: $(body.pull_request.base.repo.name)
+    value: $(body.repository.name)
+  - name: repo_full_name
+    value: $(body.repository.full_name)
   - name: pr_url
     value: $(body.pull_request.html_url)
   - name: repo_url
-    value: $(body.pull_request.base.repo.html_url)
+    value: $(body.repository.html_url)
   - name: pr_merged
     value: $(body.pull_request.merged)

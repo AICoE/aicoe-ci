@@ -71,9 +71,9 @@ spec:
       securityContext:
         privileged: true
       script: |
-          cp -r /workspace/pr/ /workspace/output/
-          git fetch origin pull/$(params.pr_number)/head:workbranch
-          git checkout workbranch
+        cp -r /workspace/pr/ /workspace/output/
+        git fetch origin pull/$(params.pr_number)/head:workbranch
+        git checkout workbranch
 
     - name: generate
       command:
@@ -137,7 +137,7 @@ spec:
         - --authfile=/pushsecret/.dockerconfigjson
         - --tls-verify=$(params.TLSVERIFY)
         - $(params.pr_repo)-$(params.pr_number)
-        - docker://quay.io/$(params.BASE_REPO)/$(params.pr_repo):$(params.pr_number)  # quay.io/thoth-station this is to be parameterized
+        - docker://quay.io/$(params.BASE_REPO)/$(params.pr_repo):$(params.pr_number)
       securityContext:
         privileged: true
       volumeMounts:
