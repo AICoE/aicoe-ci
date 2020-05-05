@@ -1,0 +1,99 @@
+{
+  "Number": 54,
+  "Title": "Remove env files",
+  "Body": "Signed-off-by: Harshad Reddy Nalla <hnalla@redhat.com>",
+  "Labels": [
+    {
+      "ID": 0,
+      "URL": "https://api.github.com/repos/harshad16/test/labels/accepted",
+      "Name": "accepted",
+      "Description": "",
+      "Color": "66aa00"
+    },
+    {
+      "ID": 0,
+      "URL": "https://api.github.com/repos/harshad16/test/labels/good%20first%20issue",
+      "Name": "good first issue",
+      "Description": "Good for newcomers",
+      "Color": "7057ff"
+    }
+  ],
+  "Sha": "279443e8eed786a1b6fc2207adb809a9ac81abb2",
+  "Ref": "refs/pull/54/head",
+  "Source": "remove-env",
+  "Target": "master",
+  "Base": {
+    "Ref": "master",
+    "Sha": "35b396fcdf08a2621c6c0b5bfe3818b1ff4f7aa3",
+    "Repo": {
+      "ID": "180859566",
+      "Namespace": "harshad16",
+      "Name": "test",
+      "FullName": "harshad16/test",
+      "Perm": {
+        "Pull": false,
+        "Push": false,
+        "Admin": false
+      },
+      "Branch": "master",
+      "Private": false,
+      "Clone": "https://github.com/harshad16/test.git",
+      "CloneSSH": "git@github.com:harshad16/test.git",
+      "Link": "https://github.com/harshad16/test",
+      "Created": "2019-04-11T19:01:50Z",
+      "Updated": "2020-05-01T18:07:47Z"
+    }
+  },
+  "Head": {
+    "Ref": "remove-env",
+    "Sha": "279443e8eed786a1b6fc2207adb809a9ac81abb2",
+    "Repo": {
+      "ID": "180859566",
+      "Namespace": "harshad16",
+      "Name": "test",
+      "FullName": "harshad16/test",
+      "Perm": {
+        "Pull": false,
+        "Push": false,
+        "Admin": false
+      },
+      "Branch": "master",
+      "Private": false,
+      "Clone": "https://github.com/harshad16/test.git",
+      "CloneSSH": "git@github.com:harshad16/test.git",
+      "Link": "https://github.com/harshad16/test",
+      "Created": "2019-04-11T19:01:50Z",
+      "Updated": "2020-05-01T18:07:47Z"
+    }
+  },
+  "Fork": "harshad16/test",
+  "Link": "https://github.com/harshad16/test/pull/54.diff",
+  "State": "open",
+  "Closed": false,
+  "Draft": false,
+  "Merged": false,
+  "Mergeable": true,
+  "Rebaseable": true,
+  "MergeableState": "",
+  "MergeSha": "dc9f26c6115460aa1fa11042bf3bebf22adf4c04",
+  "Author": {
+    "Login": "harshad16",
+    "Name": "",
+    "Email": "",
+    "Avatar": "https://avatars0.githubusercontent.com/u/14028058?v=4",
+    "Link": "https://github.com/harshad16",
+    "Created": "0001-01-01T00:00:00Z",
+    "Updated": "0001-01-01T00:00:00Z"
+  },
+  "Assignees": null,
+  "Milestone": {
+    "Number": 0,
+    "ID": 0,
+    "Title": "",
+    "Description": "",
+    "Link": "",
+    "State": ""
+  },
+  "Created": "2020-05-01T17:01:22Z",
+  "Updated": "2020-05-01T20:34:56Z"
+}
