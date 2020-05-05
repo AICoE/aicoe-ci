@@ -48,3 +48,30 @@ spec:
             resource: s2i-thoth
           - name: repo
             resource: git-repo
+
+    - name: tag-deploy-run
+      taskRef:
+        name: tag-deploy
+      conditions:
+        - conditionRef: tag-deploy-check
+          params:
+            - name: git_ref
+              value: $(params.git_ref)
+            - name: git_ref_type
+              value: $(params.git_ref_type)
+            - name: repo_name
+              value: $(params.repo_name)
+          resources:
+            - name: ubi
+              resource: ubi
+      params:
+        - name: git_ref
+          value: $(params.git_ref)
+        - name: repo_name
+          value: $(params.repo_name)
+        - name: IMAGESTREAM_PATH
+          value: "$(params.repo_name)/overlays/test/imagestreamtag.yaml"
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth

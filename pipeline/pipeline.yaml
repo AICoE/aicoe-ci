@@ -175,6 +175,35 @@ spec:
       runAfter:
         - init-task-run
 
+    - name: pr-merge-run
+      taskRef:
+        name: pr-merge
+      conditions:
+        - conditionRef: action-check
+          params:
+            - name: event_action
+              value: $(params.event_action)
+          resources:
+            - name: ubi
+              resource: ubi
+        - conditionRef: approve-comment-check
+          params:
+            - name: pr_comment
+              value: $(params.pr_comment)
+            - name: pr_comment_author_association
+              value: $(params.pr_comment_author_association)
+          resources:
+            - name: ubi
+              resource: ubi
+      resources:
+        inputs:
+          - name: ubi
+            resource: ubi
+          - name: pr
+            resource: pr-source
+      runAfter:
+        - init-task-run
+
     - name: pr-build-release-run
       taskRef:
         name: pr-build-release

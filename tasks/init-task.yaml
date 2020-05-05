@@ -72,11 +72,19 @@ spec:
               Unauthorised to run /deploy command.
               Need to be either an OWNER or MEMBER."
             fi;;
+          "/approve" )
+            if [ "$author_association" != "OWNER" ]; then
+              msg="Hi @$(params.pr_comment_author)
+              Unauthorised to run /approve command.
+              Need to be an OWNER."
+            fi;;
           /* )
             msg="Hi @$(params.pr_comment_author)
             you may command me for:
               /retest : To Rerun the test checks.
               /deploy : To deploy the commit in test environment."
+            ;;
+          * )
             ;;
         esac
         if [ ! -z "$msg" ]; then
