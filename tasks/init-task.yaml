@@ -94,6 +94,6 @@ spec:
     - name: oc-create-image
       image: quay.io/openshift/origin-cli:latest
       script: |
-        if [ "$(params.event_action)" == "closed" -a "$(params.pr_merged)" == "true" ]; then
+        if [ "$(params.event_action)" == "closed" -o "$(params.pr_merged)" == "true" ]; then
           oc delete pipelinerun  --selector component=pipelinerun-$(params.pr_repo)-pr-$(params.pr_number)
         fi
