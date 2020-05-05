@@ -74,22 +74,26 @@ spec:
         git checkout tags/$(params.git_ref) -b workbranch
 
     - name: generate
-      command:
-        - /usr/local/bin/s2i
-        - --loglevel=$(params.LOGLEVEL)
-        - build
-        - $(params.PATH_CONTEXT)
-        - $(resources.inputs.s2i-thoth.url)
-        - --as-dockerfile
-        - /gen-source/Dockerfile.gen
       image: quay.io/openshift-pipeline/s2i:nightly
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        if [[ -f Dockerfile ]]; then
+          cp -rf . /gen-source/
+          mv /gen-source/Dockerfile /gen-source/Dockerfile.gen
+        else
+          /usr/local/bin/s2i --loglevel=$(params.LOGLEVEL) build $(params.PATH_CONTEXT) $(resources.inputs.s2i-thoth.url) --as-dockerfile /gen-source/Dockerfile.gen
+        fi
       volumeMounts:
         - mountPath: /gen-source
           name: gen-source
-      workingDir: /workspace/repo
 
     - name: build
       image: quay.io/buildah/stable
+      workingDir: /gen-source
+      securityContext:
+        privileged: true
       command:
         - buildah
         - bud
@@ -118,14 +122,11 @@ spec:
         - -t
         - $(params.repo_name)-$(params.git_ref)
         - .
-      securityContext:
-        privileged: true
       volumeMounts:
         - mountPath: /var/lib/containers
           name: varlibcontainers
         - mountPath: /gen-source
           name: gen-source
-      workingDir: /gen-source
 
     - name: push
       image: quay.io/buildah/stable
