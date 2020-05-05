@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Condition
 metadata:
-  name: retest-comment-check
+  name: approve-comment-check
 spec:
   params:
     - name: pr_comment
