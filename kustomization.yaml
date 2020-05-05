@@ -3,8 +3,10 @@ kind: Kustomization
 resources:
   - conditions/action-check.yaml
   - conditions/deploy-comment-check.yaml
+  - conditions/approve-comment-check.yaml
   - conditions/retest-comment-check.yaml
   - conditions/tag-check.yaml
+  - conditions/tag-deploy-check.yaml
   - tasks/resource.yaml
   - tasks/coala-checks.yaml
   - tasks/init-task.yaml
@@ -12,6 +14,7 @@ resources:
   - tasks/pr-build.yaml
   - tasks/pytest-checks.yaml
   - tasks/tag-release-task.yaml
+  - tasks/tag-deploy-task.yaml
   - pipeline/pipeline.yaml
   - pipeline/tag-release-pipeline.yaml
   - manifests/thoth-notification.yaml
