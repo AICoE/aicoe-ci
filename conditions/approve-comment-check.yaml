@@ -20,7 +20,6 @@ spec:
       if [ "$author" == "OWNER" ]; then
         if [ "$(params.pr_comment)" == "/approve" ]; then
             exit 0
-        else
-            exit 1
         fi
       fi
+      exit 1
