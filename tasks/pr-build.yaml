@@ -52,6 +52,8 @@ spec:
       description: Pull Request number.
     - name: pr_repo
       description: Pull Request repository.
+    - name: pipelinerun_name
+      description: pipelinerun associated.
   resources:
     inputs:
       - name: s2i-thoth
@@ -76,19 +78,21 @@ spec:
         git checkout workbranch
 
     - name: generate
-      command:
-        - /usr/local/bin/s2i
-        - --loglevel=$(params.LOGLEVEL)
-        - build
-        - $(params.PATH_CONTEXT)
-        - $(resources.inputs.s2i-thoth.url)
-        - --as-dockerfile
-        - /gen-source/Dockerfile.gen
       image: quay.io/openshift-pipeline/s2i:nightly
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        if [[ -f Dockerfile ]]; then
+          cp -rf . /gen-source/
+          mv /gen-source/Dockerfile /gen-source/Dockerfile.gen
+        else
+          /usr/local/bin/s2i --loglevel=$(params.LOGLEVEL) build $(params.PATH_CONTEXT) $(resources.inputs.s2i-thoth.url) --as-dockerfile /gen-source/Dockerfile.gen
+        fi
       volumeMounts:
         - mountPath: /gen-source
           name: gen-source
-      workingDir: /workspace/repo
+
 
     - name: build
       image: quay.io/buildah/stable
@@ -149,7 +153,7 @@ spec:
         cat <<EOF > /workspace/output/pr/status/build.json
         {
           "State": "$code",
-          "Target": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/",
+          "Target": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
           "Desc": "$description",
           "Label": "thoth-ci/build-check"
         }

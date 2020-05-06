@@ -23,6 +23,8 @@ spec:
       type: string
     - name: pr_comment_author_association
       type: string
+    - name: pipelinerun_name
+      type: string
   resources:
     - name: git-repo
       type: git
@@ -85,6 +87,8 @@ spec:
       params:
         - name: pr_number
           value: $(params.pr_number)
+        - name: pipelinerun_name
+          value: $(params.pipelinerun_name)
       resources:
         inputs:
           - name: pr
@@ -122,6 +126,8 @@ spec:
       params:
         - name: pr_number
           value: $(params.pr_number)
+        - name: pipelinerun_name
+          value: $(params.pipelinerun_name)
       resources:
         inputs:
           - name: pr
@@ -161,6 +167,8 @@ spec:
           value: $(params.pr_number)
         - name: pr_repo
           value: $(params.pr_repo)
+        - name: pipelinerun_name
+          value: $(params.pipelinerun_name)
       resources:
         inputs:
           - name: s2i-thoth

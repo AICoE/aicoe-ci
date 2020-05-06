@@ -7,7 +7,9 @@ metadata:
 spec:
   params:
     - name: pr_number
-      type: string
+      description: Pull Request number.
+    - name: pipelinerun_name
+      description: pipelinerun associated.
   resources:
     inputs:
       - name: s2i-thoth
@@ -60,7 +62,7 @@ spec:
           cat <<EOF > /workspace/output/pr/status/coala.json
           {
             "State": "$code",
-            "Target": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/",
+            "Target": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
             "Desc": "$description",
             "Label": "thoth-ci/coala-check"
           }

@@ -31,12 +31,13 @@ spec:
     - name: pr_comment_author_association
       description: comment author's association.
       default: "DEFAULT"
-
+    - name: pipelinerun_name
+      description: pipelinerun associated.
   resourcetemplates:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
       metadata:
-        name:  pipelinerun-$(params.pr_repo)-pr-$(params.pr_number)-$(uid)
+        name: pipelinerun-$(params.pr_repo)-pr-$(params.pr_number)-$(uid)
         labels:
           app: thoth-ci
           component: pipelinerun-$(params.pr_repo)-pr-$(params.pr_number)
@@ -61,6 +62,8 @@ spec:
             value: $(params.pr_comment_author)
           - name: pr_comment_author_association
             value: $(params.pr_comment_author_association)
+          - name: pipelinerun_name
+            value: pipelinerun-$(params.pr_repo)-pr-$(params.pr_number)-$(uid)
         resources:
           - name: git-repo
             resourceSpec:
