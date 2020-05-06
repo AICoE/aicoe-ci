@@ -75,3 +75,5 @@ spec:
         inputs:
           - name: s2i-thoth
             resource: s2i-thoth
+      runAfter:
+        - tag-release-run

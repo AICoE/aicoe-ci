@@ -45,3 +45,11 @@ spec:
         - name: git-tag-binding
       template:
         name: git-tag-template
+
+    - name: webhook-tag-release
+      # interceptors:
+      #   - webhook:
+      bindings:
+        - name: webhook-tag-binding
+      template:
+        name: git-tag-template
