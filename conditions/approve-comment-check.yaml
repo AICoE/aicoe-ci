@@ -17,9 +17,8 @@ spec:
       privileged: true
     script: |
       author="$(params.pr_comment_author_association)"
-      if [ "$author" == "OWNER" ]; then
-        if [ "$(params.pr_comment)" == "/approve" ]; then
-            exit 0
-        fi
+      if [ "$author" == "OWNER" -a "$(params.pr_comment)" == "/approve" ]; then
+          exit 0
+      else
+          exit 1
       fi
-      exit 1
