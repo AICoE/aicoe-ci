@@ -22,13 +22,13 @@ spec:
     # s2i thoth params
     - name: ENABLE_PIPENV
       description: Set this variable to use Pipenv.
-      default: '1'
+      default: "1"
     - name: UPGRADE_PIP_TO_LATEST
       description: Set this variable to have the 'pip' program and related python packages be upgraded.
-      default: '1'
+      default: "1"
     - name: WEB_CONCURRENCY
       description: Set this to change the default setting for the number of workers.
-      default: '1'
+      default: "1"
     - name: THOTH_ADVISE
       description: Advise the recommended stack by Thoth.
       default: "0"
@@ -83,7 +83,7 @@ spec:
         - $(params.PATH_CONTEXT)
         - $(resources.inputs.s2i-thoth.url)
         - --as-dockerfile
-        - /gen-source/Dockerfile.gen
+        - /gen-source/Containerfile
       image: quay.io/openshift-pipeline/s2i:nightly
       volumeMounts:
         - mountPath: /gen-source
@@ -116,7 +116,7 @@ spec:
         - --tls-verify=$(params.TLSVERIFY)
         - --layers
         - -f
-        - /gen-source/Dockerfile.gen
+        - /gen-source/Containerfile
         - -t
         - $(params.pr_repo)-$(params.pr_number)
         - .
@@ -154,4 +154,4 @@ spec:
       emptyDir: {}
     - name: quay-creds
       secret:
-        secretName: thoth-station-thoth-pusher-secret  # Name of the secret to be parameterized
+        secretName: thoth-station-thoth-pusher-secret # Name of the secret to be parameterized

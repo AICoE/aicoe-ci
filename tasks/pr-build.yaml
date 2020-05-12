@@ -19,13 +19,13 @@ spec:
     # s2i thoth params
     - name: ENABLE_PIPENV
       description: Set this variable to use Pipenv.
-      default: '1'
+      default: "1"
     - name: UPGRADE_PIP_TO_LATEST
       description: Set this variable to have the 'pip' program and related python packages be upgraded.
-      default: '1'
+      default: "1"
     - name: WEB_CONCURRENCY
       description: Set this to change the default setting for the number of workers.
-      default: '1'
+      default: "1"
     - name: THOTH_ADVISE
       description: Advise the recommended stack by Thoth.
       default: "0"
@@ -85,14 +85,16 @@ spec:
       script: |
         if [[ -f Dockerfile ]]; then
           cp -rf . /gen-source/
-          mv /gen-source/Dockerfile /gen-source/Dockerfile.gen
+          mv /gen-source/Dockerfile /gen-source/Containerfile
+        elif [[ -f Containerfile ]]; then
+          cp -rf . /gen-source/
+          mv /gen-source/Containerfile /gen-source/Containerfile
         else
-          /usr/local/bin/s2i --loglevel=$(params.LOGLEVEL) build $(params.PATH_CONTEXT) $(resources.inputs.s2i-thoth.url) --as-dockerfile /gen-source/Dockerfile.gen
+          /usr/local/bin/s2i --loglevel=$(params.LOGLEVEL) build $(params.PATH_CONTEXT) $(resources.inputs.s2i-thoth.url) --as-dockerfile /gen-source/Containerfile
         fi
       volumeMounts:
         - mountPath: /gen-source
           name: gen-source
-
 
     - name: build
       image: quay.io/buildah/stable
@@ -120,7 +122,7 @@ spec:
         - --tls-verify=$(params.TLSVERIFY)
         - --layers
         - -f
-        - /gen-source/Dockerfile.gen
+        - /gen-source/Containerfile
         - -t
         - $(params.pr_repo)-$(params.pr_number)
         - .
