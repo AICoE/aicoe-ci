@@ -247,3 +247,20 @@ spec:
             resource: pr-source
       runAfter:
         - init-task-run
+
+    - name: pr-deploy-run
+      taskRef:
+        name: tag-deploy
+      params:
+        - name: git_ref
+          value: $(params.pr_number)
+        - name: repo_name
+          value: $(params.pr_repo)
+        - name: IMAGESTREAM_PATH
+          value: "$(params.pr_repo)/overlays/test/imagestreamtag.yaml"
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
+      runAfter:
+        - pr-build-release-run
