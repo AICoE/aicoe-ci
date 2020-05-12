@@ -34,7 +34,7 @@ spec:
       default: "1"
     - name: THOTH_DRY_RUN
       description: Submit stack to Thoth, but do not use the recommended one.
-      default: "0"
+      default: "1"
     - name: "THAMOS_DEBUG"
       description: "Thamos enable debug mode."
       default: "0"
@@ -85,12 +85,24 @@ spec:
       script: |
         if [[ -f Dockerfile ]]; then
           cp -rf . /gen-source/
-          mv /gen-source/Dockerfile /gen-source/Containerfile
+          mv /gen-source/Dockerfile /gen-source/Dockerfile.gen
         elif [[ -f Containerfile ]]; then
           cp -rf . /gen-source/
           mv /gen-source/Containerfile /gen-source/Containerfile
         else
-          /usr/local/bin/s2i --loglevel=$(params.LOGLEVEL) build $(params.PATH_CONTEXT) $(resources.inputs.s2i-thoth.url) --as-dockerfile /gen-source/Containerfile
+          /usr/local/bin/s2i build \
+          $(params.PATH_CONTEXT) \
+          $(resources.inputs.s2i-thoth.url) \
+          --env UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST) \
+          --env WEB_CONCURRENCY=$(params.WEB_CONCURRENCY) \
+          --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
+          --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \
+          --env THOTH_DRY_RUN=$(params.THOTH_DRY_RUN) \
+          --env THAMOS_DEBUG=$(params.THAMOS_DEBUG) \
+          --env THAMOS_VERBOSE=$(params.THAMOS_VERBOSE) \
+          --env THOTH_PROVENANCE_CHECK=$(params.THOTH_PROVENANCE_CHECK) \
+          --loglevel=$(params.LOGLEVEL) \
+          --as-dockerfile /gen-source/Containerfile
         fi
       volumeMounts:
         - mountPath: /gen-source
@@ -98,27 +110,12 @@ spec:
 
     - name: build
       image: quay.io/buildah/stable
+      workingDir: /gen-source
+      securityContext:
+        privileged: true
       command:
         - buildah
         - bud
-        - --build-arg
-        - ENABLE_PIPENV=$(params.ENABLE_PIPENV)
-        - --build-arg
-        - UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST)
-        - --build-arg
-        - WEB_CONCURRENCY=$(params.WEB_CONCURRENCY)
-        - --build-arg
-        - THOTH_ADVISE=$(params.THOTH_ADVISE)
-        - --build-arg
-        - THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK)
-        - --build-arg
-        - THOTH_DRY_RUN=$(params.THOTH_DRY_RUN)
-        - --build-arg
-        - THAMOS_DEBUG=$(params.THAMOS_DEBUG)
-        - --build-arg
-        - THAMOS_VERBOSE=$(params.THAMOS_VERBOSE)
-        - --build-arg
-        - THOTH_PROVENANCE_CHECK=$(params.THOTH_PROVENANCE_CHECK)
         - --tls-verify=$(params.TLSVERIFY)
         - --layers
         - -f
@@ -126,14 +123,11 @@ spec:
         - -t
         - $(params.pr_repo)-$(params.pr_number)
         - .
-      securityContext:
-        privileged: true
       volumeMounts:
         - mountPath: /var/lib/containers
           name: varlibcontainers
         - mountPath: /gen-source
           name: gen-source
-      workingDir: /gen-source
 
     - name: run-build
       image: quay.io/buildah/stable
