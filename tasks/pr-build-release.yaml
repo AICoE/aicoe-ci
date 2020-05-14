@@ -31,13 +31,13 @@ spec:
       default: "1"
     - name: THOTH_ADVISE
       description: Advise the recommended stack by Thoth.
-      default: "1"
+      default: "0"
     - name: THOTH_ERROR_FALLBACK
       description: Fallback to the lock file present in the repository if the submitted Thoth analysis fails.
       default: "1"
     - name: THOTH_DRY_RUN
       description: Submit stack to Thoth, but do not use the recommended one.
-      default: "0"
+      default: "1"
     - name: "THAMOS_DEBUG"
       description: "Thamos enable debug mode."
       default: "0"
@@ -83,7 +83,7 @@ spec:
       script: |
         if [[ -f Dockerfile ]]; then
           cp -rf . /gen-source/
-          mv /gen-source/Dockerfile /gen-source/Dockerfile.gen
+          mv /gen-source/Dockerfile /gen-source/Containerfile
         elif [[ -f Containerfile ]]; then
           cp -rf . /gen-source/
           mv /gen-source/Containerfile /gen-source/Containerfile

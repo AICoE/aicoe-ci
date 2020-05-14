@@ -32,14 +32,14 @@ spec:
       privileged: true
     script: |
       export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
-      git clone git@github.com:$(params.BASE_REPO)/$(params.CONFIG_REPO) /workspace/ConfigRepo
+      git clone git@github.com:$(params.BASE_REPO)/$(params.CONFIG_REPO) /workspace/configrepo
     volumeMounts:
       - name: ssh-config
         mountPath: /tekton/home/.ssh
 
   - name: patch-imagetag
     image: mikefarah/yq:3.2.1
-    workingdir: /workspace/ConfigRepo
+    workingdir: /workspace/configrepo
     script: |
       if [ ! -z "$(params.IMAGESTREAM_PATH)" ]; then
         echo "{\"spec\":{\"tags\":[{\"name\":\"latest\",\"from\":{\"kind\":\"DockerImage\",\"name\":\"quay.io/$(params.BASE_REPO)/$(params.repo_name):$(params.git_ref)\"},\"importPolicy\":{},\"referencePolicy\":{\"type\":\"Source\"}}]}}" | yq -P m -i -x $(params.IMAGESTREAM_PATH) -
@@ -49,7 +49,7 @@ spec:
     image: $(resources.inputs.s2i-thoth.url)
     securityContext:
       privileged: true
-    workingdir: /workspace/ConfigRepo
+    workingdir: /workspace/configrepo
     env:
       - name: GITHUB_USERNAME
         valueFrom:
