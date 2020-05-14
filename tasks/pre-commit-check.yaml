@@ -1,0 +1,71 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: pre-commit-check
+  labels:
+    app: thoth-ci
+spec:
+  params:
+    - name: pr_number
+      description: Pull Request number.
+    - name: pipelinerun_name
+      description: pipelinerun associated.
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+      - name: pr
+        type: pullRequest
+      - name: repo
+        type: git
+    outputs:
+      - name: pr
+        type: pullRequest
+
+  steps:
+    - name: git-init-op
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        cp -r /workspace/pr/ /workspace/output/
+        git fetch origin pull/$(params.pr_number)/head:workbranch
+        git checkout workbranch
+
+    - name: run-pre-commit
+      image: quay.io/thoth-station/thoth-coala:v0.10.2  # TODO: replace with image for pre-commit
+      resources:
+        limits:
+          memory: "500Mi"
+          cpu: "1"
+        requests:
+          memory: "500Mi"
+          cpu: "1"
+      workingDir: /workspace/repo
+      script: |
+        if [[ -f .pre-commit-config.yaml ]]; then
+          pre-commit install
+          set +e
+          out=$(pre-commit run --all-files 2>&1)
+          exit_code=$?
+          set -e
+          if [[ $exit_code -ne 0 ]]; then
+            code="failure"
+            description="The pre-commit test failed!"
+            # echo "Pre-Commit Test failed!" > /workspace/output/pr/comments/new
+            # echo "Logs:" >> /workspace/output/pr/comments/new
+            # echo $out >> /workspace/output/pr/comments/new
+          else
+            code="success"
+            description="The pre-commit test succeeded!"
+          fi
+          cat <<EOF > /workspace/output/pr/status/pre-commit.json
+          {
+            "State": "$code",
+            "Target": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
+            "Desc": "$description",
+            "Label": "thoth-ci/pre-commit-check"
+          }
+        EOF
+        fi
