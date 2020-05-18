@@ -41,4 +41,3 @@ patchesJson6902:
       version: v1
       kind: Job
       name: chat-notification-
-      namespace: argocd
