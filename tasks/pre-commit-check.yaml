@@ -34,7 +34,7 @@ spec:
         git checkout workbranch
 
     - name: run-pre-commit
-      image: quay.io/thoth-station/thoth-coala:v0.10.2  # TODO: replace with image for pre-commit
+      image: quay.io/thoth-station/thoth-precommit:v0.10.3
       resources:
         limits:
           memory: "500Mi"
