@@ -82,6 +82,8 @@ spec:
         if [[ -f Dockerfile ]]; then
           cp -rf . /gen-source/
           mv /gen-source/Dockerfile /gen-source/Containerfile
+        elif [[ -f Containerfile ]]; then
+          cp -rf . /gen-source/
         else
           /usr/local/bin/s2i build \
           $(params.PATH_CONTEXT) \
