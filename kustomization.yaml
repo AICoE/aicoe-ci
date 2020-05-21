@@ -13,6 +13,7 @@ resources:
   - tasks/pr-build-release.yaml
   - tasks/pr-build.yaml
   - tasks/pr-merge.yaml
+  - tasks/pre-commit-check.yaml
   - tasks/pytest-checks.yaml
   - tasks/tag-release-task.yaml
   - tasks/tag-deploy-task.yaml
