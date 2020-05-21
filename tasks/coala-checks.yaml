@@ -46,7 +46,7 @@ spec:
       script: |
         if [[ -f .coafile ]]; then
           set +e
-          out=$(coala --ci 2>&1)
+          out=$(coala --ci --no-autoapply-warn 2>&1)
           exit_code=$?
           set -e
           if [[ $exit_code -ne 0 ]]; then
