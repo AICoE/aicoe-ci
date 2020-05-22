@@ -2,3 +2,5 @@
     path = catalog
     url = https://github.com/tektoncd/catalog.git
     branch = v1beta1
+[submodule "catalog"]
+    branch = v1beta1
