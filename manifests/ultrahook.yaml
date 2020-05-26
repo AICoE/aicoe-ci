@@ -1,0 +1,55 @@
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: ultrahook
+spec:
+  lookupPolicy:
+    local: true
+  tags:
+    - name: latest
+      from:
+        kind: DockerImage
+        name: quay.io/thoth-station/ultrahook:v0.1.0
+      importPolicy: {}
+      referencePolicy:
+        type: Local
+---
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  name: ultrahook-thoth-ci
+spec:
+  replicas: 1
+  selector:
+    instance: ultrahook-thoth-ci
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        instance: ultrahook-thoth-ci
+    spec:
+      containers:
+        - env:
+            - name: ULTRAHOOK_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: api.key
+                  name: ultrahook
+            - name: ULTRAHOOK_SUBDOMAIN
+              value: thoth-ci
+            - name: ULTRAHOOK_DESTINATION
+              value: http://webhook-listener-thoth-ci.apps.thoth01.lab.upshift.rdu2.redhat.com/
+          image: ultrahook
+          imagePullPolicy: Always
+          name: ultrahook-thoth-ci
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources:
+            limits:
+              memory: 50Mi
+  test: false
+  triggers:
+    - type: ConfigChange

@@ -1,3 +1,6 @@
 - op: move
   from: /metadata/name
   path: /metadata/generateName
+- op: add
+  path: /metadata/namespace
+  value: "thoth-infra-stage"
