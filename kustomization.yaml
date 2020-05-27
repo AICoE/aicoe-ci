@@ -3,6 +3,7 @@ kind: Kustomization
 commonLabels:
   app.kubernetes.io/name: aicoe-ci
   app.kubernetes.io/component: tekton
+  app.kubernetes.io/version: v0.1.0
   app.kubernetes.io/managed-by: kustomize-ksops
 resources:
   - conditions/action-check.yaml
@@ -37,6 +38,7 @@ resources:
   - trigger/git-pr-template.yaml
   - trigger/git-tag-binding.yaml
   - trigger/git-tag-template.yaml
+  - trigger/webhook-tag-binding.yaml
 generators:
   - ./manifests/secret-generator.yaml
 # workaround from https://www.gitmemory.com/issue/argoproj/argo-cd/1639/494999921
