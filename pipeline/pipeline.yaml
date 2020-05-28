@@ -54,12 +54,18 @@ spec:
           value: $(params.pr_comment_author_association)
         - name: pr_merged
           value: $(params.pr_merged)
+        - name: pipelinerun_name
+          value: $(params.pipelinerun_name)
       resources:
         inputs:
           - name: ubi
             resource: ubi
           - name: pr
             resource: pr-source
+          - name: repo
+            resource: git-repo
+          - name: s2i-thoth
+            resource: s2i-thoth
         outputs:
           - name: pr
             resource: pr-source
