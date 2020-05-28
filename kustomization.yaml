@@ -12,6 +12,8 @@ resources:
   - conditions/retest-comment-check.yaml
   - conditions/tag-check.yaml
   - conditions/tag-deploy-check.yaml
+  - conditions/issue-check.yaml
+  - tasks/issue-release-task.yaml
   - tasks/resource.yaml
   - tasks/coala-checks.yaml
   - tasks/init-task.yaml
@@ -22,6 +24,7 @@ resources:
   - tasks/pytest-checks.yaml
   - tasks/tag-release-task.yaml
   - tasks/tag-deploy-task.yaml
+  - pipeline/issue-pipeline.yaml
   - pipeline/pipeline.yaml
   - pipeline/tag-release-pipeline.yaml
   - manifests/binding.yaml
@@ -38,6 +41,8 @@ resources:
   - trigger/git-pr-template.yaml
   - trigger/git-tag-binding.yaml
   - trigger/git-tag-template.yaml
+  - trigger/git-issue-binding.yaml
+  - trigger/git-issue-template.yaml
   - trigger/webhook-tag-binding.yaml
 generators:
   - ./manifests/secret-generator.yaml
