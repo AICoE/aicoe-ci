@@ -26,7 +26,7 @@ spec:
       description: comment on the pull request.
       default: "DEFAULT"
     - name: pr_comment_author
-      description: comment on the pull request.
+      description: author of the comment on the pull request.
       default: "DEFAULT"
     - name: pr_comment_author_association
       description: comment author's association.
