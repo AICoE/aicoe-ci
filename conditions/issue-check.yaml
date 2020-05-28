@@ -1,0 +1,25 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Condition
+metadata:
+  name: issue-check
+spec:
+  params:
+    - name: repo_name
+      description: The git repository title.
+    - name: BASE_REPO
+      description: Base repository on quay.
+      default: "harshad16"
+  resources:
+    - name: ubi
+      type: image
+  check:
+    image: $(resources.inputs.ubi.url)
+    securityContext:
+      privileged: true
+    script: |
+      STATUS=$(curl -s -o /dev/null -w '%{http_code}' "https://quay.io/api/v1/repository/$(params.BASE_REPO)/$(params.repo_name)")
+      if [ $STATUS -eq 200 ]; then
+          exit 0
+      else
+          exit 1
+      fi

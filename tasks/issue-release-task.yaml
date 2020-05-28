@@ -1,0 +1,222 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: issue-release
+spec:
+  params:
+    # buildah params
+    - name: PATH_CONTEXT
+      default: .
+      description: The location of the path to run s2i from.
+    - name: TLSVERIFY
+      default: "false"
+      description:
+        Verify the TLS on the registry endpoint (for push/pull to a non-TLS
+        registry)
+    - name: LOGLEVEL
+      description: Log level when running the S2I binaryx`x
+      default: "0"
+    - name: BASE_REPO
+      description: Base repository on quay.
+      default: "harshad16"
+    # s2i thoth params
+    - name: ENABLE_PIPENV
+      description: Set this variable to use Pipenv.
+      default: "1"
+    - name: UPGRADE_PIP_TO_LATEST
+      description: Set this variable to have the 'pip' program and related python packages be upgraded.
+      default: "1"
+    - name: WEB_CONCURRENCY
+      description: Set this to change the default setting for the number of workers.
+      default: "1"
+    - name: THOTH_ADVISE
+      description: Advise the recommended stack by Thoth.
+      default: "0"
+    - name: THOTH_ERROR_FALLBACK
+      description: Fallback to the lock file present in the repository if the submitted Thoth analysis fails.
+      default: "1"
+    - name: THOTH_DRY_RUN
+      description: Submit stack to Thoth, but do not use the recommended one.
+      default: "1"
+    - name: "THAMOS_DEBUG"
+      description: "Thamos enable debug mode."
+      default: "0"
+    - name: "THAMOS_VERBOSE"
+      description: Run thamos in verbose mode.
+      default: "1"
+    - name: THOTH_PROVENANCE_CHECK
+      description: Provenance check is verify the stack.
+      default: "0"
+    - name: THAMOS_NO_PROGRESSBAR
+      description: Disable progressbar for thamos.
+      default: "1"
+    # tag params
+    - name: event_action
+      description: Action of Issue.
+    - name: issue_number
+      description: Issue number.
+    - name: issue_state
+      description: State of the Issue.
+    - name: issue_title
+      description: Title of the Issue.
+    - name: issue_body
+      description: Body of the Issue.
+    - name: issue_author_association
+      description: Author association of the Issue.
+    - name: issue_author
+      description: Author of the Issue.
+    - name: repo_name
+      description: The git repository issue was raised in.
+    - name: repo_full_name
+      description: The git repository full name.
+    - name: repo_url
+      description: The git repository url
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+      - name: repo
+        type: git
+      - name: ubi
+        type: image
+
+
+  steps:
+    - name: git-init-op
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        set +e
+        TAG=$(echo "$(params.issue_body)" | awk -F ':' '{print $2}')
+        git fetch origin --tags
+        git tag "${TAG//[[:space:]]/}"
+        git checkout "${TAG//[[:space:]]/}" -b workbranch
+
+    - name: generate
+      image: quay.io/openshift-pipeline/s2i:nightly
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        ls -la
+        if [[ -f Dockerfile ]]; then
+          cp -rf . /gen-source/
+          mv /gen-source/Dockerfile /gen-source/Containerfile
+        elif [[ -f Containerfile ]]; then
+          cp -rf . /gen-source/
+        else
+          /usr/local/bin/s2i build \
+          $(params.PATH_CONTEXT) \
+          $(resources.inputs.s2i-thoth.url) \
+          --env UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST) \
+          --env WEB_CONCURRENCY=$(params.WEB_CONCURRENCY) \
+          --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
+          --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \
+          --env THOTH_DRY_RUN=$(params.THOTH_DRY_RUN) \
+          --env THAMOS_DEBUG=$(params.THAMOS_DEBUG) \
+          --env THAMOS_VERBOSE=$(params.THAMOS_VERBOSE) \
+          --env THOTH_PROVENANCE_CHECK=$(params.THOTH_PROVENANCE_CHECK) \
+          --loglevel=$(params.LOGLEVEL) \
+          --as-dockerfile /gen-source/Containerfile
+        fi
+      volumeMounts:
+        - mountPath: /gen-source
+          name: gen-source
+
+    - name: build
+      image: quay.io/buildah/stable
+      workingDir: /gen-source
+      securityContext:
+        privileged: true
+      script: |
+        buildah bud \
+        --tls-verify=$(params.TLSVERIFY) \
+        --layers \
+        -f \
+        /gen-source/Containerfile \
+        -t $(params.repo_name) .
+      volumeMounts:
+        - mountPath: /var/lib/containers
+          name: varlibcontainers
+        - mountPath: /gen-source
+          name: gen-source
+
+    - name: push
+      image: quay.io/buildah/stable
+      script: |
+        set +x
+        TAG=$(echo "$(params.issue_body)" | awk -F ':' '{print $2}')
+        set -x
+        buildah push \
+        --authfile=/pushsecret/.dockerconfigjson \
+        --tls-verify=$(params.TLSVERIFY) \
+        $(params.repo_name) \
+        docker://quay.io/$(params.BASE_REPO)/$(params.repo_name):"${TAG//[[:space:]]/}"
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
+        - name: quay-creds
+          mountPath: /pushsecret/
+          readOnly: true
+
+    - name: comment-on-issue
+      env:
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: token
+        - name: ISSUENUMBER
+          value: $(params.issue_number)
+        - name: REPOFULLNAME
+          value: $(params.repo_full_name)
+      image: $(resources.inputs.ubi.url)
+      script: |
+        #!/usr/libexec/platform-python
+        import json
+        import os
+        import http.client
+
+        status_url = "/repos/{}/issues/{}/comments".format(os.getenv('REPOFULLNAME'),os.getenv('ISSUENUMBER'))
+        data = {
+            "body": "Successfully built and delivered the image."
+        }
+
+        conn = http.client.HTTPSConnection("api.github.com")
+        r = conn.request(
+            "POST",
+            status_url,
+            body=json.dumps(data),
+            headers={
+                "User-Agent": "thoth-ci",
+                "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+            })
+        resp = conn.getresponse()
+        if not str(resp.status).startswith("2"):
+            print("Error: %d" % (resp.status))
+            print(resp.read())
+        else:
+            print(resp.read())
+            data = {
+                "state": "closed"
+            }
+            r = conn.request(
+                "PATCH",
+                "/repos/{}/issues/{}".format(os.getenv('REPOFULLNAME'),os.getenv('ISSUENUMBER')),
+                body=json.dumps(data),
+                headers={
+                    "User-Agent": "thoth-ci",
+                    "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+                })
+  volumes:
+    - name: varlibcontainers
+      emptyDir: {}
+    - name: gen-source
+      emptyDir: {}
+    - name: quay-creds
+      secret:
+        secretName: thoth-station-thoth-pusher-secret # Name of the secret to be parameterized

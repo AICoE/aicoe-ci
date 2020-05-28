@@ -1,0 +1,78 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: issue-pipeline
+  labels:
+    app: thoth-ci
+spec:
+  params:
+    - name: event_action
+      type: string
+    - name: issue_number
+      type: string
+    - name: issue_state
+      type: string
+    - name: issue_title
+      type: string
+    - name: issue_body
+      type: string
+    - name: issue_author_association
+      type: string
+    - name: issue_author
+      type: string
+    - name: repo_name
+      type: string
+    - name: repo_full_name
+      type: string
+    - name: repo_url
+      type: string
+  resources:
+    - name: git-repo
+      type: git
+    - name: s2i-thoth
+      type: image
+    - name: ubi
+      type: image
+
+  tasks:
+    - name: issue-release-run
+      taskRef:
+        name: issue-release
+      conditions:
+        - conditionRef: issue-check
+          params:
+            - name: repo_name
+              value: $(params.repo_name)
+          resources:
+            - name: ubi
+              resource: ubi
+      params:
+        - name: event_action
+          value: $(params.event_action)
+        - name: issue_number
+          value: $(params.issue_number)
+        - name: issue_state
+          value: $(params.issue_state)
+        - name: issue_title
+          value: $(params.issue_title)
+        - name: issue_body
+          value: $(params.issue_body)
+        - name: issue_author_association
+          value: $(params.issue_author_association)
+        - name: issue_author
+          value: $(params.issue_author)
+        - name: repo_name
+          value: $(params.repo_name)
+        - name: repo_full_name
+          value: $(params.repo_full_name)
+        - name: repo_url
+          value: $(params.repo_url)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
+          - name: repo
+            resource: git-repo
+          - name: ubi
+            resource: ubi

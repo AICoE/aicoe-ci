@@ -46,9 +46,20 @@ spec:
       template:
         name: git-tag-template
 
+    - name: github-issue-release
+      interceptors:
+        - github:
+            secretRef:
+              secretName: github-secret
+              secretKey: webhooksecret
+            eventTypes:
+              - issues
+      bindings:
+        - name: git-issue-binding
+      template:
+        name: git-issue-template
+
     - name: webhook-tag-release
-      # interceptors:
-      #   - webhook:
       bindings:
         - name: webhook-tag-binding
       template:
