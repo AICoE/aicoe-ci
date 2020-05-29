@@ -89,6 +89,8 @@ spec:
           value: $(params.pr_number)
         - name: pipelinerun_name
           value: $(params.pipelinerun_name)
+        - name: repo_full_name
+          value: $(params.repo_full_name)
       resources:
         inputs:
           - name: pr
