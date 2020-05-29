@@ -1,6 +1,6 @@
-# Thoth-CI
+# AICoE-CI
 
-Thoth-CI project uses components of TektonCD to provide custom CI/CD for AICoE.
+AICoE-CI project uses components of TektonCD to provide custom CI/CD for AICoE.
 
 ## How to contribute
 
