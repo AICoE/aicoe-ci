@@ -17,6 +17,7 @@ resources:
   - tasks/resource.yaml
   - tasks/coala-checks.yaml
   - tasks/init-task.yaml
+  - tasks/status-task.yaml
   - tasks/pr-build-release.yaml
   - tasks/pr-build.yaml
   - tasks/pr-merge.yaml

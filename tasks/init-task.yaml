@@ -20,18 +20,12 @@ spec:
       description: author of the comment on the pull request.
     - name: pr_comment_author_association
       description: comment author's association.
-    - name: pipelinerun_name
-      description: pipelinerun associated.
   resources:
     inputs:
       - name: pr
         type: pullRequest
       - name: ubi
         type: image
-      - name: s2i-thoth
-        type: image
-      - name: repo
-        type: git
     outputs:
       - name: pr
         type: pullRequest
@@ -97,54 +91,6 @@ spec:
         if [ ! -z "$msg" ]; then
           echo "$msg" > /workspace/output/pr/comments/comment
         fi
-
-    - name: status-setup
-      image: $(resources.inputs.s2i-thoth.url)
-      workingDir: /workspace/repo
-      securityContext:
-        privileged: true
-      script: |
-        set -e
-        git fetch origin pull/$(params.pr_number)/head:workbranch
-        git checkout workbranch
-        if [[ -f .coafile ]]; then
-          cat <<EOF > /workspace/output/pr/status/coala.json
-          {
-            "State": "pending",
-            "Target": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
-            "Desc": "The coala test pending.",
-            "Label": "thoth-ci/coala-check"
-          }
-        EOF
-        fi
-        if [[ -f setup.py ]]; then
-          cat <<EOF > /workspace/output/pr/status/pytest.json
-          {
-            "State": "pending",
-            "Target": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
-            "Desc": "The pytest test pending.",
-            "Label": "thoth-ci/pytest-check"
-          }
-        EOF
-        fi
-        if [[ -f .pre-commit-config.yaml ]]; then
-          cat <<EOF > /workspace/output/pr/status/pre-commit.json
-          {
-            "State": "pending",
-            "Target": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
-            "Desc": "The pre-commit test pending.",
-            "Label": "thoth-ci/pre-commit-check"
-          }
-        EOF
-        fi
-        cat <<EOF > /workspace/output/pr/status/build.json
-        {
-          "State": "pending",
-          "Target": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
-          "Desc": "The image build test pending.",
-          "Label": "thoth-ci/build-check"
-        }
-        EOF
 
     - name: oc-create-image
       image: quay.io/openshift/origin-cli:latest
