@@ -293,7 +293,6 @@ spec:
             resource: pr-source
       runAfter:
         - init-task-run
-        - status-task-run
 
     - name: pr-build-release-run
       taskRef:
@@ -330,7 +329,6 @@ spec:
             resource: pr-source
       runAfter:
         - init-task-run
-        - status-task-run
 
     - name: pr-deploy-run
       taskRef:
