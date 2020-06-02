@@ -37,10 +37,11 @@ spec:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
       metadata:
-        name: pipelinerun-$(params.pr_repo)-pr-$(params.pr_number)-$(uid)
+        name: aicoe-pipelinerun-$(uid)
         labels:
           app: thoth-ci
-          component: pipelinerun-$(params.pr_repo)-pr-$(params.pr_number)
+          project: $(params.pr_repo)
+          component: $(params.pr_repo)-pr-$(params.pr_number)
       spec:
         serviceAccountName: thoth-ci
         pipelineRef:
