@@ -12,6 +12,7 @@ resources:
   - conditions/retest-comment-check.yaml
   - conditions/tag-check.yaml
   - conditions/tag-deploy-check.yaml
+  - conditions/upload-pypi-check.yaml
   - conditions/issue-check.yaml
   - tasks/issue-release-task.yaml
   - tasks/resource.yaml
@@ -26,6 +27,7 @@ resources:
   - tasks/tag-release-task.yaml
   - tasks/tag-deploy-task.yaml
   - tasks/tox-checks.yaml
+  - tasks/upload-pypi.yaml
   - pipeline/issue-pipeline.yaml
   - pipeline/pipeline.yaml
   - pipeline/tag-release-pipeline.yaml

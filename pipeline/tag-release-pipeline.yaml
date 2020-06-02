@@ -22,6 +22,31 @@ spec:
       type: image
 
   tasks:
+    - name: tag-publish-pypi-run
+      taskRef:
+        name: upload-pypi
+      conditions:
+        - conditionRef: upload-pypi-check
+          params:
+            - name: git_ref
+              value: $(params.git_ref)
+            - name: git_ref_type
+              value: $(params.git_ref_type)
+          resources:
+            - name: repo
+              resource: git-repo
+            - name: ubi
+              resource: ubi
+      params:
+        - name: git_ref
+          value: $(params.git_ref)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
+          - name: repo
+            resource: git-repo
+
     - name: tag-release-run
       taskRef:
         name: tag-release

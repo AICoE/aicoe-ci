@@ -1,0 +1,51 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: upload-pypi
+  labels:
+    app: thoth-ci
+spec:
+  params:
+    - name: git_ref
+      description: Tag reference to be published.
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+      - name: repo
+        type: git
+
+  steps:
+    - name: git-init-op
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        git fetch origin --tags
+        git checkout tags/$(params.git_ref) -b workbranch
+
+    - name: build-package
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        python setup.py sdist bdist_wheel
+
+    - name: upload-package
+      image: quay.io/thoth-station/pypi-twine:latest
+      workingDir: /workspace/repo
+      env:
+        - name: TWINE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: pypi-secret
+              key: username
+        - name: TWINE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pypi-secret
+              key: password
+      script: |
+        twine upload dist/*
