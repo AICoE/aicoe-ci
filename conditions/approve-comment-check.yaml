@@ -21,10 +21,10 @@ spec:
       privileged: true
     workingDir: /workspace/repo
     script: |
-      echo "$(params.pr_comment_author)"
       author="$(params.pr_comment_author)"
-      if grep -qF "@$author" .github/CODEOWNERS ;then
-          exit 0
-      else
-          exit 1
+      if [ "$(params.pr_comment)" == "/approve" ]; then
+        if grep -qF "@$author" .github/CODEOWNERS ;then
+            exit 0
+        fi
       fi
+      exit 1
