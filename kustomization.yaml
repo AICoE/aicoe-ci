@@ -25,6 +25,7 @@ resources:
   - tasks/pytest-checks.yaml
   - tasks/tag-release-task.yaml
   - tasks/tag-deploy-task.yaml
+  - tasks/tox-checks.yaml
   - pipeline/issue-pipeline.yaml
   - pipeline/pipeline.yaml
   - pipeline/tag-release-pipeline.yaml
