@@ -17,6 +17,8 @@ spec:
       type: string
     - name: pr_merged
       type: string
+    - name: repo_url
+      type: string
     - name: pr_comment
       type: string
     - name: pr_comment_author
@@ -42,6 +44,8 @@ spec:
       params:
         - name: event_action
           value: $(params.event_action)
+        - name: repo_url
+          value: $(params.repo_url)
         - name: pr_number
           value: $(params.pr_number)
         - name: pr_repo
@@ -60,6 +64,8 @@ spec:
             resource: ubi
           - name: pr
             resource: pr-source
+          - name: repo
+            resource: git-repo
         outputs:
           - name: pr
             resource: pr-source
@@ -146,6 +152,46 @@ spec:
     - name: coala-run
       taskRef:
         name: coala-check
+      conditions:
+        - conditionRef: action-check
+          params:
+            - name: event_action
+              value: $(params.event_action)
+          resources:
+            - name: ubi
+              resource: ubi
+        - conditionRef: retest-comment-check
+          params:
+            - name: pr_comment
+              value: $(params.pr_comment)
+            - name: pr_comment_author_association
+              value: $(params.pr_comment_author_association)
+          resources:
+            - name: ubi
+              resource: ubi
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: pipelinerun_name
+          value: $(params.pipelinerun_name)
+      resources:
+        inputs:
+          - name: pr
+            resource: pr-source
+          - name: repo
+            resource: git-repo
+          - name: s2i-thoth
+            resource: s2i-thoth
+        outputs:
+          - name: pr
+            resource: pr-source
+      runAfter:
+        - init-task-run
+        - status-task-run
+
+    - name: tox-run
+      taskRef:
+        name: tox-check
       conditions:
         - conditionRef: action-check
           params:
@@ -280,11 +326,15 @@ spec:
           params:
             - name: pr_comment
               value: $(params.pr_comment)
+            - name: pr_comment_author
+              value: $(params.pr_comment_author)
             - name: pr_comment_author_association
               value: $(params.pr_comment_author_association)
           resources:
             - name: ubi
               resource: ubi
+            - name: repo
+              resource: git-repo
       resources:
         inputs:
           - name: ubi

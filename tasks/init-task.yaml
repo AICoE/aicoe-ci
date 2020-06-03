@@ -14,6 +14,8 @@ spec:
       description: The git repository pr was raised to.
     - name: pr_merged
       description: Details about pull request merge.
+    - name: repo_url
+      description: The git repository url.
     - name: pr_comment
       description: comment on the pull request.
     - name: pr_comment_author
@@ -26,6 +28,8 @@ spec:
         type: pullRequest
       - name: ubi
         type: image
+      - name: repo
+        type: git
     outputs:
       - name: pr
         type: pullRequest
@@ -59,28 +63,30 @@ spec:
           Thanks for the contribution." > /workspace/output/pr/comments/close
         fi
 
+        author="$(params.pr_comment_author)"
         author_association="$(params.pr_comment_author_association)"
         msg=""
         case $(params.pr_comment) in
           "/retest" )
             if [ "$author_association" == "NONE" -o "$author_association" == "FIRST_TIMER" ]; then
-              msg="Hi @$(params.pr_comment_author)
+              msg="Hi @$author
               Unauthorised to run /retest command."
             fi;;
           "/deploy" )
             if ! { [ "$author_association" != "OWNER" -o "$author_association" != "MEMBER" ]; }; then
-              msg="Hi @$(params.pr_comment_author)
+              msg="Hi @$author
               Unauthorised to run /deploy command.
               Need to be either an OWNER or MEMBER."
             fi;;
           "/approve" )
-            if [ "$author_association" != "OWNER" ]; then
-              msg="Hi @$(params.pr_comment_author)
+            if ! { grep -qF "@$author" .github/CODEOWNERS ; }; then
+              msg="Hi @$author
               Unauthorised to run /approve command.
-              Need to be an OWNER."
+              Needs approval from a CODEOWNER.
+              Please contact the owners to get included in [CODEOWNERS]($(params.repo_url)/blob/master/.github/CODEOWNERS)"
             fi;;
           /* )
-            msg="Hi @$(params.pr_comment_author)
+            msg="Hi @$author
             you may command me for:
               /retest : To Rerun the test checks.
               /deploy : To deploy the commit in test environment."
