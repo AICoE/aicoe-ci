@@ -54,6 +54,7 @@ spec:
             description="The coala test failed!"
             echo "<details>
             <summary>Coala Test failed! Click here</summary>
+
             \`\`\`
             $out
             \`\`\`
