@@ -30,9 +30,10 @@ spec:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
       metadata:
-        name: $(params.repo_name)-issue-$(params.issue_number)-$(uid)
+        name: aicoe-issue-$(uid)
         labels:
           app: thoth-ci
+          project: $(params.repo_name)
           component: $(params.repo_name)-issue-$(params.issue_number)
       spec:
         serviceAccountName: thoth-ci

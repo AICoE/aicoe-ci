@@ -22,6 +22,8 @@ spec:
         name: tag-release-$(params.repo_name)-$(uid)
         labels:
           app: thoth-ci
+          project: $(params.repo_name)
+          component: tag-$(params.repo_name)
       spec:
         serviceAccountName: thoth-ci
         pipelineRef:
