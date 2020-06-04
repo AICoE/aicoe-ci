@@ -45,13 +45,15 @@ spec:
           if [[ $exit_code -ne 0 ]]; then
             code="failure"
             description="The tox test failed!"
-            echo "<details>
-            <summary>Tox Test failed! Click here</summary>
+            cat <<EOF > /workspace/output/pr/comments/tox
+        <details>
+        <summary>Tox Test failed! Click here</summary>
 
-            \`\`\`
-            $out
-            \`\`\`
-            </details>" > /workspace/output/pr/comments/tox
+        \`\`\`
+        $out
+        \`\`\`
+        </details>
+        EOF
           else
             code="success"
             description="The tox test succeeded!"

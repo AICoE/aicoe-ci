@@ -46,19 +46,21 @@ spec:
       script: |
         if [[ -f .coafile ]]; then
           set +ex
-          out=$(coala --ci 2>&1)
+          out=$(coala --ci --no-color 2>&1)
           exit_code=$?
           set -ex
           if [[ $exit_code -ne 0 ]]; then
             code="failure"
             description="The coala test failed!"
-            echo "<details>
-            <summary>Coala Test failed! Click here</summary>
+            cat <<EOF > /workspace/output/pr/comments/coala
+        <details>
+        <summary>Coala Test failed! Click here</summary>
 
-            \`\`\`
-            $out
-            \`\`\`
-            </details>" > /workspace/output/pr/comments/coala
+        \`\`\`
+        $out
+        \`\`\`
+        </details>
+        EOF
           else
             code="success"
             description="The coala test succeeded!"

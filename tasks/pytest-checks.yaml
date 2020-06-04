@@ -65,9 +65,15 @@ spec:
           if [[ $exit_code -ne 0 ]]; then
             code="failure"
             description="The pytest test failed!"
-            # echo "Pytest Test failed!" > /workspace/output/pr/comments/pytest
-            # echo "Logs:" >> /workspace/output/pr/comments/pytest
-            # echo $out >> /workspace/output/pr/comments/pytest
+            cat <<EOF > /workspace/output/pr/comments/pytest
+        <details>
+        <summary>Pytest Test failed! Click here</summary>
+
+        \`\`\`
+        $out
+        \`\`\`
+        </details>
+        EOF
           else
             code="success"
             description="The pytest test succeeded!"
