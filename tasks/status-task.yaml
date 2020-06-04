@@ -78,10 +78,6 @@ spec:
             else:
                 print(resp.read())
 
-        if os.path.isfile('.coafile'):
-            description="The coala test pending."
-            context="thoth-ci/coala-check"
-            post_status(description, context)
         if os.path.isfile('setup.py'):
             description="The pytest test pending."
             context="thoth-ci/pytest-check"
