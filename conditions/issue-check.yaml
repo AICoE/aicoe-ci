@@ -8,7 +8,7 @@ spec:
       description: The git repository title.
     - name: BASE_REPO
       description: Base repository on quay.
-      default: "harshad16"
+      default: "thoth-station"
   resources:
     - name: ubi
       type: image

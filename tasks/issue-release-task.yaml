@@ -18,7 +18,7 @@ spec:
       default: "0"
     - name: BASE_REPO
       description: Base repository on quay.
-      default: "harshad16"
+      default: "thoth-station"
     # s2i thoth params
     - name: ENABLE_PIPENV
       description: Set this variable to use Pipenv.
@@ -80,7 +80,6 @@ spec:
       - name: ubi
         type: image
 
-
   steps:
     - name: git-init-op
       image: $(resources.inputs.s2i-thoth.url)
@@ -88,8 +87,9 @@ spec:
       securityContext:
         privileged: true
       script: |
-        set +e
+        set +ex
         TAG=$(echo "$(params.issue_body)" | awk -F ':' '{print $2}')
+        set -x
         git fetch origin --tags
         git tag "${TAG//[[:space:]]/}"
         git checkout "${TAG//[[:space:]]/}" -b workbranch
