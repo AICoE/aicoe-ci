@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Condition
+metadata:
+  name: upload-pypi-check
+spec:
+  params:
+    - name: git_ref
+      description: Git reference value.
+    - name: git_ref_type
+      description: Type of ref Tag or Branch.
+  resources:
+    - name: repo
+      type: git
+    - name: ubi
+      type: image
+  check:
+    image: $(resources.inputs.ubi.url)
+    workingDir: /workspace/repo
+    securityContext:
+      privileged: true
+    script: |
+      if [[ -f setup.py ]]; then
+          exit 0
+      else
+          exit 1
+      fi
