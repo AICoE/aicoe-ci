@@ -3,8 +3,8 @@ kind: Kustomization
 commonLabels:
   app.kubernetes.io/name: aicoe-ci
   app.kubernetes.io/component: tekton
-  app.kubernetes.io/version: v0.1.0
-  app.kubernetes.io/managed-by: kustomize-ksops
+  app.kubernetes.io/version: v0.2.0
+  app.kubernetes.io/managed-by: thothdevops-argocd
 resources:
   - conditions/action-check.yaml
   - conditions/deploy-comment-check.yaml
@@ -16,7 +16,6 @@ resources:
   - conditions/issue-check.yaml
   - tasks/issue-release-task.yaml
   - tasks/resource.yaml
-  - tasks/coala-checks.yaml
   - tasks/init-task.yaml
   - tasks/status-task.yaml
   - tasks/pr-build-release.yaml
