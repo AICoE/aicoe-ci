@@ -4,6 +4,8 @@ metadata:
   name: approve-comment-check
 spec:
   params:
+    - name: pr_repo
+      type: string
     - name: pr_comment
       type: string
     - name: pr_comment_author
@@ -22,6 +24,9 @@ spec:
     workingDir: /workspace/repo
     script: |
       author="$(params.pr_comment_author)"
+      if [ "$(params.pr_repo)" == "workflow-helpers" -o "$(params.pr_repo)" == "srcops-testing" ]; then
+        exit 1
+      fi
       if [ "$(params.pr_comment)" == "/approve" ]; then
         if grep -qF "@$author" .github/CODEOWNERS ;then
             exit 0

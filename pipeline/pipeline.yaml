@@ -284,6 +284,8 @@ spec:
               resource: ubi
         - conditionRef: approve-comment-check
           params:
+            - name: pr_repo
+              value: $(params.pr_repo)
             - name: pr_comment
               value: $(params.pr_comment)
             - name: pr_comment_author
