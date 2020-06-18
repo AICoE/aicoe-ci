@@ -15,8 +15,6 @@ spec:
       type: string
     - name: repo_full_name
       type: string
-    - name: pr_merged
-      type: string
     - name: repo_url
       type: string
     - name: pr_comment
@@ -56,8 +54,6 @@ spec:
           value: $(params.pr_comment_author)
         - name: pr_comment_author_association
           value: $(params.pr_comment_author_association)
-        - name: pr_merged
-          value: $(params.pr_merged)
       resources:
         inputs:
           - name: ubi
@@ -270,41 +266,6 @@ spec:
       runAfter:
         - init-task-run
         - status-task-run
-
-    - name: pr-merge-run
-      taskRef:
-        name: pr-merge
-      conditions:
-        - conditionRef: action-check
-          params:
-            - name: event_action
-              value: $(params.event_action)
-          resources:
-            - name: ubi
-              resource: ubi
-        - conditionRef: approve-comment-check
-          params:
-            - name: pr_repo
-              value: $(params.pr_repo)
-            - name: pr_comment
-              value: $(params.pr_comment)
-            - name: pr_comment_author
-              value: $(params.pr_comment_author)
-            - name: pr_comment_author_association
-              value: $(params.pr_comment_author_association)
-          resources:
-            - name: ubi
-              resource: ubi
-            - name: repo
-              resource: git-repo
-      resources:
-        inputs:
-          - name: ubi
-            resource: ubi
-          - name: pr
-            resource: pr-source
-      runAfter:
-        - init-task-run
 
     - name: pr-build-release-run
       taskRef:
