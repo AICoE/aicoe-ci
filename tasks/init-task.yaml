@@ -85,12 +85,6 @@ spec:
               Needs approval from a CODEOWNER.
               Please contact the owners to get included in [CODEOWNERS]($(params.repo_url)/blob/master/.github/CODEOWNERS)"
             fi;;
-          /* )
-            msg="Hi @$author
-            you may command me for:
-              /retest : To Rerun the test checks.
-              /deploy : To deploy the commit in test environment."
-            ;;
           * )
             ;;
         esac
