@@ -19,9 +19,6 @@ spec:
     - name: event_action
       description: Action performed on Pull request.
       default: "DEFAULT"
-    - name: pr_merged
-      description: Details about pull request merge.
-      default: "false"
     - name: pr_comment
       description: comment on the pull request.
       default: "DEFAULT"
@@ -57,8 +54,6 @@ spec:
             value: $(params.repo_url)
           - name: repo_full_name
             value: $(params.repo_full_name)
-          - name: pr_merged
-            value: $(params.pr_merged)
           - name: pr_comment
             value: $(params.pr_comment)
           - name: pr_comment_author
@@ -89,6 +84,6 @@ spec:
                 - name: url
                   value: $(params.pr_url)
               secrets:
-              - fieldName: authToken
-                secretName: auth-secret
-                secretKey: token
+                - fieldName: authToken
+                  secretName: auth-secret
+                  secretKey: token

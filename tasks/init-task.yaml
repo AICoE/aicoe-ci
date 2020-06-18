@@ -12,8 +12,6 @@ spec:
       description: Pull request ID.
     - name: pr_repo
       description: The git repository pr was raised to.
-    - name: pr_merged
-      description: Details about pull request merge.
     - name: repo_url
       description: The git repository url.
     - name: pr_comment
@@ -55,9 +53,6 @@ spec:
             /retest : To Rerun the test checks.
             /deploy : To deploy the commit in test environment.
           " > /workspace/output/pr/comments/open
-        elif [ "$(params.event_action)" == "closed" -a "$(params.pr_merged)" == "true" ]; then
-          echo "Successfully Merged.
-          Thanks for the contribution." > /workspace/output/pr/comments/close
         elif [ "$(params.event_action)" == "closed" ]; then
           echo "You can Re-Open the Pull Request.
           Thanks for the contribution." > /workspace/output/pr/comments/close
@@ -101,6 +96,6 @@ spec:
     - name: oc-create-image
       image: quay.io/openshift/origin-cli:latest
       script: |
-        if [ "$(params.event_action)" == "closed" -o "$(params.pr_merged)" == "true" ]; then
+        if [ "$(params.event_action)" == "closed" ]; then
           oc delete pipelinerun  --selector component=pipelinerun-$(params.pr_repo)-pr-$(params.pr_number)
         fi
