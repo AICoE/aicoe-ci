@@ -47,16 +47,6 @@ spec:
       script: |
         set -e
         cp -r /workspace/pr/ /workspace/output/
-        if [ "$(params.event_action)" == "opened" ]; then
-          echo "Thanks for Opening the Pull Request.
-          I can assist you with following commands:
-            /retest : To Rerun the test checks.
-            /deploy : To deploy the commit in test environment.
-          " > /workspace/output/pr/comments/open
-        elif [ "$(params.event_action)" == "closed" ]; then
-          echo "You can Re-Open the Pull Request.
-          Thanks for the contribution." > /workspace/output/pr/comments/close
-        fi
 
         author="$(params.pr_comment_author)"
         author_association="$(params.pr_comment_author_association)"
@@ -73,19 +63,6 @@ spec:
               Unauthorised to run /deploy command.
               Need to be either an OWNER or MEMBER."
             fi;;
-          "/approve" )
-            if ! { grep -qF "@$author" .github/CODEOWNERS ; }; then
-              msg="Hi @$author
-              Unauthorised to run /approve command.
-              Needs approval from a CODEOWNER.
-              Please contact the owners to get included in [CODEOWNERS]($(params.repo_url)/blob/master/.github/CODEOWNERS)"
-            fi;;
-          /* )
-            msg="Hi @$author
-            you may command me for:
-              /retest : To Rerun the test checks.
-              /deploy : To deploy the commit in test environment."
-            ;;
           * )
             ;;
         esac
