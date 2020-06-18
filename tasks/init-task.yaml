@@ -49,13 +49,7 @@ spec:
       script: |
         set -e
         cp -r /workspace/pr/ /workspace/output/
-        if [ "$(params.event_action)" == "opened" ]; then
-          echo "Thanks for Opening the Pull Request.
-          I can assist you with following commands:
-            /retest : To Rerun the test checks.
-            /deploy : To deploy the commit in test environment.
-          " > /workspace/output/pr/comments/open
-        elif [ "$(params.event_action)" == "closed" -a "$(params.pr_merged)" == "true" ]; then
+        if [ "$(params.event_action)" == "closed" -a "$(params.pr_merged)" == "true" ]; then
           echo "Successfully Merged.
           Thanks for the contribution." > /workspace/output/pr/comments/close
         elif [ "$(params.event_action)" == "closed" ]; then
