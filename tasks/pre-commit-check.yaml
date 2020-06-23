@@ -18,9 +18,6 @@ spec:
         type: pullRequest
       - name: repo
         type: git
-    outputs:
-      - name: pr
-        type: pullRequest
 
   steps:
     - name: git-init-op
@@ -29,7 +26,6 @@ spec:
       securityContext:
         privileged: true
       script: |
-        cp -r /workspace/pr/ /workspace/output/
         git fetch origin pull/$(params.pr_number)/head:workbranch
         git checkout workbranch
 
@@ -53,7 +49,7 @@ spec:
           if [[ $exit_code -ne 0 ]]; then
             state="failure"
             desc="The pre-commit test failed!"
-            cat <<EOF > /workspace/output/pr/comments/precommit
+            cat <<EOF > /workspace/repo/pr-comment
         <details>
         <summary>Pre-Commit Test failed! Click here</summary>
 
@@ -74,7 +70,7 @@ spec:
         EOF
         fi
 
-    - name: status-setup
+    - name: pr-updates
       image: $(resources.inputs.s2i-thoth.url)
       workingDir: /workspace/repo
       securityContext:
@@ -115,9 +111,33 @@ spec:
             if not str(resp.status).startswith("2"):
                 print("Error: %d" % (resp.status))
                 print(resp.read())
-            else:
+
+        def post_comment(comment):
+            with open("/workspace/pr/pr.json") as f:
+                PR_INFO = json.load(f)
+            comment_url = "/repos/{}/issues/{}/comments".format(PR_INFO["Base"]["Repo"]["FullName"], PR_INFO["Number"])
+
+            data = {
+                "body": comment,
+            }
+            conn = http.client.HTTPSConnection("api.github.com")
+            r = conn.request(
+                "POST",
+                comment_url,
+                body=json.dumps(data),
+                headers={
+                    "User-Agent": "thoth-ci",
+                    "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+                })
+            resp = conn.getresponse()
+            if not str(resp.status).startswith("2"):
+                print("Error: %d" % (resp.status))
                 print(resp.read())
 
         with open('pr-status.json') as json_data:
           status_state=json.load(json_data)
           post_status(status_state['state'], status_state['desc'])
+        if os.path.isfile('pr-comment'):
+          with open('pr-comment') as comment_data:
+              comment = comment_data.read()
+              post_comment(comment)
