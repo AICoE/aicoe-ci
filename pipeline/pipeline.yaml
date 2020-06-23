@@ -101,9 +101,6 @@ spec:
             resource: git-repo
           - name: s2i-thoth
             resource: s2i-thoth
-        outputs:
-          - name: pr
-            resource: pr-source
 
     - name: pre-commit-run
       taskRef:
@@ -175,9 +172,6 @@ spec:
             resource: git-repo
           - name: s2i-thoth
             resource: s2i-thoth
-        outputs:
-          - name: pr
-            resource: pr-source
       runAfter:
         - init-task-run
         - status-task-run
@@ -215,9 +209,6 @@ spec:
             resource: git-repo
           - name: s2i-thoth
             resource: s2i-thoth
-        outputs:
-          - name: pr
-            resource: pr-source
       runAfter:
         - init-task-run
         - status-task-run
@@ -255,9 +246,6 @@ spec:
             resource: s2i-thoth
           - name: repo
             resource: git-repo
-          - name: pr
-            resource: pr-source
-        outputs:
           - name: pr
             resource: pr-source
       runAfter:

@@ -134,9 +134,10 @@ spec:
                 print("Error: %d" % (resp.status))
                 print(resp.read())
 
-        with open('pr-status.json') as json_data:
-          status_state=json.load(json_data)
-          post_status(status_state['state'], status_state['desc'])
+        if os.path.isfile('pr-status.json'):
+          with open('pr-status.json') as json_data:
+            status_state=json.load(json_data)
+            post_status(status_state['state'], status_state['desc'])
         if os.path.isfile('pr-comment'):
           with open('pr-comment') as comment_data:
               comment = comment_data.read()

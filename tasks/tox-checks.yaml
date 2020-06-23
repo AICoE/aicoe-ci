@@ -18,9 +18,6 @@ spec:
         type: pullRequest
       - name: repo
         type: git
-    outputs:
-      - name: pr
-        type: pullRequest
 
   steps:
     - name: git-init-op
@@ -29,7 +26,6 @@ spec:
       securityContext:
         privileged: true
       script: |
-        cp -r /workspace/pr/ /workspace/output/
         git fetch origin pull/$(params.pr_number)/head:workbranch
         git checkout workbranch
 
@@ -43,9 +39,9 @@ spec:
           exit_code=$?
           set -ex
           if [[ $exit_code -ne 0 ]]; then
-            code="failure"
-            description="The tox test failed!"
-            cat <<EOF > /workspace/output/pr/comments/tox
+            state="failure"
+            desc="The tox test failed!"
+            cat <<EOF > /workspace/repo/pr-comment
         <details>
         <summary>Tox Test failed! Click here</summary>
 
@@ -55,15 +51,60 @@ spec:
         </details>
         EOF
           else
-            code="success"
-            description="The tox test succeeded!"
+            state="success"
+            desc="The tox test succeeded!"
           fi
-          cat <<EOF > /workspace/output/pr/status/tox.json
+          cat <<EOF > /workspace/repo/pr-status.json
           {
-            "State": "$code",
-            "Target": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
-            "Desc": "$description",
-            "Label": "thoth-ci/tox-check"
+            "state": "$state",
+            "desc": "$desc"
           }
         EOF
         fi
+
+    - name: pr-updates
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      env:
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: token
+      script: |
+        #!/usr/libexec/platform-python
+        import json
+        import os
+        import http.client
+
+        def post_status(state, description):
+            with open("/workspace/pr/pr.json") as f:
+                PR_INFO = json.load(f)
+            status_url = "/repos/{}/statuses/{}".format(PR_INFO["Base"]["Repo"]["FullName"], PR_INFO["Head"]["Sha"])
+            data = {
+                "state": state,
+                "target_url": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
+                "description": description,
+                "context": "thoth-ci/tox-check"
+            }
+
+            conn = http.client.HTTPSConnection("api.github.com")
+            r = conn.request(
+                "POST",
+                status_url,
+                body=json.dumps(data),
+                headers={
+                    "User-Agent": "thoth-ci",
+                    "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+                })
+            resp = conn.getresponse()
+            if not str(resp.status).startswith("2"):
+                print("Error: %d" % (resp.status))
+                print(resp.read())
+
+        if os.path.isfile('pr-status.json'):
+          with open('pr-status.json') as json_data:
+            status_state=json.load(json_data)
+            post_status(status_state['state'], status_state['desc'])

@@ -20,9 +20,6 @@ spec:
         type: image
       - name: repo
         type: git
-    outputs:
-      - name: pr
-        type: pullRequest
   steps:
     - name: git-init-op
       image: $(resources.inputs.s2i-thoth.url)
@@ -30,7 +27,6 @@ spec:
       securityContext:
         privileged: true
       script: |
-        cp -r /workspace/pr/ /workspace/output/
         git fetch origin pull/$(params.pr_number)/head:workbranch
         git checkout workbranch
 

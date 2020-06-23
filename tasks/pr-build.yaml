@@ -62,9 +62,6 @@ spec:
         type: pullRequest
       - name: repo
         type: git
-    outputs:
-      - name: pr
-        type: pullRequest
 
   steps:
     - name: git-init-op
@@ -73,7 +70,6 @@ spec:
       securityContext:
         privileged: true
       script: |
-        cp -r /workspace/pr/ /workspace/output/
         git fetch origin pull/$(params.pr_number)/head:workbranch
         git checkout workbranch
 
@@ -136,7 +132,7 @@ spec:
         }
         EOF
 
-    - name: status-setup
+    - name: pr-updates
       image: $(resources.inputs.s2i-thoth.url)
       workingDir: /workspace/repo
       securityContext:
@@ -180,9 +176,10 @@ spec:
             else:
                 print(resp.read())
 
-        with open('pr-status.json') as json_data:
-          status_state=json.load(json_data)
-          post_status(status_state['state'], status_state['desc'])
+        if os.path.isfile('pr-status.json'):
+          with open('pr-status.json') as json_data:
+            status_state=json.load(json_data)
+            post_status(status_state['state'], status_state['desc'])
 
   volumes:
     - name: varlibcontainers
