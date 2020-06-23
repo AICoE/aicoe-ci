@@ -123,20 +123,66 @@ spec:
         exit_code=$?
         set -e
         if [[ $exit_code -ne 0 ]]; then
-          code="failure"
-          description="The image build test failed!"
+          state="failure"
+          desc="The image build test failed!"
         else
-          code="success"
-          description="The image build test succeeded!"
+          state="success"
+          desc="The image build test succeeded!"
         fi
-        cat <<EOF > /workspace/output/pr/status/build.json
+        cat <<EOF > /workspace/repo/pr-status.json
         {
-          "State": "$code",
-          "Target": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
-          "Desc": "$description",
-          "Label": "thoth-ci/build-check"
+          "state": "$state",
+          "desc": "$desc"
         }
         EOF
+
+    - name: status-setup
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      env:
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: token
+      script: |
+        #!/usr/libexec/platform-python
+        import json
+        import os
+        import http.client
+
+        def post_status(state, description):
+            with open("/workspace/pr/pr.json") as f:
+                PR_INFO = json.load(f)
+            status_url = "/repos/{}/statuses/{}".format(PR_INFO["Base"]["Repo"]["FullName"], PR_INFO["Head"]["Sha"])
+            data = {
+                "state": state,
+                "target_url": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
+                "description": description,
+                "context": "thoth-ci/build-check"
+            }
+
+            conn = http.client.HTTPSConnection("api.github.com")
+            r = conn.request(
+                "POST",
+                status_url,
+                body=json.dumps(data),
+                headers={
+                    "User-Agent": "thoth-ci",
+                    "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+                })
+            resp = conn.getresponse()
+            if not str(resp.status).startswith("2"):
+                print("Error: %d" % (resp.status))
+                print(resp.read())
+            else:
+                print(resp.read())
+
+        with open('pr-status.json') as json_data:
+          status_state=json.load(json_data)
+          post_status(status_state['state'], status_state['desc'])
 
   volumes:
     - name: varlibcontainers
