@@ -39,54 +39,89 @@ spec:
       workingDir: /workspace/repo
       securityContext:
         privileged: true
-      env:
-        - name: GITHUBTOKEN
-          valueFrom:
-            secretKeyRef:
-              name: auth-secret
-              key: token
       script: |
-        #!/usr/libexec/platform-python
-        import json
-        import os
-        import http.client
+        if [[ -f setup.py ]]; then
+          cat <<EOF > /workspace/output/pr/status/pytest.json
+          {
+              "State": "pending",
+              "Target": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
+              "Desc": "The pytest test pending.",
+              "Label": "thoth-ci/pytest-check"
+          }
+        EOF
+        fi
+        if [[ -f .pre-commit-config.yaml ]]; then
+          cat <<EOF > /workspace/output/pr/status/pre-commit.json
+          {
+              "State": "pending",
+              "Target": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
+              "Desc": "The pre-commit test pending.",
+              "Label": "thoth-ci/pre-commit-check"
+          }
+        EOF
+        fi
+        cat <<EOF > /workspace/output/pr/status/build.json
+        {
+            "State": "pending",
+            "Target": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
+            "Desc": "The image build test pending.",
+            "Label": "thoth-ci/build-check"
+        }
+        EOF
 
-        def post_status(description, context):
-            with open("/workspace/pr/pr.json") as f:
-                PR_INFO = json.load(f)
-            status_url = "/repos/{}/statuses/{}".format(PR_INFO["Base"]["Repo"]["FullName"], PR_INFO["Head"]["Sha"])
-            data = {
-                "state": "pending",
-                "target_url": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
-                "description": description,
-                "context": context
-            }
-
-            conn = http.client.HTTPSConnection("api.github.com")
-            r = conn.request(
-                "POST",
-                status_url,
-                body=json.dumps(data),
-                headers={
-                    "User-Agent": "thoth-ci",
-                    "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
-                })
-            resp = conn.getresponse()
-            if not str(resp.status).startswith("2"):
-                print("Error: %d" % (resp.status))
-                print(resp.read())
-            else:
-                print(resp.read())
-
-        if os.path.isfile('setup.py'):
-            description="The pytest test pending."
-            context="thoth-ci/pytest-check"
-            post_status(description, context)
-        if os.path.isfile('.pre-commit-config.yaml'):
-            description="The pre-commit test pending."
-            context="thoth-ci/pre-commit-check"
-            post_status(description, context)
-
-        description="The image build test pending."
-        context="thoth-ci/build-check"
-        post_status(description, context)
+    # - name: status-setup
+    #   image: $(resources.inputs.s2i-thoth.url)
+    #   workingDir: /workspace/repo
+    #   securityContext:
+    #     privileged: true
+    #   env:
+    #     - name: GITHUBTOKEN
+    #       valueFrom:
+    #         secretKeyRef:
+    #           name: auth-secret
+    #           key: token
+    #   script: |
+    #     #!/usr/libexec/platform-python
+    #     import json
+    #     import os
+    #     import http.client
+    #
+    #     def post_status(description, context):
+    #         with open("/workspace/pr/pr.json") as f:
+    #             PR_INFO = json.load(f)
+    #         status_url = "/repos/{}/statuses/{}".format(PR_INFO["Base"]["Repo"]["FullName"], PR_INFO["Head"]["Sha"])
+    #         data = {
+    #             "state": "pending",
+    #             "target_url": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
+    #             "description": description,
+    #             "context": context
+    #         }
+    #
+    #         conn = http.client.HTTPSConnection("api.github.com")
+    #         r = conn.request(
+    #             "POST",
+    #             status_url,
+    #             body=json.dumps(data),
+    #             headers={
+    #                 "User-Agent": "thoth-ci",
+    #                 "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+    #             })
+    #         resp = conn.getresponse()
+    #         if not str(resp.status).startswith("2"):
+    #             print("Error: %d" % (resp.status))
+    #             print(resp.read())
+    #         else:
+    #             print(resp.read())
+    #
+    #     if os.path.isfile('setup.py'):
+    #         description="The pytest test pending."
+    #         context="thoth-ci/pytest-check"
+    #         post_status(description, context)
+    #     if os.path.isfile('.pre-commit-config.yaml'):
+    #         description="The pre-commit test pending."
+    #         context="thoth-ci/pre-commit-check"
+    #         post_status(description, context)
+    #
+    #     description="The image build test pending."
+    #     context="thoth-ci/build-check"
+    #     post_status(description, context)
