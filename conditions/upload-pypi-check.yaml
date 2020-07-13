@@ -3,24 +3,24 @@ kind: Condition
 metadata:
   name: upload-pypi-check
 spec:
-  params:
-    - name: git_ref
-      description: Git reference value.
-    - name: git_ref_type
-      description: Type of ref Tag or Branch.
   resources:
     - name: repo
       type: git
     - name: ubi
       type: image
   check:
-    image: $(resources.inputs.ubi.url)
+    image: mikefarah/yq:3.3.1
     workingDir: /workspace/repo
-    securityContext:
-      privileged: true
     script: |
       if [[ -f setup.py ]]; then
+        if [[ ! -f .aicoe-ci.yaml ]]; then
           exit 0
+        else
+          release_list=$(yq r -j .aicoe-ci.yaml release)
+          out=$(echo "$release_list" | grep -w "upload-pypi-sesheta")
+          exit_code=$?
+          exit exit_code
+        fi
       else
           exit 1
       fi
