@@ -4,6 +4,30 @@ metadata:
   name: tag-release
 spec:
   params:
+    # tag params
+    - name: git_ref
+      description: Git reference value.
+    - name: repo_name
+      description: The git repository title.
+    - name: base_image
+      description: Base image to be used.
+      default: "quay.io/thoth-station/s2i-thoth-ubi8-py36:latest"
+    - name: build_stratergy
+      description: stratergy with which image is to build.
+      default: ""
+    - name: registry
+      description: Container image registry.
+      default: "quay.io"
+    - name: registry_org
+      description: Name of the registry organization.
+      default: "thoth-station"
+    - name: registry_project
+      description: Name of the project repository.
+      default: ""
+    - name: registry_secret
+      description: Registry image push secret.
+      default: "thoth-station-thoth-pusher-secret"
+
     # buildah params
     - name: PATH_CONTEXT
       default: .
@@ -16,9 +40,7 @@ spec:
     - name: LOGLEVEL
       description: Log level when running the S2I binaryx`x
       default: "0"
-    - name: BASE_REPO
-      description: Base repository on quay.
-      default: "thoth-station"
+
     # s2i thoth params
     - name: ENABLE_PIPENV
       description: Set this variable to use Pipenv.
@@ -50,11 +72,6 @@ spec:
     - name: THAMOS_NO_PROGRESSBAR
       description: Disable progressbar for thamos.
       default: "1"
-    # tag params
-    - name: git_ref
-      description: Git reference value.
-    - name: repo_name
-      description: The git repository title.
 
   resources:
     inputs:
@@ -64,6 +81,27 @@ spec:
         type: git
 
   steps:
+    - name: check-ops
+      image: $(resources.inputs.s2i-thoth.url)
+      securityContext:
+        privileged: true
+      script: |
+        if [ -z "$(params.registry_project)" ]; then
+          registry_repo=$(params.repo_name)
+        else
+          registry_repo=$(params.registry_project)
+        fi
+        if [ "$(params.registry)" == "quay.io" ]; then
+          STATUS=$(curl -s -o /dev/null -w '%{http_code}' "https://quay.io/api/v1/repository/$(params.registry_org)/$registry_repo")
+          if [ $STATUS -eq 200 ]; then
+              exit 0
+          else
+              exit 1
+          fi
+        else
+           exit 0
+        fi
+
     - name: git-init-op
       image: $(resources.inputs.s2i-thoth.url)
       workingDir: /workspace/repo
@@ -79,25 +117,48 @@ spec:
       securityContext:
         privileged: true
       script: |
-        if [[ -f Dockerfile ]]; then
-          cp -rf . /gen-source/
-          mv /gen-source/Dockerfile /gen-source/Containerfile
-        elif [[ -f Containerfile ]]; then
-          cp -rf . /gen-source/
+        if [ -z "$(params.build_stratergy)" ]; then
+          if [ -f Dockerfile ]; then
+            cp -rf . /gen-source/
+            mv /gen-source/Dockerfile /gen-source/Containerfile
+          elif [ -f Containerfile ]; then
+            cp -rf . /gen-source/
+          else
+            /usr/local/bin/s2i build \
+            $(params.PATH_CONTEXT) \
+            $(params.base_image) \
+            --env UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST) \
+            --env WEB_CONCURRENCY=$(params.WEB_CONCURRENCY) \
+            --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
+            --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \
+            --env THOTH_DRY_RUN=$(params.THOTH_DRY_RUN) \
+            --env THAMOS_DEBUG=$(params.THAMOS_DEBUG) \
+            --env THAMOS_VERBOSE=$(params.THAMOS_VERBOSE) \
+            --env THOTH_PROVENANCE_CHECK=$(params.THOTH_PROVENANCE_CHECK) \
+            --loglevel=$(params.LOGLEVEL) \
+            --as-dockerfile /gen-source/Containerfile
+          fi
         else
-          /usr/local/bin/s2i build \
-          $(params.PATH_CONTEXT) \
-          $(resources.inputs.s2i-thoth.url) \
-          --env UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST) \
-          --env WEB_CONCURRENCY=$(params.WEB_CONCURRENCY) \
-          --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
-          --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \
-          --env THOTH_DRY_RUN=$(params.THOTH_DRY_RUN) \
-          --env THAMOS_DEBUG=$(params.THAMOS_DEBUG) \
-          --env THAMOS_VERBOSE=$(params.THAMOS_VERBOSE) \
-          --env THOTH_PROVENANCE_CHECK=$(params.THOTH_PROVENANCE_CHECK) \
-          --loglevel=$(params.LOGLEVEL) \
-          --as-dockerfile /gen-source/Containerfile
+          if [ "$(params.build_stratergy)" == "Dockerfile" ]; then
+            cp -rf . /gen-source/
+            mv /gen-source/Dockerfile /gen-source/Containerfile
+          elif [ "$(params.build_stratergy)" == "Containerfile" ]; then
+            cp -rf . /gen-source/
+          else
+            /usr/local/bin/s2i build \
+            $(params.PATH_CONTEXT) \
+            $(params.base_image) \
+            --env UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST) \
+            --env WEB_CONCURRENCY=$(params.WEB_CONCURRENCY) \
+            --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
+            --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \
+            --env THOTH_DRY_RUN=$(params.THOTH_DRY_RUN) \
+            --env THAMOS_DEBUG=$(params.THAMOS_DEBUG) \
+            --env THAMOS_VERBOSE=$(params.THAMOS_VERBOSE) \
+            --env THOTH_PROVENANCE_CHECK=$(params.THOTH_PROVENANCE_CHECK) \
+            --loglevel=$(params.LOGLEVEL) \
+            --as-dockerfile /gen-source/Containerfile
+          fi
         fi
       volumeMounts:
         - mountPath: /gen-source
@@ -108,16 +169,16 @@ spec:
       workingDir: /gen-source
       securityContext:
         privileged: true
-      command:
-        - buildah
-        - bud
-        - --tls-verify=$(params.TLSVERIFY)
-        - --layers
-        - -f
-        - /gen-source/Containerfile
-        - -t
-        - $(params.repo_name)-$(params.git_ref)
-        - .
+      script: |
+        buildah bud \
+        --storage-driver=overlay \
+        --tls-verify=$(params.TLSVERIFY) \
+        --layers \
+        -f \
+        /gen-source/Containerfile \
+        -t \
+        $(params.repo_name)-$(params.git_ref) \
+        .
       volumeMounts:
         - mountPath: /var/lib/containers
           name: varlibcontainers
@@ -126,13 +187,17 @@ spec:
 
     - name: push
       image: quay.io/buildah/stable
-      command:
-        - buildah
-        - push
-        - --authfile=/pushsecret/.dockerconfigjson
-        - --tls-verify=$(params.TLSVERIFY)
-        - $(params.repo_name)-$(params.git_ref)
-        - docker://quay.io/$(params.BASE_REPO)/$(params.repo_name):$(params.git_ref)
+      script: |
+        if [ -z "$(params.registry_project)" ]; then
+          registry_repo=$(params.repo_name)
+        else
+          registry_repo=$(params.registry_project)
+        fi
+        buildah push \
+        --authfile=/pushsecret/.dockerconfigjson \
+        --tls-verify=$(params.TLSVERIFY) \
+        $(params.repo_name)-$(params.git_ref) \
+        docker://$(params.registry)/$(params.registry_org)/$registry_repo:$(params.git_ref)
       securityContext:
         privileged: true
       volumeMounts:
@@ -149,4 +214,4 @@ spec:
       emptyDir: {}
     - name: quay-creds
       secret:
-        secretName: thoth-station-thoth-pusher-secret # Name of the secret to be parameterized
+        secretName: $(params.registry_secret)

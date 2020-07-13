@@ -9,16 +9,24 @@ spec:
       description: Git reference value.
     - name: repo_name
       description: The git repository title.
-    - name: BASE_REPO
+    - name: registry
+      description: Container image registry.
+      default: "quay.io"
+    - name: registry_org
+      description: Name of the registry organization.
+      default: "thoth-station"
+    - name: registry_project
+      description: Name of the project repository.
+      default: ""
+    - name: deploy_project_org
       description: Base repository on quay.
       default: "thoth-station"
-    - name: CONFIG_REPO
+    - name: deploy_project_name
       description: Base repository on quay.
       default: "thoth-application"
-    - name: IMAGESTREAM_PATH
+    - name: overlay_contextpath
       type: string
       description: imagestreamtag yaml which is to be updated.
-      default: "user-api/overlays/test/imagestreamtag.yaml"
 
   resources:
     inputs:
@@ -32,7 +40,7 @@ spec:
       privileged: true
     script: |
       export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
-      git clone git@github.com:$(params.BASE_REPO)/$(params.CONFIG_REPO) /workspace/configrepo
+      git clone git@github.com:$(params.deploy_project_org)/$(params.deploy_project_name) /workspace/configrepo
     volumeMounts:
       - name: ssh-config
         mountPath: /tekton/home/.ssh
@@ -41,8 +49,18 @@ spec:
     image: mikefarah/yq:3.2.1
     workingDir: /workspace/configrepo
     script: |
-      if [ ! -z "$(params.IMAGESTREAM_PATH)" ]; then
-        echo "{\"spec\":{\"tags\":[{\"name\":\"latest\",\"from\":{\"kind\":\"DockerImage\",\"name\":\"quay.io/$(params.BASE_REPO)/$(params.repo_name):$(params.git_ref)\"},\"importPolicy\":{},\"referencePolicy\":{\"type\":\"Source\"}}]}}" | yq -P m -i -x $(params.IMAGESTREAM_PATH) -
+      if [ -z "$(params.registry_project)" ]; then
+        registry_repo=$(params.repo_name)
+      else
+        registry_repo=$(params.registry_project)
+      fi
+      if [ -z "$(params.overlay_contextpath)" ]; then
+        contextpath=$(params.repo_name)/overlays/test/imagestreamtag.yaml
+      else
+        contextpath=$(params.overlay_contextpath)
+      fi
+      if [ ! -z "$contextpath" ]; then
+        echo "{\"spec\":{\"tags\":[{\"name\":\"latest\",\"from\":{\"kind\":\"DockerImage\",\"name\":\"$(params.registry)/$(params.registry_org)/$registry_repo:$(params.git_ref)\"},\"importPolicy\":{},\"referencePolicy\":{\"type\":\"Source\"}}]}}" | yq -P m -i -x $contextpath -
       fi
 
   - name: git-push
