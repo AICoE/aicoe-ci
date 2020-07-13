@@ -1,0 +1,72 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: configuration
+  labels:
+    app: thoth-ci
+spec:
+  resources:
+    inputs:
+      - name: repo
+        type: git
+  results:
+    - name: base-image
+    - name: build-stratergy
+    - name: registry
+    - name: registry-org
+    - name: registry-project
+    - name: registry-secret
+    - name: registry-org
+    - name: registry-project
+    - name: registry-secret
+    - name: deploy-project-org
+    - name: deploy-project-name
+    - name: overlay-contextpath
+  steps:
+    - name: gather-info
+      image: mikefarah/yq:3.3.1
+      workingDir: /workspace/repo
+      script: |
+        if [[ ! -f .aicoe-ci.yaml ]]; then
+          cat <<EOF > .aicoe-ci.yaml
+          check:
+            - thoth-pytest
+            - thoth-precommit
+            - thoth-build
+            - thoth-custom-build
+          release:
+            - upload-pypi-sesheta
+          build:
+            base-image: "quay.io/thoth-station/s2i-thoth-ubi8-py36:latest"
+            build-stratergy: "Source"
+            registry: "quay.io"
+            registry-org: "thoth-station"
+            registry-project: ""
+            registry-secret: "thoth-station-thoth-pusher-secret"
+          deploy:
+            project-org: "thoth-station"
+            project-name: "thoth-application"
+            overlay-contextpath: ""
+        EOF
+        fi
+        echo -n $(yq r .aicoe-ci.yaml build.registry) > $(results.registry.path)
+        echo -n $(yq r .aicoe-ci.yaml build.base-image) > $(results.base-image.path)
+        echo -n $(yq r .aicoe-ci.yaml build.registry-org) > $(results.registry-org.path)
+        echo -n $(yq r .aicoe-ci.yaml build.build-stratergy) > $(results.build-stratergy.path)
+        echo -n $(yq r .aicoe-ci.yaml build.registry-project) > $(results.registry-project.path)
+        if [ -z "$(yq r .aicoe-ci.yaml deploy.project-org)" ]; then
+          echo -n "thoth-station-thoth-pusher-secret" > $(results.registry-secret.path)
+        else
+          echo -n $(yq r .aicoe-ci.yaml build.registry-secret) > $(results.registry-secret.path)
+        fi
+        if [ -z "$(yq r .aicoe-ci.yaml deploy.project-org)" ]; then
+          echo -n "thoth-station" > $(results.deploy-project-org.path)
+        else
+          echo -n $(yq r .aicoe-ci.yaml deploy.project-org) > $(results.deploy-project-org.path)
+        fi
+        if [ -z "$(yq r .aicoe-ci.yaml deploy.project-name)" ]; then
+          echo -n "thoth-application" > $(results.deploy-project-name.path)
+        else
+          echo -n $(yq r .aicoe-ci.yaml deploy.project-name) > $(results.deploy-project-name.path)
+        fi
+        echo -n $(yq r .aicoe-ci.yaml deploy.overlay-contextpath) > $(results.overlay-contextpath.path)

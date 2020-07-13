@@ -1,0 +1,78 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: custom-pipeline
+  labels:
+    app: thoth-ci
+spec:
+  params:
+    - name: git_ref
+      description: Git reference value.
+    - name: git_ref_type
+      description: Type of ref Tag or Branch.
+    - name: repo_name
+      description: The git repository title.
+    - name: repo_url
+      description: The git repository url
+    - name: uid
+      description: uid of the pipeline.
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+      - name: repo
+        type: git
+
+  steps:
+    - name: custom-pipeline-setup
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        cat <<EOF > pipelinerun.yaml
+        apiVersion: tekton.dev/v1beta1
+        kind: PipelineRun
+        metadata:
+          name: custom-pipeline-$(params.uid)
+          labels:
+            app: thoth-ci
+            project: $(params.repo_name)
+            component: custom-build-pipeline
+        spec:
+          serviceAccountName: thoth-ci
+          pipelineRef:
+            name: custom-pipeline
+          params:
+            - name: git_ref
+              value: $(params.git_ref)
+            - name: git_ref_type
+              value: $(params.git_ref_type)
+            - name: repo_name
+              value: $(params.repo_name)
+            - name: repo_url
+              value: $(params.repo_url)
+          resources:
+            - name: git-repo
+              resourceSpec:
+                type: git
+                params:
+                  - name: revision
+                    value: master
+                  - name: url
+                    value: $(params.repo_url)
+            - name: s2i-thoth
+              resourceSpec:
+                type: image
+                params:
+                  - name: url
+                    value: $(resources.inputs.s2i-thoth.url)
+        EOF
+
+    - name: start-pipeline
+      image: quay.io/openshift/origin-cli:latest
+      workingDir: /workspace/repo
+      script: |
+        oc apply -f pipeline.yaml
+        oc apply -f pipelinerun.yaml
+        echo "Checkout the pipeline: custom-pipeline-$(params.uid)"
