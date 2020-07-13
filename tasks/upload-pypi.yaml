@@ -6,8 +6,8 @@ metadata:
     app: thoth-ci
 spec:
   params:
-    - name: git_ref
-      description: Tag reference to be published.
+  - name: git_ref
+    description: Git reference value.
   resources:
     inputs:
       - name: s2i-thoth
