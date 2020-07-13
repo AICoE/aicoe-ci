@@ -13,6 +13,12 @@ spec:
       type: string
     - name: repo_name
       type: string
+    - name: repo_url
+      type: string
+    - name: uid
+      type: string
+    - name: pipelinerun_name
+      type: string
   resources:
     - name: git-repo
       type: git
@@ -22,16 +28,60 @@ spec:
       type: image
 
   tasks:
+    - name: tag-check
+      taskRef:
+        name: tag-check
+      params:
+        - name: git_ref_type
+          value: $(params.git_ref_type)
+        - name: pipelinerun_name
+          value: $(params.pipelinerun_name)
+
+    - name: configuration
+      taskRef:
+        name: configuration
+      resources:
+        inputs:
+          - name: repo
+            resource: git-repo
+      runAfter:
+        - tag-check
+
+    - name: custom-pipeline-run
+      taskRef:
+        name: custom-pipeline
+      conditions:
+        - conditionRef: custom-pipeline-check
+          resources:
+            - name: ubi
+              resource: ubi
+            - name: repo
+              resource: git-repo
+      params:
+        - name: git_ref
+          value: $(params.git_ref)
+        - name: git_ref_type
+          value: $(params.git_ref_type)
+        - name: repo_name
+          value: $(params.repo_name)
+        - name: repo_url
+          value: $(params.repo_url)
+        - name: uid
+          value: $(params.uid)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
+          - name: repo
+            resource: git-repo
+      runAfter:
+        - tag-check
+
     - name: tag-publish-pypi-run
       taskRef:
         name: upload-pypi
       conditions:
         - conditionRef: upload-pypi-check
-          params:
-            - name: git_ref
-              value: $(params.git_ref)
-            - name: git_ref_type
-              value: $(params.git_ref_type)
           resources:
             - name: repo
               resource: git-repo
@@ -46,56 +96,58 @@ spec:
             resource: s2i-thoth
           - name: repo
             resource: git-repo
+      runAfter:
+        - tag-check
 
     - name: tag-release-run
       taskRef:
         name: tag-release
-      conditions:
-        - conditionRef: tag-check
-          params:
-            - name: git_ref
-              value: $(params.git_ref)
-            - name: git_ref_type
-              value: $(params.git_ref_type)
-            - name: repo_name
-              value: $(params.repo_name)
-          resources:
-            - name: ubi
-              resource: ubi
       params:
         - name: git_ref
           value: $(params.git_ref)
         - name: repo_name
           value: $(params.repo_name)
+        - name: base_image
+          value: $(tasks.configuration.results.base-image)
+        - name: build_stratergy
+          value: $(tasks.configuration.results.build-stratergy)
+        - name: registry
+          value: $(tasks.configuration.results.registry)
+        - name: registry_org
+          value: $(tasks.configuration.results.registry-org)
+        - name: registry_project
+          value: $(tasks.configuration.results.registry-project)
+        - name: registry_secret
+          value: $(tasks.configuration.results.registry-secret)
       resources:
         inputs:
           - name: s2i-thoth
             resource: s2i-thoth
           - name: repo
             resource: git-repo
+      runAfter:
+        - tag-check
 
     - name: tag-deploy-run
       taskRef:
         name: tag-deploy
-      conditions:
-        - conditionRef: tag-deploy-check
-          params:
-            - name: git_ref
-              value: $(params.git_ref)
-            - name: git_ref_type
-              value: $(params.git_ref_type)
-            - name: repo_name
-              value: $(params.repo_name)
-          resources:
-            - name: ubi
-              resource: ubi
       params:
         - name: git_ref
           value: $(params.git_ref)
         - name: repo_name
           value: $(params.repo_name)
-        - name: IMAGESTREAM_PATH
-          value: "$(params.repo_name)/overlays/test/imagestreamtag.yaml"
+        - name: registry
+          value: $(tasks.configuration.results.registry)
+        - name: registry_org
+          value: $(tasks.configuration.results.registry-org)
+        - name: registry_project
+          value: $(tasks.configuration.results.registry-project)
+        - name: deploy_project_org
+          value: $(tasks.configuration.results.deploy-project-org)
+        - name: deploy_project_name
+          value: $(tasks.configuration.results.deploy-project-name)
+        - name: overlay_contextpath
+          value: $(tasks.configuration.results.overlay-contextpath)
       resources:
         inputs:
           - name: s2i-thoth
