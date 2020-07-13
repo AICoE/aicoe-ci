@@ -113,6 +113,7 @@ spec:
       command:
         - buildah
         - bud
+        - --storage-driver=overlay
         - --tls-verify=$(params.TLSVERIFY)
         - --layers
         - -f
