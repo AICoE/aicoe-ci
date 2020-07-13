@@ -9,7 +9,32 @@ spec:
   type: image
   params:
     - name: url
-      value: quay.io/thoth-station/s2i-thoth-ubi8-py36:v0.13.1
+      value: quay.io/thoth-station/s2i-thoth-ubi8-py36:v0.14.0
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: s2i-thoth-py36
+  labels:
+    app: thoth-ci
+spec:
+  type: image
+  params:
+    - name: url
+      value: quay.io/thoth-station/s2i-thoth-ubi8-py36:v0.14.0
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: s2i-thoth-py38
+  labels:
+    app: thoth-ci
+spec:
+  type: image
+  params:
+    - name: url
+      value: quay.io/thoth-station/s2i-thoth-ubi8-py38:v0.14.0
+
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
