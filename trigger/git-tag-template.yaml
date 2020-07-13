@@ -14,6 +14,8 @@ spec:
       description: The git repository title.
     - name: repo_url
       description: The git repository url
+    - name: pipelinerun_name
+      description: pipelinerun associated.
 
   resourcetemplates:
     - apiVersion: tekton.dev/v1beta1
@@ -35,6 +37,12 @@ spec:
             value: $(params.git_ref_type)
           - name: repo_name
             value: $(params.repo_name)
+          - name: repo_url
+            value: $(params.repo_url)
+          - name: uid
+            value: $(uid)
+          - name: pipelinerun_name
+            value: tag-release-$(uid)
         resources:
           - name: git-repo
             resourceSpec:
