@@ -27,7 +27,7 @@ spec:
     - name: overlay_contextpath
       type: string
       description: imagestreamtag yaml which is to be updated.
-
+      default: ""
   resources:
     inputs:
       - name: s2i-thoth
