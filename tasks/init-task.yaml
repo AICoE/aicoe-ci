@@ -74,5 +74,5 @@ spec:
       image: quay.io/openshift/origin-cli:latest
       script: |
         if [ "$(params.event_action)" == "closed" ]; then
-          oc delete pipelinerun  --selector component=pipelinerun-$(params.pr_repo)-pr-$(params.pr_number)
+          oc delete pipelinerun  --selector component=$(params.pr_repo)-pr-$(params.pr_number)
         fi

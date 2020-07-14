@@ -19,11 +19,14 @@ spec:
       description: Name of the project repository.
       default: ""
     - name: deploy_project_org
-      description: Base repository on quay.
+      description: Deployment configuration repository's organization.
       default: "thoth-station"
     - name: deploy_project_name
-      description: Base repository on quay.
+      description: Deployment configuration repository.
       default: "thoth-application"
+    - name: deploy_image_name
+      description: Deployment imagestream name to be used by the application.
+      default: ""
     - name: overlay_contextpath
       type: string
       description: imagestreamtag yaml which is to be updated.
@@ -59,7 +62,18 @@ spec:
       else
         contextpath=$(params.overlay_contextpath)
       fi
-      if [ ! -z "$contextpath" ]; then
+      if [ ! -z "$(params.deploy_image_name)" ]; then
+        docs=$(yq r -d'*' $contextpath metadata.name)
+        cnt=0
+        for doc in $docs; do
+          if [ "$doc" != "$(params.deploy_image_name)" ]; then
+             let cnt+=1
+          else
+             break
+          fi
+        done
+        echo "{\"spec\":{\"tags\":[{\"name\":\"latest\",\"from\":{\"kind\":\"DockerImage\",\"name\":\"$(params.registry)/$(params.registry_org)/$registry_repo:$(params.git_ref)\"},\"importPolicy\":{},\"referencePolicy\":{\"type\":\"Source\"}}]}}" | yq -P m -d"$cnt" -i -x $contextpath -
+      else
         echo "{\"spec\":{\"tags\":[{\"name\":\"latest\",\"from\":{\"kind\":\"DockerImage\",\"name\":\"$(params.registry)/$(params.registry_org)/$registry_repo:$(params.git_ref)\"},\"importPolicy\":{},\"referencePolicy\":{\"type\":\"Source\"}}]}}" | yq -P m -i -x $contextpath -
       fi
 

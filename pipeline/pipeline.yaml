@@ -314,6 +314,8 @@ spec:
           value: $(tasks.configuration.results.deploy-project-org)
         - name: deploy_project_name
           value: $(tasks.configuration.results.deploy-project-name)
+        - name: deploy_image_name
+          value: $(tasks.configuration.results.deploy-image-name)
         - name: overlay_contextpath
           value: $(tasks.configuration.results.overlay-contextpath)
       resources:

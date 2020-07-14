@@ -21,6 +21,7 @@ spec:
     - name: registry-secret
     - name: deploy-project-org
     - name: deploy-project-name
+    - name: deploy-image-name
     - name: overlay-contextpath
   steps:
     - name: gather-info
@@ -46,6 +47,7 @@ spec:
           deploy:
             project-org: "thoth-station"
             project-name: "thoth-application"
+            image-name: ""
             overlay-contextpath: ""
         EOF
         fi
@@ -69,4 +71,5 @@ spec:
         else
           echo -n $(yq r .aicoe-ci.yaml deploy.project-name) > $(results.deploy-project-name.path)
         fi
+        echo -n $(yq r .aicoe-ci.yaml deploy.image-name) > $(results.deploy-image-name.path)
         echo -n $(yq r .aicoe-ci.yaml deploy.overlay-contextpath) > $(results.overlay-contextpath.path)
