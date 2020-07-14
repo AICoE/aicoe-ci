@@ -19,7 +19,7 @@ spec:
           release_list=$(yq r -j .aicoe-ci.yaml release)
           out=$(echo "$release_list" | grep -w "upload-pypi-sesheta")
           exit_code=$?
-          exit exit_code
+          exit $exit_code
         fi
       else
           exit 1
