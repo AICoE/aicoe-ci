@@ -9,7 +9,7 @@ spec:
   type: image
   params:
     - name: url
-      value: quay.io/thoth-station/s2i-thoth-ubi8-py36:v0.14.0
+      value: quay.io/thoth-station/s2i-thoth-ubi8-py36:v0.14.1
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
@@ -21,7 +21,7 @@ spec:
   type: image
   params:
     - name: url
-      value: quay.io/thoth-station/s2i-thoth-ubi8-py36:v0.14.0
+      value: quay.io/thoth-station/s2i-thoth-ubi8-py36:v0.14.1
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
@@ -33,7 +33,7 @@ spec:
   type: image
   params:
     - name: url
-      value: quay.io/thoth-station/s2i-thoth-ubi8-py38:v0.14.0
+      value: quay.io/thoth-station/s2i-thoth-ubi8-py38:v0.14.1
 
 ---
 apiVersion: tekton.dev/v1alpha1
