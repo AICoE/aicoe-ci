@@ -56,7 +56,7 @@ spec:
         echo -n $(yq r .aicoe-ci.yaml build.registry-org) > $(results.registry-org.path)
         echo -n $(yq r .aicoe-ci.yaml build.build-stratergy) > $(results.build-stratergy.path)
         echo -n $(yq r .aicoe-ci.yaml build.registry-project) > $(results.registry-project.path)
-        if [ -z "$(yq r .aicoe-ci.yaml deploy.project-org)" ]; then
+        if [ -z "$(yq r .aicoe-ci.yaml build.registry-secret)" ]; then
           echo -n "thoth-station-thoth-pusher-secret" > $(results.registry-secret.path)
         else
           echo -n $(yq r .aicoe-ci.yaml build.registry-secret) > $(results.registry-secret.path)
