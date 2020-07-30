@@ -15,6 +15,9 @@ spec:
     - name: build_stratergy
       description: stratergy with which image is to build.
       default: ""
+    - name: build_source_script
+      description: Specify a URL for the assemble, assemble-runtime and run scripts
+      default: ""
     - name: registry
       description: Container image registry.
       default: "quay.io"
@@ -145,19 +148,30 @@ spec:
           elif [ "$(params.build_stratergy)" == "Containerfile" ]; then
             cp -rf . /gen-source/
           else
-            /usr/local/bin/s2i build \
-            $(params.PATH_CONTEXT) \
-            $(params.base_image) \
-            --env UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST) \
-            --env WEB_CONCURRENCY=$(params.WEB_CONCURRENCY) \
-            --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
-            --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \
-            --env THOTH_DRY_RUN=$(params.THOTH_DRY_RUN) \
-            --env THAMOS_DEBUG=$(params.THAMOS_DEBUG) \
-            --env THAMOS_VERBOSE=$(params.THAMOS_VERBOSE) \
-            --env THOTH_PROVENANCE_CHECK=$(params.THOTH_PROVENANCE_CHECK) \
-            --loglevel=$(params.LOGLEVEL) \
-            --as-dockerfile /gen-source/Containerfile
+            if [ -z "$(params.build_source_script)" ]; then
+              /usr/local/bin/s2i build \
+              $(params.PATH_CONTEXT) \
+              $(params.base_image) \
+              --env UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST) \
+              --env WEB_CONCURRENCY=$(params.WEB_CONCURRENCY) \
+              --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
+              --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \
+              --env THOTH_DRY_RUN=$(params.THOTH_DRY_RUN) \
+              --env THAMOS_DEBUG=$(params.THAMOS_DEBUG) \
+              --env THAMOS_VERBOSE=$(params.THAMOS_VERBOSE) \
+              --env THOTH_PROVENANCE_CHECK=$(params.THOTH_PROVENANCE_CHECK) \
+              --loglevel=$(params.LOGLEVEL) \
+              --as-dockerfile /gen-source/Containerfile
+            else
+              /usr/local/bin/s2i build \
+              $(params.PATH_CONTEXT) \
+              $(params.base_image) \
+              --scripts-url=$(params.build_source_script) \
+              --assemble-user=root \
+              --assemble-runtime-user=root \
+              --loglevel=$(params.LOGLEVEL) \
+              --as-dockerfile /gen-source/Containerfile
+            fi
           fi
         fi
       volumeMounts:
