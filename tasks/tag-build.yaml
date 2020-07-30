@@ -8,9 +8,6 @@ spec:
     - name: PATH_CONTEXT
       default: .
       description: The location of the path to run s2i from.
-    - name: DOCKERFILE
-      description: Path to the Dockerfile to build.
-      default: Dockerfile
     - name: TLSVERIFY
       default: "false"
       description:
@@ -19,49 +16,27 @@ spec:
     - name: LOGLEVEL
       description: Log level when running the S2I binaryx`x
       default: "0"
-    - name: QUAY_ORG
-      description: organisation on quay.
-      default: "thoth-station"
-    - name: QUAY_REPO
-      description: Base repository on quay.
-
-    # s2i thoth params
-    - name: ENABLE_PIPENV
-      description: Set this variable to use Pipenv.
-      default: "1"
-    - name: UPGRADE_PIP_TO_LATEST
-      description: Set this variable to have the 'pip' program and related python packages be upgraded.
-      default: "1"
-    - name: WEB_CONCURRENCY
-      description: Set this to change the default setting for the number of workers.
-      default: "1"
-    - name: THOTH_ADVISE
-      description: Advise the recommended stack by Thoth.
-      default: "0"
-    - name: THOTH_ERROR_FALLBACK
-      description: Fallback to the lock file present in the repository if the submitted Thoth analysis fails.
-      default: "1"
-    - name: THOTH_DRY_RUN
-      description: Submit stack to Thoth, but do not use the recommended one.
-      default: "1"
-    - name: "THAMOS_DEBUG"
-      description: "Thamos enable debug mode."
-      default: "0"
-    - name: "THAMOS_VERBOSE"
-      description: Run thamos in verbose mode.
-      default: "1"
-    - name: THOTH_PROVENANCE_CHECK
-      description: Provenance check is verify the stack.
-      default: "0"
-    - name: THAMOS_NO_PROGRESSBAR
-      description: Disable progressbar for thamos.
-      default: "1"
 
     # tag params
     - name: git_ref
       description: Git reference value.
     - name: repo_name
       description: The git repository title.
+    - name: registry
+      description: Container image registry.
+      default: "quay.io"
+    - name: registry_org
+      description: Name of the registry organization.
+      default: "thoth-station"
+    - name: registry_project
+      description: Name of the project repository.
+      default: ""
+    - name: registry_secret
+      description: Registry image push secret.
+      default: "thoth-station-thoth-pusher-secret"
+    - name: dockerfile
+      description: Path to the Dockerfile to build.
+      default: Dockerfile
 
   resources:
     inputs:
@@ -71,6 +46,22 @@ spec:
         type: git
 
   steps:
+    - name: check-ops
+      image: $(resources.inputs.s2i-thoth.url)
+      securityContext:
+        privileged: true
+      script: |
+        if [ "$(params.registry)" == "quay.io" ]; then
+          STATUS=$(curl -s -o /dev/null -w '%{http_code}' "https://quay.io/api/v1/repository/$(params.registry_org)/$(params.registry_project)")
+          if [ $STATUS -eq 200 ]; then
+              exit 0
+          else
+              exit 1
+          fi
+        else
+           exit 0
+        fi
+
     - name: git-init-op
       image: $(resources.inputs.s2i-thoth.url)
       workingDir: /workspace/repo
@@ -91,7 +82,7 @@ spec:
         --storage-driver=overlay \
         --layers \
         -f \
-        $(params.DOCKERFILE) \
+        $(params.dockerfile) \
         -t \
         $(params.repo_name)-$(params.git_ref) \
         .
@@ -106,7 +97,7 @@ spec:
         --authfile=/pushsecret/.dockerconfigjson \
         --tls-verify=$(params.TLSVERIFY) \
         $(params.repo_name)-$(params.git_ref) \
-        docker://quay.io/$(params.QUAY_ORG)/$(params.QUAY_REPO):$(params.git_ref)
+        docker://$(params.registry)/$(params.registry_org)/$(params.registry_project):$(params.git_ref)
       securityContext:
         privileged: true
       volumeMounts:
@@ -123,4 +114,4 @@ spec:
       emptyDir: {}
     - name: quay-creds
       secret:
-        secretName: thoth-station-thoth-pusher-secret # Name of the secret to be parameterized
+        secretName: $(params.registry_secret)
