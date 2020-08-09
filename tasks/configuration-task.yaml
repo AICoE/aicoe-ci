@@ -40,7 +40,7 @@ spec:
             - upload-pypi-sesheta
           build:
             base-image: "quay.io/thoth-station/s2i-thoth-ubi8-py36:latest"
-            build-stratergy: "Source"
+            build-stratergy: ""
             build-source-script: ""
             registry: "quay.io"
             registry-org: "thoth-station"
