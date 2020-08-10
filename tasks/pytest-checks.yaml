@@ -10,6 +10,9 @@ spec:
       description: Pull Request number.
     - name: pipelinerun_name
       description: pipelinerun associated.
+    - name: pytest_env
+      description: pytest enviromental variables.
+      default: ""
   resources:
     inputs:
       - name: s2i-thoth
@@ -52,6 +55,11 @@ spec:
           cpu: "1"
       workingDir: /workspace/repo
       script: |
+        if [[ -n "$(params.pytest_env)" ]]; then
+          for v in $(echo -n $(params.pytest_env) | awk 'gsub(/\{|\}/ , "")' | tr "," "\n" | sed -e "0,/:/s//=/"); do
+            eval export $v
+          done
+        fi
         if [[ -f setup.py ]]; then
           micropipenv install --dev
           set +e

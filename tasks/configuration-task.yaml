@@ -20,6 +20,7 @@ spec:
     - name: registry-org
     - name: registry-project
     - name: registry-secret
+    - name: pytest-env
     - name: deploy-project-org
     - name: deploy-project-name
     - name: deploy-image-name
@@ -59,6 +60,7 @@ spec:
         echo -n $(yq r .aicoe-ci.yaml build.build-stratergy) > $(results.build-stratergy.path)
         echo -n $(yq r .aicoe-ci.yaml build.build-source-script) > $(results.build-source-script.path)
         echo -n $(yq r .aicoe-ci.yaml build.registry-project) > $(results.registry-project.path)
+        echo -n $(yq r -j .aicoe-ci.yaml pytest-env) > $(results.pytest-env.path)
         if [ -z "$(yq r .aicoe-ci.yaml build.registry-secret)" ]; then
           echo -n "thoth-station-thoth-pusher-secret" > $(results.registry-secret.path)
         else
