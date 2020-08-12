@@ -1,8 +1,11 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Condition
 metadata:
-  name: pytest-check
+  name: config-check
 spec:
+  params:
+    - name: event
+      type: string
   resources:
     - name: repo
       type: git
@@ -14,7 +17,7 @@ spec:
         exit 0
       else
         check_list=$(yq r -j .aicoe-ci.yaml check)
-        out=$(echo "$check_list" | grep -w "thoth-pytest")
+        out=$(echo "$check_list" | grep -w "$(params.event)")
         exit_code=$?
         if [[ $exit_code -ne 0 ]]; then
           exit 1

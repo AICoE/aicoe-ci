@@ -8,10 +8,10 @@ commonLabels:
 resources:
   - conditions/action-check.yaml
   - conditions/approve-comment-check.yaml
+  - conditions/config-check.yaml
   - conditions/custom-pipeline-check.yaml
   - conditions/deploy-comment-check.yaml
   - conditions/issue-check.yaml
-  - conditions/pytest-check.yaml
   - conditions/retest-comment-check.yaml
   - conditions/upload-pypi-check.yaml
   - tasks/configuration-task.yaml

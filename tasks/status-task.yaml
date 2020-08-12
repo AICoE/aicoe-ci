@@ -44,6 +44,7 @@ spec:
       script: |
         #!/usr/libexec/platform-python
         import json
+        import yaml
         import os
         import http.client
 
@@ -74,15 +75,29 @@ spec:
             else:
                 print(resp.read())
 
-        if os.path.isfile('setup.py'):
+        pytest,precommit,build,tox = True,True,True,True
+        if os.path.isfile('.aicoe-ci.yaml'):
+            with open(".aicoe-ci.yaml", "r") as stream:
+                conf = yaml.safe_load(stream)
+
+            pytest = True if "thoth-pytest" in conf.get("check") else False
+            precommit = True if "thoth-precommit" in conf.get("check") else False
+            build = True if "thoth-build" in conf.get("check") else False
+            tox = True if "thoth-tox" in conf.get("check") else False
+
+        if os.path.isfile('setup.py') and pytest:
             description="The pytest test pending."
             context="thoth-ci/pytest-check"
             post_status(description, context)
-        if os.path.isfile('.pre-commit-config.yaml'):
+        if os.path.isfile('.pre-commit-config.yaml') and precommit:
             description="The pre-commit test pending."
             context="thoth-ci/pre-commit-check"
             post_status(description, context)
-
-        description="The image build test pending."
-        context="thoth-ci/build-check"
-        post_status(description, context)
+        if build:
+            description="The image build test pending."
+            context="thoth-ci/build-check"
+            post_status(description, context)
+        if os.path.isfile('tox.ini') and tox:
+            description="The pytest test pending."
+            context="thoth-ci/pytest-check"
+            post_status(description, context)

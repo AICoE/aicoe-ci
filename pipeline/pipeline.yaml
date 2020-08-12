@@ -121,6 +121,13 @@ spec:
           resources:
             - name: ubi
               resource: ubi
+        - conditionRef: config-check
+          params:
+            - name: event
+              value: "thoth-precommit"
+          resources:
+            - name: repo
+              resource: git-repo
         - conditionRef: retest-comment-check
           params:
             - name: pr_comment
@@ -158,6 +165,13 @@ spec:
           resources:
             - name: ubi
               resource: ubi
+        - conditionRef: config-check
+          params:
+            - name: event
+              value: "thoth-tox"
+          resources:
+            - name: repo
+              resource: git-repo
         - conditionRef: retest-comment-check
           params:
             - name: pr_comment
@@ -195,7 +209,10 @@ spec:
           resources:
             - name: ubi
               resource: ubi
-        - conditionRef: pytest-check
+        - conditionRef: config-check
+          params:
+            - name: event
+              value: "thoth-pytest"
           resources:
             - name: repo
               resource: git-repo
@@ -238,6 +255,13 @@ spec:
           resources:
             - name: ubi
               resource: ubi
+        - conditionRef: config-check
+          params:
+            - name: event
+              value: "thoth-build"
+          resources:
+            - name: repo
+              resource: git-repo
         - conditionRef: retest-comment-check
           params:
             - name: pr_comment
