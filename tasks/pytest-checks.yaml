@@ -56,7 +56,7 @@ spec:
       workingDir: /workspace/repo
       script: |
         if [[ -n "$(params.pytest_env)" ]]; then
-          for v in $(echo -n $(params.pytest_env) | awk 'gsub(/\{|\}/ , "")' | tr "," "\n" | sed -e "0,/:/s//=/"); do
+          for v in $(echo -n $(params.pytest_env) | awk 'gsub(/\{|\}/ , "")' | tr "," "\n" | sed -e "s/:/=/"); do
             eval export $v
           done
         fi
