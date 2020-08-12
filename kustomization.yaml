@@ -11,6 +11,7 @@ resources:
   - conditions/custom-pipeline-check.yaml
   - conditions/deploy-comment-check.yaml
   - conditions/issue-check.yaml
+  - conditions/pytest-check.yaml
   - conditions/retest-comment-check.yaml
   - conditions/upload-pypi-check.yaml
   - tasks/configuration-task.yaml

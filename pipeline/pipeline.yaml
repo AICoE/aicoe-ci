@@ -195,6 +195,10 @@ spec:
           resources:
             - name: ubi
               resource: ubi
+        - conditionRef: pytest-check
+          resources:
+            - name: repo
+              resource: git-repo
         - conditionRef: retest-comment-check
           params:
             - name: pr_comment
