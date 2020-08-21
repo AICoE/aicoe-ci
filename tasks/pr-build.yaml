@@ -4,6 +4,23 @@ metadata:
   name: pr-s2i-build
 spec:
   params:
+    # pull request params
+    - name: pr_number
+      description: Pull Request number.
+    - name: pr_repo
+      description: Pull Request repository.
+    - name: pipelinerun_name
+      description: pipelinerun associated.
+    - name: base_image
+      description: Base image to be used.
+      default: "quay.io/thoth-station/s2i-thoth-ubi8-py36:latest"
+    - name: build_stratergy
+      description: stratergy with which image is to build.
+      default: ""
+    - name: build_source_script
+      description: Specify a URL for the assemble, assemble-runtime and run scripts
+      default: ""
+
     # buildah params
     - name: PATH_CONTEXT
       default: .
@@ -47,13 +64,6 @@ spec:
     - name: THAMOS_NO_PROGRESSBAR
       description: Disable progressbar for thamos.
       default: "1"
-    # pull request params
-    - name: pr_number
-      description: Pull Request number.
-    - name: pr_repo
-      description: Pull Request repository.
-    - name: pipelinerun_name
-      description: pipelinerun associated.
   resources:
     inputs:
       - name: s2i-thoth
@@ -79,25 +89,59 @@ spec:
       securityContext:
         privileged: true
       script: |
-        if [[ -f Dockerfile ]]; then
-          cp -rf . /gen-source/
-          mv /gen-source/Dockerfile /gen-source/Containerfile
-        elif [[ -f Containerfile ]]; then
-          cp -rf . /gen-source/
+        if [ -z "$(params.build_stratergy)" ]; then
+          if [ -f Dockerfile ]; then
+            cp -rf . /gen-source/
+            mv /gen-source/Dockerfile /gen-source/Containerfile
+          elif [ -f Containerfile ]; then
+            cp -rf . /gen-source/
+          else
+            /usr/local/bin/s2i build \
+            $(params.PATH_CONTEXT) \
+            $(params.base_image) \
+            --env UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST) \
+            --env WEB_CONCURRENCY=$(params.WEB_CONCURRENCY) \
+            --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
+            --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \
+            --env THOTH_DRY_RUN=$(params.THOTH_DRY_RUN) \
+            --env THAMOS_DEBUG=$(params.THAMOS_DEBUG) \
+            --env THAMOS_VERBOSE=$(params.THAMOS_VERBOSE) \
+            --env THOTH_PROVENANCE_CHECK=$(params.THOTH_PROVENANCE_CHECK) \
+            --loglevel=$(params.LOGLEVEL) \
+            --as-dockerfile /gen-source/Containerfile
+          fi
         else
-          /usr/local/bin/s2i build \
-          $(params.PATH_CONTEXT) \
-          $(resources.inputs.s2i-thoth.url) \
-          --env UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST) \
-          --env WEB_CONCURRENCY=$(params.WEB_CONCURRENCY) \
-          --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
-          --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \
-          --env THOTH_DRY_RUN=$(params.THOTH_DRY_RUN) \
-          --env THAMOS_DEBUG=$(params.THAMOS_DEBUG) \
-          --env THAMOS_VERBOSE=$(params.THAMOS_VERBOSE) \
-          --env THOTH_PROVENANCE_CHECK=$(params.THOTH_PROVENANCE_CHECK) \
-          --loglevel=$(params.LOGLEVEL) \
-          --as-dockerfile /gen-source/Containerfile
+          if [ "$(params.build_stratergy)" == "Dockerfile" ]; then
+            cp -rf . /gen-source/
+            mv /gen-source/Dockerfile /gen-source/Containerfile
+          elif [ "$(params.build_stratergy)" == "Containerfile" ]; then
+            cp -rf . /gen-source/
+          else
+            if [ -z "$(params.build_source_script)" ]; then
+              /usr/local/bin/s2i build \
+              $(params.PATH_CONTEXT) \
+              $(params.base_image) \
+              --env UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST) \
+              --env WEB_CONCURRENCY=$(params.WEB_CONCURRENCY) \
+              --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
+              --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \
+              --env THOTH_DRY_RUN=$(params.THOTH_DRY_RUN) \
+              --env THAMOS_DEBUG=$(params.THAMOS_DEBUG) \
+              --env THAMOS_VERBOSE=$(params.THAMOS_VERBOSE) \
+              --env THOTH_PROVENANCE_CHECK=$(params.THOTH_PROVENANCE_CHECK) \
+              --loglevel=$(params.LOGLEVEL) \
+              --as-dockerfile /gen-source/Containerfile
+            else
+              /usr/local/bin/s2i build \
+              $(params.PATH_CONTEXT) \
+              $(params.base_image) \
+              --scripts-url=$(params.build_source_script) \
+              --assemble-user=root \
+              --assemble-runtime-user=root \
+              --loglevel=$(params.LOGLEVEL) \
+              --as-dockerfile /gen-source/Containerfile
+            fi
+          fi
         fi
       volumeMounts:
         - mountPath: /gen-source

@@ -278,6 +278,12 @@ spec:
           value: $(params.pr_repo)
         - name: pipelinerun_name
           value: $(params.pipelinerun_name)
+        - name: base_image
+          value: $(tasks.configuration.results.base-image)
+        - name: build_stratergy
+          value: $(tasks.configuration.results.build-stratergy)
+        - name: build_source_script
+          value: $(tasks.configuration.results.build-source-script)
       resources:
         inputs:
           - name: s2i-thoth
@@ -315,6 +321,20 @@ spec:
           value: $(params.pr_number)
         - name: pr_repo
           value: $(params.pr_repo)
+        - name: base_image
+          value: $(tasks.configuration.results.base-image)
+        - name: build_stratergy
+          value: $(tasks.configuration.results.build-stratergy)
+        - name: build_source_script
+          value: $(tasks.configuration.results.build-source-script)
+        - name: registry
+          value: $(tasks.configuration.results.registry)
+        - name: registry_org
+          value: $(tasks.configuration.results.registry-org)
+        - name: registry_project
+          value: $(tasks.configuration.results.registry-project)
+        - name: registry_secret
+          value: $(tasks.configuration.results.registry-secret)
       resources:
         inputs:
           - name: s2i-thoth
