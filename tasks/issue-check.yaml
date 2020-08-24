@@ -10,12 +10,19 @@ spec:
       description: Type of Issue.
     - name: pipelinerun_name
       description: pipelinerun associated.
+    - name: event_action
+      type: string
   steps:
     - name: init-ops
       image: quay.io/openshift/origin-cli:latest
       script: |
-        if [ "$(params.issue_title)" == *"Deliver Container Image"* ]; then
-            exit 0
+        ACTION="opened reopened"
+        if echo $ACTION | grep -w $(params.event_action) > /dev/null; then
+            if [ "$(params.issue_title)" == "Deliver Container Image" ]; then
+              exit 0
+            else
+              oc delete pipelinerun $(params.pipelinerun_name)
+            fi
         else
-          oc delete pipelinerun $(params.pipelinerun_name)
+            oc delete pipelinerun $(params.pipelinerun_name)
         fi

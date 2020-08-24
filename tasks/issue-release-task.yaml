@@ -264,8 +264,10 @@ spec:
         import http.client
 
         status_url = "/repos/{}/issues/{}/comments".format(os.getenv('REPOFULLNAME'),os.getenv('ISSUENUMBER'))
+        issue_tag = """$(params.issue_body)""".split(":")[-1].strip()
+        issue_body = "Successfully built and delivered the image.\nCan be found at:[$(params.registry)/$(params.registry_org)/$(params.registry_project):{}](https://$(params.registry)/$(params.registry_org)/$(params.registry_project):{})".format(issue_tag,issue_tag)
         data = {
-            "body": "Successfully built and delivered the image."
+            "body": issue_body
         }
 
         conn = http.client.HTTPSConnection("api.github.com")

@@ -42,6 +42,8 @@ spec:
       taskRef:
         name: issue-check
       params:
+        - name: event_action
+          value: $(params.event_action)
         - name: issue_title
           value: $(params.issue_title)
         - name: pipelinerun_name
@@ -103,5 +105,5 @@ spec:
             resource: git-repo
           - name: ubi
             resource: ubi
-      runAfter:
-        - issue-check
+      # runAfter:
+      #   - issue-check
