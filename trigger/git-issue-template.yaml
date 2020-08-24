@@ -26,6 +26,9 @@ spec:
       description: The git repository full name.
     - name: repo_url
       description: The git repository url
+    - name: pipelinerun_name
+      description: pipelinerun associated.
+
   resourcetemplates:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
@@ -60,6 +63,8 @@ spec:
             value: $(params.repo_full_name)
           - name: repo_url
             value: $(params.repo_url)
+          - name: pipelinerun_name
+            value: aicoe-issue-$(uid)
         resources:
           - name: git-repo
             resourceSpec:

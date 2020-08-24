@@ -27,6 +27,8 @@ spec:
       type: string
     - name: repo_url
       type: string
+    - name: pipelinerun_name
+      type: string
   resources:
     - name: git-repo
       type: git
@@ -36,17 +38,28 @@ spec:
       type: image
 
   tasks:
+    - name: issue-check
+      taskRef:
+        name: issue-check
+      params:
+        - name: issue_title
+          value: $(params.issue_title)
+        - name: pipelinerun_name
+          value: $(params.pipelinerun_name)
+
+    - name: configuration
+      taskRef:
+        name: configuration
+      resources:
+        inputs:
+          - name: repo
+            resource: git-repo
+      runAfter:
+        - issue-check
+
     - name: issue-release-run
       taskRef:
         name: issue-release
-      conditions:
-        - conditionRef: issue-check
-          params:
-            - name: repo_name
-              value: $(params.repo_name)
-          resources:
-            - name: ubi
-              resource: ubi
       params:
         - name: event_action
           value: $(params.event_action)
@@ -68,6 +81,20 @@ spec:
           value: $(params.repo_full_name)
         - name: repo_url
           value: $(params.repo_url)
+        - name: base_image
+          value: $(tasks.configuration.results.base-image)
+        - name: build_stratergy
+          value: $(tasks.configuration.results.build-stratergy)
+        - name: build_source_script
+          value: $(tasks.configuration.results.build-source-script)
+        - name: registry
+          value: $(tasks.configuration.results.registry)
+        - name: registry_org
+          value: $(tasks.configuration.results.registry-org)
+        - name: registry_project
+          value: $(tasks.configuration.results.registry-project)
+        - name: registry_secret
+          value: $(tasks.configuration.results.registry-secret)
       resources:
         inputs:
           - name: s2i-thoth
@@ -76,3 +103,5 @@ spec:
             resource: git-repo
           - name: ubi
             resource: ubi
+      runAfter:
+        - issue-check

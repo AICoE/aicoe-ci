@@ -1,0 +1,21 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: issue-check
+  labels:
+    app: thoth-ci
+spec:
+  params:
+    - name: issue_title
+      description: Type of Issue.
+    - name: pipelinerun_name
+      description: pipelinerun associated.
+  steps:
+    - name: init-ops
+      image: quay.io/openshift/origin-cli:latest
+      script: |
+        if [ "$(params.issue_title)" == *"Deliver Container Image"* ]; then
+            exit 0
+        else
+          oc delete pipelinerun $(params.pipelinerun_name)
+        fi
