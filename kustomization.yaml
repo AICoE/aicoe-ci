@@ -27,8 +27,8 @@ resources:
   - tasks/status-task.yaml
   - tasks/tag-build.yaml
   - tasks/tag-check.yaml
-  - tasks/tag-deploy-task.yaml
-  - tasks/tag-release-task.yaml
+  - tasks/tag-deploy.yaml
+  - tasks/tag-release.yaml
   - tasks/tox-checks.yaml
   - tasks/upload-pypi.yaml
   - pipeline/issue-pipeline.yaml
