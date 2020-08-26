@@ -20,6 +20,7 @@ resources:
   - tasks/issue-release-task.yaml
   - tasks/pr-build-release.yaml
   - tasks/pr-build.yaml
+  - tasks/pr-config.yaml
   - tasks/pr-merge.yaml
   - tasks/pre-commit-check.yaml
   - tasks/pytest-checks.yaml

@@ -66,13 +66,18 @@ spec:
           - name: pr
             resource: pr-source
 
-    - name: configuration
+    - name: pr-configuration
       taskRef:
-        name: configuration
+        name: pr-config
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
       resources:
         inputs:
           - name: repo
             resource: git-repo
+          - name: s2i-thoth
+            resource: s2i-thoth
 
     - name: status-task-run
       taskRef:
