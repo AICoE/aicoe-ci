@@ -1,0 +1,21 @@
+# Setup and configuring aicoe-ci with configuration file `.aicoe-ci.yaml`
+
+check:
+  - thoth-coala
+  - thoth-pytest
+  - thoth-precommit
+  - thoth-build
+  - thoth-custom-build
+release:
+  - upload-pypi-sesheta
+build:
+  base-image: registry.access.redhat.com/ubi8/ubi:latest
+  build-stratergy: Dockerfile # Allowed values: Source, Dockerfile, Containerfile (default: Source)
+  registry: quay.io # Imgage registry to be used. (default: quay.io)
+  registry-org: thoth-station # Organization to be used in Image Registry. (default: thoth-station)
+  registry-project: example # Project Repository in Image Registry to be used to push image.
+  registry-secret: thoth-pusher # pre-exists in ci
+deploy:
+  project-org: thoth-station # Organization on Github contianing the Repository..
+  project-name: thoth-application # Repository on Github containing the kustomize manifests.
+  overlay-contextpath: example/overlays/test/imagestreamtag.yaml # Imagestream manifest where tag is to be updated.
