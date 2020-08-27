@@ -18,7 +18,7 @@ spec:
       description: stratergy with which image is to build.
       default: ""
     - name: build_source_script
-      ßescription: Specify a URL for the assemble, assemble-runtime and run scripts
+      description: Specify a URL for the assemble, assemble-runtime and run scripts
       default: ""
     # buildah params
     - name: PATH_CONTEXT
