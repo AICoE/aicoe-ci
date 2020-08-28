@@ -18,8 +18,9 @@ spec:
       description: stratergy with which image is to build.
       default: ""
     - name: build_source_script
-      ßescription: Specify a URL for the assemble, assemble-runtime and run scripts
+      description: Specify a URL for the assemble, assemble-runtime and run scripts
       default: ""
+
     # buildah params
     - name: PATH_CONTEXT
       default: .
@@ -158,7 +159,7 @@ spec:
           name: gen-source
       script: |
         set +e
-        out=$(buildah bud --tls-verify=$(params.TLSVERIFY) --layers -f /gen-source/Containerfile -t $(params.pr_repo)-$(params.pr_number) . 2>&1)
+        out=$(buildah bud --tls-verify=$(params.TLSVERIFY) --layers -f /gen-source/Containerfile -t $(params.pr_repo)-pr-$(params.pr_number) . 2>&1)
         exit_code=$?
         set -e
         if [[ $exit_code -ne 0 ]]; then
