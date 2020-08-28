@@ -23,7 +23,7 @@ spec:
     - name: registry-project
     - name: registry-secret
     - name: registry-org
-    - name: registry-project
+    - naconfigurationme: registry-project
     - name: registry-secret
     - name: pytest-env
     - name: deploy-project-org
