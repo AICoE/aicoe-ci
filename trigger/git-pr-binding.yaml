@@ -3,7 +3,7 @@ kind: TriggerBinding
 metadata:
   name: git-pr-binding
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
   params:
     - name: event_action

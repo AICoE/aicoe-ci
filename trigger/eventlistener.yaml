@@ -1,11 +1,11 @@
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
-  name: thoth-ci-listener
+  name: aicoe-ci-listener
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
-  serviceAccountName: thoth-ci-webhook
+  serviceAccountName: aicoe-ci-webhook
   triggers:
     - name: github-pull-request
       interceptors:

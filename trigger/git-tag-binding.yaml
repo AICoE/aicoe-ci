@@ -3,7 +3,7 @@ kind: TriggerBinding
 metadata:
   name: git-tag-binding
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
   params:
   - name: git_ref

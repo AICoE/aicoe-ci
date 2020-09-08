@@ -3,7 +3,7 @@ kind: Task
 metadata:
   name: issue-check
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
   params:
     - name: issue_title

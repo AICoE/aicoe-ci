@@ -199,9 +199,9 @@ spec:
             status_url = "/repos/{}/statuses/{}".format(PR_INFO["Base"]["Repo"]["FullName"], PR_INFO["Head"]["Sha"])
             data = {
                 "state": state,
-                "target_url": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
+                "target_url": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/aicoe-ci/pipelineruns/$(params.pipelinerun_name)",
                 "description": description,
-                "context": "thoth-ci/build-check"
+                "context": "aicoe-ci/build-check"
             }
 
             conn = http.client.HTTPSConnection("api.github.com")
@@ -210,7 +210,7 @@ spec:
                 status_url,
                 body=json.dumps(data),
                 headers={
-                    "User-Agent": "thoth-ci",
+                    "User-Agent": "aicoe-ci",
                     "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
                 })
             resp = conn.getresponse()

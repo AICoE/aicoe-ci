@@ -276,7 +276,7 @@ spec:
             status_url,
             body=json.dumps(data),
             headers={
-                "User-Agent": "thoth-ci",
+                "User-Agent": "aicoe-ci",
                 "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
             })
         resp = conn.getresponse()
@@ -293,7 +293,7 @@ spec:
                 "/repos/{}/issues/{}".format(os.getenv('REPOFULLNAME'),os.getenv('ISSUENUMBER')),
                 body=json.dumps(data),
                 headers={
-                    "User-Agent": "thoth-ci",
+                    "User-Agent": "aicoe-ci",
                     "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
                 })
   volumes:

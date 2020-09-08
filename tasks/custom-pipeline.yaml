@@ -3,7 +3,7 @@ kind: Task
 metadata:
   name: custom-pipeline
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
   params:
     - name: git_ref
@@ -36,11 +36,11 @@ spec:
         metadata:
           name: custom-pipeline-$(params.uid)
           labels:
-            app: thoth-ci
+            app: aicoe-ci
             project: $(params.repo_name)
             component: custom-build-pipeline
         spec:
-          serviceAccountName: thoth-ci
+          serviceAccountName: aicoe-ci
           pipelineRef:
             name: custom-pipeline
           params:

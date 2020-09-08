@@ -1,9 +1,9 @@
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: thoth-ci-role
+  name: aicoe-ci-role
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 rules:
   - apiGroups: ["triggers.tekton.dev"]
     resources: ["eventlisteners", "triggerbindings", "triggertemplates"]

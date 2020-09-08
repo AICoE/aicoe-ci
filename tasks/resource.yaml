@@ -4,7 +4,7 @@ kind: PipelineResource
 metadata:
   name: thoth-s2i
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
   type: image
   params:
@@ -16,7 +16,7 @@ kind: PipelineResource
 metadata:
   name: s2i-thoth-py36
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
   type: image
   params:
@@ -28,7 +28,7 @@ kind: PipelineResource
 metadata:
   name: s2i-thoth-py38
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
   type: image
   params:
@@ -60,9 +60,9 @@ kind: PipelineResource
 metadata:
   name: image-base
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
   type: image
   params:
     - name: url
-      value: image-registry.openshift-image-registry.svc:5000/thoth-ci
+      value: image-registry.openshift-image-registry.svc:5000/aicoe-ci

@@ -4,7 +4,7 @@ kind: Pipeline
 metadata:
   name: tag-release-pipeline
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
   params:
     - name: git_ref

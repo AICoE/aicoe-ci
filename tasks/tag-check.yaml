@@ -3,7 +3,7 @@ kind: Task
 metadata:
   name: tag-check
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
   params:
     - name: git_ref_type

@@ -3,7 +3,7 @@ kind: Task
 metadata:
   name: configuration
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
   resources:
     inputs:

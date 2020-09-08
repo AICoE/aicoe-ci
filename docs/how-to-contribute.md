@@ -34,9 +34,9 @@ oc expose svc/tekton-dashboard
 
   - Ultrahook: ultrahook passes the public internet request to services behind VPN
 
-    - ultrahook secret and deployment with destination as Thoth-CI listener
+    - ultrahook secret and deployment with destination as aicoe-ci listener
 
 Create the application with `kustomize build . | oc --namespace ... -f -`
 
 _NOTE_: components can be searched/deleted by label app.<br>
-`--selector 'app=thoth-ci'`
+`--selector 'app=aicoe-ci'`

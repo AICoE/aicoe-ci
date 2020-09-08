@@ -18,17 +18,17 @@ spec:
 apiVersion: apps.openshift.io/v1
 kind: DeploymentConfig
 metadata:
-  name: ultrahook-thoth-ci
+  name: ultrahook-aicoe-ci
 spec:
   replicas: 1
   selector:
-    instance: ultrahook-thoth-ci
+    instance: ultrahook-aicoe-ci
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        instance: ultrahook-thoth-ci
+        instance: ultrahook-aicoe-ci
     spec:
       containers:
         - env:
@@ -38,12 +38,12 @@ spec:
                   key: api.key
                   name: ultrahook
             - name: ULTRAHOOK_SUBDOMAIN
-              value: thoth-ci
+              value: aicoe-ci
             - name: ULTRAHOOK_DESTINATION
-              value: http://el-thoth-ci-listener.aicoe-infra-prod.svc:8080
+              value: http://el-aicoe-ci-listener.aicoe-infra-prod.svc:8080
           image: ultrahook
           imagePullPolicy: Always
-          name: ultrahook-thoth-ci
+          name: ultrahook-aicoe-ci
           ports:
             - containerPort: 8080
               protocol: TCP

@@ -2,25 +2,25 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: thoth-ci-webhook-binding
+  name: aicoe-ci-webhook-binding
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 subjects:
   - kind: ServiceAccount
-    name: thoth-ci-webhook
+    name: aicoe-ci-webhook
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: thoth-ci-role
+  name: aicoe-ci-role
 ---
 kind: RoleBinding
 apiVersion: authorization.openshift.io/v1
 metadata:
-  name: thoth-ci-webhook-edit
+  name: aicoe-ci-webhook-edit
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 subjects:
   - kind: ServiceAccount
-    name: thoth-ci-webhook
+    name: aicoe-ci-webhook
 roleRef:
   name: edit

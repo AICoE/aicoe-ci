@@ -3,7 +3,7 @@ kind: Task
 metadata:
   name: status-task
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
   params:
     - name: pr_number
@@ -54,7 +54,7 @@ spec:
             status_url = "/repos/{}/statuses/{}".format(PR_INFO["Base"]["Repo"]["FullName"], PR_INFO["Head"]["Sha"])
             data = {
                 "state": "pending",
-                "target_url": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/thoth-ci/pipelineruns/$(params.pipelinerun_name)",
+                "target_url": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/aicoe-ci/pipelineruns/$(params.pipelinerun_name)",
                 "description": description,
                 "context": context
             }
@@ -65,7 +65,7 @@ spec:
                 status_url,
                 body=json.dumps(data),
                 headers={
-                    "User-Agent": "thoth-ci",
+                    "User-Agent": "aicoe-ci",
                     "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
                 })
             resp = conn.getresponse()
@@ -87,17 +87,17 @@ spec:
 
         if os.path.isfile('setup.py') and pytest:
             description="The pytest test pending."
-            context="thoth-ci/pytest-check"
+            context="aicoe-ci/pytest-check"
             post_status(description, context)
         if os.path.isfile('.pre-commit-config.yaml') and precommit:
             description="The pre-commit test pending."
-            context="thoth-ci/pre-commit-check"
+            context="aicoe-ci/pre-commit-check"
             post_status(description, context)
         if build:
             description="The image build test pending."
-            context="thoth-ci/build-check"
+            context="aicoe-ci/build-check"
             post_status(description, context)
         if os.path.isfile('tox.ini') and tox:
             description="The pytest test pending."
-            context="thoth-ci/pytest-check"
+            context="aicoe-ci/pytest-check"
             post_status(description, context)

@@ -3,7 +3,7 @@ kind: Task
 metadata:
   name: init-task
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
   params:
     - name: event_action

@@ -3,7 +3,7 @@ kind: TriggerTemplate
 metadata:
   name: git-tag-template
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
   params:
     - name: git_ref
@@ -23,11 +23,11 @@ spec:
       metadata:
         name: tag-release-$(uid)
         labels:
-          app: thoth-ci
+          app: aicoe-ci
           project: $(params.repo_name)
           component: tag-$(params.repo_name)
       spec:
-        serviceAccountName: thoth-ci
+        serviceAccountName: aicoe-ci
         pipelineRef:
           name: tag-release-pipeline
         params:

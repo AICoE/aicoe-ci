@@ -3,7 +3,7 @@ kind: TriggerTemplate
 metadata:
   name: git-issue-template
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
   params:
     - name: event_action
@@ -35,11 +35,11 @@ spec:
       metadata:
         name: aicoe-issue-$(uid)
         labels:
-          app: thoth-ci
+          app: aicoe-ci
           project: $(params.repo_name)
           component: $(params.repo_name)-issue-$(params.issue_number)
       spec:
-        serviceAccountName: thoth-ci
+        serviceAccountName: aicoe-ci
         pipelineRef:
           name: issue-pipeline
         params:

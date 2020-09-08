@@ -3,7 +3,7 @@ kind: Task
 metadata:
   name: upload-pypi
   labels:
-    app: thoth-ci
+    app: aicoe-ci
 spec:
   params:
   - name: git_ref
