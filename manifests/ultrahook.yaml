@@ -40,7 +40,7 @@ spec:
             - name: ULTRAHOOK_SUBDOMAIN
               value: thoth-ci
             - name: ULTRAHOOK_DESTINATION
-              value: http://el-thoth-ci-listener.thoth-ci.svc:8080
+              value: http://el-thoth-ci-listener.aicoe-infra-prod.svc:8080
           image: ultrahook
           imagePullPolicy: Always
           name: ultrahook-thoth-ci
