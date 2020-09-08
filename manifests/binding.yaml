@@ -24,3 +24,15 @@ subjects:
     name: aicoe-ci-webhook
 roleRef:
   name: edit
+---
+kind: RoleBinding
+apiVersion: authorization.openshift.io/v1
+metadata:
+  name: aicoe-ci-edit
+  labels:
+    app: aicoe-ci
+subjects:
+  - kind: ServiceAccount
+    name: aicoe-ci
+roleRef:
+  name: edit
