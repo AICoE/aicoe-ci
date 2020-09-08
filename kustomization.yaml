@@ -33,7 +33,7 @@ resources:
   - tasks/tox-checks.yaml
   - tasks/upload-pypi.yaml
   - pipeline/issue-pipeline.yaml
-  - pipeline/pipeline.yaml
+  - pipeline/pull-request-pipeline.yaml
   - pipeline/tag-release-pipeline.yaml
   - manifests/binding.yaml
   - manifests/role.yaml
