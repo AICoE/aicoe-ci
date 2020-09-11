@@ -1,7 +1,6 @@
 # Setup and configuring aicoe-ci with configuration file `.aicoe-ci.yaml`
 
 check:
-  - thoth-coala
   - thoth-pytest
   - thoth-precommit
   - thoth-build
@@ -14,7 +13,7 @@ build:
   registry: quay.io # Imgage registry to be used. (default: quay.io)
   registry-org: thoth-station # Organization to be used in Image Registry. (default: thoth-station)
   registry-project: example # Project Repository in Image Registry to be used to push image.
-  registry-secret: thoth-pusher # pre-exists in ci
+  registry-secret: thoth-station-thoth-pusher-secret # pre-exists in ci
 deploy:
   project-org: thoth-station # Organization on Github contianing the Repository..
   project-name: thoth-application # Repository on Github containing the kustomize manifests.

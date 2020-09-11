@@ -2,9 +2,9 @@
 
 AICoE-CI is a continuous integration and delivery system based Tekton-Pipeline/OpenShift-Pipeline.
 
-AICoE-CI works with Tekton Pipeline concepts.Pipeline are triggered with Tekton Triggers which functions based on events.<br>
+AICoE-CI is developed with Tekton Pipeline concepts.Pipeline are triggered with Tekton Triggers which functions based on git events.<br>
 Aicoe-ci provides GitHub automation, serves on webhook events based on Pull Request, Issues and Tag releases.<br>
-On this webhook events, different pipeline are triggered to provide different services.
+On the webhook triggered events, different pipeline are triggered to provide different services.
 
 # Getting Started
 
@@ -25,7 +25,33 @@ Setting up AICoE-CI on to your Github Organization/Repository can be commenced w
 
 ## AICoE-CI configuration file
 
-The AICoE-CI configuration file is to be added to the root of the repository directory and is to be named: `.aicoe-ci.yaml`
+The AICoE-CI configuration file is to be added to the root of the repository directory and to be named: `.aicoe-ci.yaml`<br>
+It allows the user to configure checks, release modules to pypi, build preferences and update imagestream in kustomize yaml file.
+
+### Configuring checks and tests
+
+CI provides following checks for pull requests.Each check is independent of each other, so users can pick and choose the tests which they require for there repository. It can be added into the `.aicoe.yaml` configuration file, as shown in the example snippet below.
+
+```yaml
+check:
+  - thoth-pytest
+  - thoth-precommit
+  - thoth-build
+  - thoth-custom-build
+```
+
+More information on available checks/tests:
+
+- `thoth-pytest`: executes python-3.6 pytest.
+- `thoth-precommit`: execute [pre-commit](https://pre-commit.com/) checks based on [pre-commit-config.yaml](.pre-commit-config.yaml).
+- `thoth-build`: execute container image build check. more information on configuring image build requirements: [here](#configuring-build-requirements).
+- `thoth-custom-build`: execute custom pipeline available in the users repository.
+
+If users require more custom checks/tests, please open a feature request issue with detailed explanation of the tests requirement.
+
+### Configuring Build requirements
+
+Configuration files allows user assign details about the build requirements and specify base image and registry details for build and push.
 
 ## Services and Features
 
@@ -44,7 +70,7 @@ The AICoE-CI configuration file is to be added to the root of the repository dir
 
 ### GitHub ChatOps Options:
 
-AICoE-CI provides some Github comment commands for pull request processing on GitHub.<br>
+AICoE-CI provides some GitHub comment commands for pull request processing on GitHub.<br>
 Developers can comment following commands on Github pull request.
 
 - `/retest`
