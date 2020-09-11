@@ -152,6 +152,13 @@ spec:
       workingDir: /gen-source
       securityContext:
         privileged: true
+      resources:
+        limits:
+          memory: "3Gi"
+          cpu: "2"
+        requests:
+          memory: "2Gi"
+          cpu: "2"
       volumeMounts:
         - mountPath: /var/lib/containers
           name: varlibcontainers
