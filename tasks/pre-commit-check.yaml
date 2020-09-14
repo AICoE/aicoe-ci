@@ -33,11 +33,11 @@ spec:
       image: quay.io/thoth-station/thoth-precommit:v0.10.3
       resources:
         limits:
-          memory: "500Mi"
-          cpu: "1"
+          memory: "2Gi"
+          cpu: "2"
         requests:
-          memory: "500Mi"
-          cpu: "1"
+          memory: "2Gi"
+          cpu: "2"
       workingDir: /workspace/repo
       script: |
         if [[ -f .pre-commit-config.yaml ]]; then
