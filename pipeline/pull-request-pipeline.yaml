@@ -159,6 +159,50 @@ spec:
         - init-task-run
         - status-task-run
 
+    - name: pre-commit-py38-run
+      taskRef:
+        name: pre-commit-py38-check
+      conditions:
+        - conditionRef: action-check
+          params:
+            - name: event_action
+              value: $(params.event_action)
+          resources:
+            - name: ubi
+              resource: ubi
+        - conditionRef: config-check
+          params:
+            - name: event
+              value: "thoth-precommit-py38"
+          resources:
+            - name: repo
+              resource: git-repo
+        - conditionRef: retest-comment-check
+          params:
+            - name: pr_comment
+              value: $(params.pr_comment)
+            - name: pr_comment_author_association
+              value: $(params.pr_comment_author_association)
+          resources:
+            - name: ubi
+              resource: ubi
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: pipelinerun_name
+          value: $(params.pipelinerun_name)
+      resources:
+        inputs:
+          - name: pr
+            resource: pr-source
+          - name: repo
+            resource: git-repo
+          - name: s2i-thoth
+            resource: s2i-thoth
+      runAfter:
+        - init-task-run
+        - status-task-run
+
     - name: tox-run
       taskRef:
         name: tox-check
@@ -218,6 +262,52 @@ spec:
           params:
             - name: event
               value: "thoth-pytest"
+          resources:
+            - name: repo
+              resource: git-repo
+        - conditionRef: retest-comment-check
+          params:
+            - name: pr_comment
+              value: $(params.pr_comment)
+            - name: pr_comment_author_association
+              value: $(params.pr_comment_author_association)
+          resources:
+            - name: ubi
+              resource: ubi
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: pipelinerun_name
+          value: $(params.pipelinerun_name)
+        - name: pytest_env
+          value: $(tasks.pr-configuration.results.pytest-env)
+      resources:
+        inputs:
+          - name: pr
+            resource: pr-source
+          - name: repo
+            resource: git-repo
+          - name: s2i-thoth
+            resource: s2i-thoth
+      runAfter:
+        - init-task-run
+        - status-task-run
+
+    - name: pytest-py38-run
+      taskRef:
+        name: pytest-py38-check
+      conditions:
+        - conditionRef: action-check
+          params:
+            - name: event_action
+              value: $(params.event_action)
+          resources:
+            - name: ubi
+              resource: ubi
+        - conditionRef: config-check
+          params:
+            - name: event
+              value: "thoth-pytest-py38"
           resources:
             - name: repo
               resource: git-repo
