@@ -80,8 +80,8 @@ spec:
             with open(".aicoe-ci.yaml", "r") as stream:
                 conf = yaml.safe_load(stream)
 
-            pytest = True if "thoth-pytest" in conf.get("check") else False
-            precommit = True if "thoth-precommit" in conf.get("check") else False
+            pytest = True if "thoth-pytest" in conf.get("check") or "thoth-pytest-py38" in conf.get("check") else False
+            precommit = True if "thoth-precommit" in conf.get("check") or "thoth-precommit-py38" in conf.get("check") else False
             build = True if "thoth-build" in conf.get("check") else False
             tox = True if "thoth-tox" in conf.get("check") else False
 

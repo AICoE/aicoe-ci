@@ -10,18 +10,17 @@ spec:
     - name: repo
       type: git
   check:
-    image: mikefarah/yq:3.3.1
+    image: quay.io/thoth-station/s2i-thoth-ubi8-py36:v0.14.3
     workingDir: /workspace/repo
     script: |
-      if [[ ! -f .aicoe-ci.yaml ]]; then
-        exit 0
-      else
-        check_list=$(yq r -j .aicoe-ci.yaml check)
-        out=$(echo "$check_list" | grep -w "$(params.event)")
-        exit_code=$?
-        if [[ $exit_code -ne 0 ]]; then
-          exit 1
-        else
-          exit 0
-        fi
-      fi
+      #!/usr/libexec/platform-python
+      import yaml
+      import os
+
+      if os.path.isfile('.aicoe-ci.yaml'):
+          with open(".aicoe-ci.yaml", "r") as stream:
+              conf = yaml.safe_load(stream)
+
+          if "$(params.event)" in conf.get("check"):
+              exit(0)
+      exit(1)
