@@ -23,7 +23,9 @@ resources:
   - tasks/pr-config.yaml
   - tasks/pr-merge.yaml
   - tasks/pre-commit-check.yaml
+  - tasks/pre-commit-py38-check.yaml
   - tasks/pytest-checks.yaml
+  - tasks/pytest-py38-checks.yaml
   - tasks/resource.yaml
   - tasks/status-task.yaml
   - tasks/tag-build.yaml
