@@ -23,4 +23,8 @@ spec:
 
           if "$(params.event)" in conf.get("check"):
               exit(0)
-      exit(1)
+      else:
+          if "$(params.event)" in ["thoth-pytest-py38", "thoth-precommit-py38"]:
+              exit(1)
+          else:
+              exit(0)
