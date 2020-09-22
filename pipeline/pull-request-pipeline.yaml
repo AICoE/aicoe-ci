@@ -379,6 +379,8 @@ spec:
           value: $(tasks.pr-configuration.results.build-stratergy)
         - name: build_source_script
           value: $(tasks.pr-configuration.results.build-source-script)
+        - name: dockerfile_path
+          value: $(tasks.configuration.results.dockerfile-path)
       resources:
         inputs:
           - name: s2i-thoth
@@ -422,6 +424,8 @@ spec:
           value: $(tasks.pr-configuration.results.build-stratergy)
         - name: build_source_script
           value: $(tasks.pr-configuration.results.build-source-script)
+        - name: dockerfile_path
+          value: $(tasks.configuration.results.dockerfile-path)
         - name: registry
           value: $(tasks.pr-configuration.results.registry)
         - name: registry_org

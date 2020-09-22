@@ -12,6 +12,7 @@ spec:
   results:
     - name: base-image
     - name: build-stratergy
+    - name: dockerfile-path
     - name: build-source-script
     - name: registry
     - name: registry-org
@@ -42,6 +43,7 @@ spec:
           build:
             base-image: "quay.io/thoth-station/s2i-thoth-ubi8-py36:latest"
             build-stratergy: ""
+            dockerfile-path: ""
             build-source-script: ""
             registry: "quay.io"
             registry-org: "thoth-station"
@@ -58,6 +60,7 @@ spec:
         echo -n $(yq r .aicoe-ci.yaml build.base-image) > $(results.base-image.path)
         echo -n $(yq r .aicoe-ci.yaml build.registry-org) > $(results.registry-org.path)
         echo -n $(yq r .aicoe-ci.yaml build.build-stratergy) > $(results.build-stratergy.path)
+        echo -n $(yq r .aicoe-ci.yaml build.dockerfile-path) > $(results.dockerfile-path.path)
         echo -n $(yq r .aicoe-ci.yaml build.build-source-script) > $(results.build-source-script.path)
         echo -n $(yq r .aicoe-ci.yaml build.registry-project) > $(results.registry-project.path)
         echo -n $(yq r -j .aicoe-ci.yaml pytest-env) > $(results.pytest-env.path)

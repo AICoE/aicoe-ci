@@ -73,6 +73,9 @@ spec:
     - name: base_image
       description: Base image to be used.
       default: "quay.io/thoth-station/s2i-thoth-ubi8-py36:latest"
+    - name: dockerfile_path
+      description: dockerfile path to be used for builds.
+      default: ""
     - name: build_stratergy
       description: stratergy with which image is to build.
       default: ""
@@ -164,8 +167,13 @@ spec:
           fi
         else
           if [ "$(params.build_stratergy)" == "Dockerfile" ]; then
-            cp -rf . /gen-source/
-            mv /gen-source/Dockerfile /gen-source/Containerfile
+            if [ -z "$(params.dockerfile_path)" ]; then
+              cp -rf . /gen-source/
+              mv /gen-source/Dockerfile /gen-source/Containerfile
+            else
+              cp -rf . /gen-source/
+              mv /gen-source/"$(params.dockerfile_path)" /gen-source/Containerfile
+            fi
           elif [ "$(params.build_stratergy)" == "Containerfile" ]; then
             cp -rf . /gen-source/
           else

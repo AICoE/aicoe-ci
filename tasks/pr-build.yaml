@@ -17,6 +17,9 @@ spec:
     - name: build_stratergy
       description: stratergy with which image is to build.
       default: ""
+    - name: dockerfile_path
+      description: dockerfile path to be used for builds.
+      default: ""
     - name: build_source_script
       description: Specify a URL for the assemble, assemble-runtime and run scripts
       default: ""
@@ -112,8 +115,13 @@ spec:
           fi
         else
           if [ "$(params.build_stratergy)" == "Dockerfile" ]; then
-            cp -rf . /gen-source/
-            mv /gen-source/Dockerfile /gen-source/Containerfile
+            if [ -z "$(params.dockerfile_path)" ]; then
+              cp -rf . /gen-source/
+              mv /gen-source/Dockerfile /gen-source/Containerfile
+            else
+              cp -rf . /gen-source/
+              mv /gen-source/"$(params.dockerfile_path)" /gen-source/Containerfile
+            fi
           elif [ "$(params.build_stratergy)" == "Containerfile" ]; then
             cp -rf . /gen-source/
           else

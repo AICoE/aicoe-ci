@@ -111,6 +111,8 @@ spec:
           value: $(tasks.configuration.results.base-image)
         - name: build_stratergy
           value: $(tasks.configuration.results.build-stratergy)
+        - name: dockerfile_path
+          value: $(tasks.configuration.results.dockerfile-path)
         - name: build_source_script
           value: $(tasks.configuration.results.build-source-script)
         - name: registry

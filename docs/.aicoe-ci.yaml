@@ -10,6 +10,7 @@ release:
 build:
   base-image: registry.access.redhat.com/ubi8/ubi:latest
   build-stratergy: Dockerfile # Allowed values: Source, Dockerfile, Containerfile (default: Source)
+  dockerfile-path: Dockerfile
   registry: quay.io # Imgage registry to be used. (default: quay.io)
   registry-org: thoth-station # Organization to be used in Image Registry. (default: thoth-station)
   registry-project: example # Project Repository in Image Registry to be used to push image.
