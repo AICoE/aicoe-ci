@@ -1,10 +1,9 @@
 # AICoE-CI
 
-AICoE-CI is a continuous integration and delivery system based Tekton-Pipeline/OpenShift-Pipeline.
+AICoE-CI is a continuous integration and delivery system based on Tekton-Pipeline/OpenShift-Pipeline.
 
-AICoE-CI is developed with Tekton Pipeline concepts.Pipeline are triggered with Tekton Triggers which functions based on git events.<br>
-Aicoe-ci provides GitHub automation, serves on webhook events based on Pull Request, Issues and Tag releases.<br>
-On the webhook triggered events, different pipeline are triggered to provide different services.
+AICoE-CI is developed with Tekton Pipeline concepts.Pipeline are triggered with Tekton Triggers which functions based on git webhook events.<br>
+On the webhook triggered events, different pipeline are triggered to provide different services based on Pull Request, Issues and Tag releases.
 
 # Getting Started
 
@@ -35,7 +34,9 @@ CI provides following checks for pull requests.Each check is independent of each
 ```yaml
 check:
   - thoth-pytest
+  - thoth-pytest-py38
   - thoth-precommit
+  - thoth-precommit-py38
   - thoth-build
   - thoth-custom-build
 ```
@@ -43,7 +44,9 @@ check:
 More information on available checks/tests:
 
 - `thoth-pytest`: executes python-3.6 pytest.
+- `thoth-pytest-py38`: executes python-3.8 pytest.
 - `thoth-precommit`: execute [pre-commit](https://pre-commit.com/) checks based on [pre-commit-config.yaml](.pre-commit-config.yaml).
+- `thoth-precommit-py38`: execute [pre-commit](https://pre-commit.com/) checks based on [pre-commit-config.yaml](.pre-commit-config.yaml) available for python-3.8.
 - `thoth-build`: execute container image build check. more information on configuring image build requirements: [here](#configuring-build-requirements).
 - `thoth-custom-build`: execute custom pipeline available in the users repository.
 
@@ -52,6 +55,30 @@ If users require more custom checks/tests, please open a feature request issue w
 ### Configuring Build requirements
 
 Configuration files allows user assign details about the build requirements and specify base image and registry details for build and push.
+
+```yaml
+build:
+  build-stratergy: Dockerfile # Allowed values: Source, Dockerfile, Containerfile (default: Source)
+  base-image: registry.access.redhat.com/ubi8/ubi:latest
+  dockerfile-path: Dockerfile
+  registry: quay.io # Imgage registry to be used. (default: quay.io)
+  registry-org: thoth-station # Organization to be used in Image Registry. (default: thoth-station)
+  registry-project: example # Project Repository in Image Registry to be used to push image.
+  registry-secret: thoth-station-thoth-pusher-secret # pre-exists in ci
+```
+
+- registry-secret registry-secret already setup and available for AICoE in running aicoe-ci instance.
+
+Quay Organization | Secret value
+----------------- | ----------------------------------
+AICoE             | aicoe-pusher-secret
+Thoth-Station     | thoth-station-thoth-pusher-secret
+OpenDataHub       | opendatahub-thoth-pusher-secret
+ODH-Jupyterhub    | odh-jupyterhub-thoth-pusher-secret
+
+## Architecture
+
+![aicoe-ci architecture](/docs/arch.png)
 
 ## Services and Features
 

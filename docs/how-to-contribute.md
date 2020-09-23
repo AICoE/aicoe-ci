@@ -1,6 +1,22 @@
 # How to contribute
 
-We welcome contributions, The following components can be worked on:
+Welcome contributors,<br>
+Please free feel to contribute and help us in efforts to make aicoe-ci application more effective.
+
+Pre-requisite:
+
+- Basic understanding of Tekton pipeline and tasks.<br>
+  Some useful link to get started with learning:
+
+  - [Tekton Pipeline](https://github.com/tektoncd/pipeline)
+  - [Tekton Triggers](https://github.com/tektoncd/triggers#tekton-triggers)
+  - [Tekton Dashboard](https://github.com/tektoncd/dashboard)
+  - [Openshift Pipeline](https://openshift.github.io/pipelines-docs/docs/0.10.5/index.html)
+
+- OpenShift cluster v4.x or equivalent Kubernetes clusters.<br>
+  Openshift v3.11 and equivalent can also be used, however based on that some task steps and version of pipeline, triggers are be changed.
+
+AICoE-CI Components:
 
 - Tasks:
 
@@ -19,7 +35,10 @@ We welcome contributions, The following components can be worked on:
 
 # Want to step up an instance
 
-- Setup Tekton Pipeline and Tekton Trigger in cluster.
+AICoE-CI required either Tekton Pipeline and Trigger to be available in the cluster which can be installed either manually or via OpenShift-Pipeline-Operator .<br>
+Choose based upon your requirements and cluster support. Pipeline and Trigger version is already pinned in the setup instruction.
+
+- Setup Manually Tekton Pipeline and Tekton Trigger in cluster:
 
 ```
 oc new-project tekton-pipelines
@@ -30,13 +49,50 @@ oc apply --filename https://github.com/tektoncd/dashboard/releases/download/v0.6
 oc expose svc/tekton-dashboard
 ```
 
-- If behind the VPN, one time setup components:
+- Use OpenShift-Pipeline controller:
 
-  - Ultrahook: ultrahook passes the public internet request to services behind VPN
+  Please follow:
 
-    - ultrahook secret and deployment with destination as aicoe-ci listener
+  - [Installation Guide](https://docs.openshift.com/container-platform/4.5/pipelines/installing-pipelines.html)
+  - aicoe-ci requires v1.0.1 [openshift-pipeline-operator](https://docs.openshift.com/container-platform/4.5/pipelines/op-release-notes.html#op-release-notes-1-0_op-release-notes)
 
-Create the application with `kustomize build . | oc --namespace ... -f -`
+## Setup AICoE-CI instance
+
+Kustomize can be used for deployment of the whole project:<br>
+Creating the application<br>
+`kustomize build --enable_alpha_plugins . | oc apply -f - -n <namespace>`
+
+Some of the changes are needed to be done before deployment:
+
+- Setting up secrets required by aicoe-ci:
+
+-
 
 _NOTE_: components can be searched/deleted by label app.<br>
 `--selector 'app=aicoe-ci'`
+
+### Behind VPN Setup:
+
+#### Ultrahook
+
+ultrahook passes the public internet request to services behind VPN
+
+- Deployment manifest is available in [manifest](manifests/ultrahook.yaml).<br>
+  If manually deploying, use the [manifest](manifests/ultrahook.yaml).<br>
+  Deploying with kustomize file of aicoe-ci, already has the inclusion.
+- Ultrahook secret is a requirement for the deployment.
+
+  ```
+  oc process -f openshift/ultrahook.secret.yaml ULTRAHOOK_API_KEY=`echo -n "<your_api_key>" | base64` | oc apply -f -
+  ```
+
+#### Ultrahook Webhook Configuration
+
+Register at <http://www.ultrahook.com>.<br>
+you will choose webhook namespace and you will get API key. you need to provide your API key to the deployment. Then you need to choose a subdomain - so that you can use your namespace for multiple destinations. The generated webhook URL will then look like
+
+```
+http://<some_subdomain>.<namespace>.ultrahook.com
+```
+
+More Details: [AICoE/ultrahook](https://github.com/AICoE/ultrahook)
