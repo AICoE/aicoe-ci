@@ -38,7 +38,8 @@ AICoE-CI Components:
 AICoE-CI required either Tekton Pipeline and Trigger to be available in the cluster which can be installed either manually or via OpenShift-Pipeline-Operator .<br>
 Choose based upon your requirements and cluster support. Pipeline and Trigger version is already pinned in the setup instruction.
 
-- Setup Manually Tekton Pipeline and Tekton Trigger in cluster:
+- Setup Manually Tekton Pipeline and Tekton Trigger in cluster:<br>
+  script available for manual setup: [tekton-setup](setup-instance/tekton-setup.sh)
 
 ```
 oc new-project tekton-pipelines
@@ -59,14 +60,13 @@ oc expose svc/tekton-dashboard
 ## Setup AICoE-CI instance
 
 Kustomize can be used for deployment of the whole project:<br>
-Creating the application<br>
-`kustomize build --enable_alpha_plugins . | oc apply -f - -n <namespace>`
+[instance-kustomization](setup-instance/kustomization.yaml) can be used for setting up the application.<br>
+`kustomize build --enable_alpha_plugins setup-instance/ | oc apply -f - -n <namespace>`
 
-Some of the changes are needed to be done before deployment:
+Pre-requisite before application deployment:
 
-- Setting up secrets required by aicoe-ci:
-
--
+- Setting up secrets required by aicoe-ci:<br>
+  update the secret manifest file [instance-secrets.yaml](setup-instance/instance-secrets) with relevant secret keys and deploy all required secrets to the namespace.
 
 _NOTE_: components can be searched/deleted by label app.<br>
 `--selector 'app=aicoe-ci'`
@@ -77,14 +77,12 @@ _NOTE_: components can be searched/deleted by label app.<br>
 
 ultrahook passes the public internet request to services behind VPN
 
-- Deployment manifest is available in [manifest](manifests/ultrahook.yaml).<br>
-  If manually deploying, use the [manifest](manifests/ultrahook.yaml).<br>
-  Deploying with kustomize file of aicoe-ci, already has the inclusion.
-- Ultrahook secret is a requirement for the deployment.
+- ultrahook Deployment instance serves the redirect request to configured endpoint.<br>
+  Deployment manifest is available, use the [manifest](setup-instance/ultrahook.yaml), update the relevant field.<br>
+  ULTRAHOOK_DESTINATION: service endpoint where ultrahook will redirect.
 
-  ```
-  oc process -f openshift/ultrahook.secret.yaml ULTRAHOOK_API_KEY=`echo -n "<your_api_key>" | base64` | oc apply -f -
-  ```
+- Ultrahook secret is a requirement for the ultrahook deployment. secret manifest is available, use the [manifest](setup-instance/ultrahook-secrets.yaml), update the relevant field.<br>
+  ULTRAHOOK_API_KEY: Ultrahook api key which will refer to namespace. More Details on creating a ultrahook api key is instructed below.
 
 #### Ultrahook Webhook Configuration
 

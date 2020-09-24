@@ -1,0 +1,50 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonLabels:
+  app.kubernetes.io/name: aicoe-ci
+  app.kubernetes.io/component: tekton
+  app.kubernetes.io/version: v1.0.0
+resources:
+  - ../conditions/action-check.yaml
+  - ../conditions/approve-comment-check.yaml
+  - ../conditions/config-check.yaml
+  - ../conditions/custom-pipeline-check.yaml
+  - ../conditions/deploy-comment-check.yaml
+  - ../conditions/retest-comment-check.yaml
+  - ../conditions/upload-pypi-check.yaml
+  - ../tasks/configuration-task.yaml
+  - ../tasks/custom-pipeline.yaml
+  - ../tasks/init-task.yaml
+  - ../tasks/issue-check.yaml
+  - ../tasks/issue-release-task.yaml
+  - ../tasks/pr-build-release.yaml
+  - ../tasks/pr-build.yaml
+  - ../tasks/pr-config.yaml
+  - ../tasks/pr-merge.yaml
+  - ../tasks/pre-commit-check.yaml
+  - ../tasks/pre-commit-py38-check.yaml
+  - ../tasks/pytest-checks.yaml
+  - ../tasks/pytest-py38-checks.yaml
+  - ../tasks/resource.yaml
+  - ../tasks/status-task.yaml
+  - ../tasks/tag-build.yaml
+  - ../tasks/tag-check.yaml
+  - ../tasks/tag-deploy-task.yaml
+  - ../tasks/tag-release-task.yaml
+  - ../tasks/tox-checks.yaml
+  - ../tasks/upload-pypi.yaml
+  - ../pipeline/issue-pipeline.yaml
+  - ../pipeline/pull-request-pipeline.yaml
+  - ../pipeline/tag-release-pipeline.yaml
+  - ../manifests/binding.yaml
+  - ../manifests/role.yaml
+  - ../manifests/serviceaccount.yaml
+  - ../trigger/eventlistener.yaml
+  - ../trigger/git-issue-comment-binding.yaml
+  - ../trigger/git-issue-binding.yaml
+  - ../trigger/git-issue-template.yaml
+  - ../trigger/git-pr-binding.yaml
+  - ../trigger/git-pr-template.yaml
+  - ../trigger/git-tag-binding.yaml
+  - ../trigger/git-tag-template.yaml
+  - ../trigger/webhook-tag-binding.yaml
