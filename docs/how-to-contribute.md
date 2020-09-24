@@ -39,7 +39,7 @@ AICoE-CI required either Tekton Pipeline and Trigger to be available in the clus
 Choose based upon your requirements and cluster support. Pipeline and Trigger version is already pinned in the setup instruction.
 
 - Setup Manually Tekton Pipeline and Tekton Trigger in cluster:<br>
-  script available for manual setup: [tekton-setup](setup-instance/tekton-setup.sh)
+  script available for manual setup: [tekton-setup](../setup-instance/tekton-setup.sh)
 
 ```
 oc new-project tekton-pipelines
@@ -60,13 +60,13 @@ oc expose svc/tekton-dashboard
 ## Setup AICoE-CI instance
 
 Kustomize can be used for deployment of the whole project:<br>
-[instance-kustomization](setup-instance/kustomization.yaml) can be used for setting up the application.<br>
-`kustomize build --enable_alpha_plugins setup-instance/ | oc apply -f - -n <namespace>`
+[instance-kustomization](../setup-instance/kustomization.yaml) can be used for setting up the application.<br>
+`kustomize build --enable_alpha_plugins ../setup-instance/ | oc apply -f - -n <namespace>`
 
 Pre-requisite before application deployment:
 
 - Setting up secrets required by aicoe-ci:<br>
-  update the secret manifest file [instance-secrets.yaml](setup-instance/instance-secrets) with relevant secret keys and deploy all required secrets to the namespace.
+  update the secret manifest file [instance-secrets.yaml](../setup-instance/instance-secrets) with relevant secret keys and deploy all required secrets to the namespace.
 
 _NOTE_: components can be searched/deleted by label app.<br>
 `--selector 'app=aicoe-ci'`
@@ -78,10 +78,10 @@ _NOTE_: components can be searched/deleted by label app.<br>
 ultrahook passes the public internet request to services behind VPN
 
 - ultrahook Deployment instance serves the redirect request to configured endpoint.<br>
-  Deployment manifest is available, use the [manifest](setup-instance/ultrahook.yaml), update the relevant field.<br>
+  Deployment manifest is available, use the [manifest](../setup-instance/ultrahook.yaml), update the relevant field.<br>
   ULTRAHOOK_DESTINATION: service endpoint where ultrahook will redirect.
 
-- Ultrahook secret is a requirement for the ultrahook deployment. secret manifest is available, use the [manifest](setup-instance/ultrahook-secrets.yaml), update the relevant field.<br>
+- Ultrahook secret is a requirement for the ultrahook deployment. secret manifest is available, use the [manifest](../setup-instance/ultrahook-secrets.yaml), update the relevant field.<br>
   ULTRAHOOK_API_KEY: Ultrahook api key which will refer to namespace. More Details on creating a ultrahook api key is instructed below.
 
 #### Ultrahook Webhook Configuration
