@@ -38,7 +38,7 @@ spec:
                   key: api.key
                   name: ultrahook
             - name: ULTRAHOOK_SUBDOMAIN
-              value: aicoe-ci
+              value: sample-ci-app
             - name: ULTRAHOOK_DESTINATION
               value: <ULTRAHOOK_DESTINATION>
           image: ultrahook

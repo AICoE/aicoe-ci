@@ -38,7 +38,7 @@ spec:
                   key: api.key
                   name: ultrahook
             - name: ULTRAHOOK_SUBDOMAIN
-              value: aicoe-ci
+              value: aicoe-ci-prod
             - name: ULTRAHOOK_DESTINATION
               value: http://el-aicoe-ci-listener.aicoe-infra-prod.svc:8080
           image: ultrahook

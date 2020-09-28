@@ -66,7 +66,7 @@ Kustomize can be used for deployment of the whole project:<br>
 Pre-requisite before application deployment:
 
 - Setting up secrets required by aicoe-ci:<br>
-  update the secret manifest file [instance-secrets.yaml](../setup-instance/instance-secrets) with relevant secret keys and deploy all required secrets to the namespace.
+  update the secret manifest file [instance-secrets.yaml](../setup-instance/instance-secrets.yaml) with relevant secret keys and deploy all required secrets to the namespace.
 
 _NOTE_: components can be searched/deleted by label app.<br>
 `--selector 'app=aicoe-ci'`
