@@ -93,7 +93,7 @@ spec:
             status_url = "/repos/{}/statuses/{}".format(PR_INFO["Base"]["Repo"]["FullName"], PR_INFO["Head"]["Sha"])
             data = {
                 "state": state,
-                "target_url": "http://tekton-dashboard-tekton-pipelines.apps.thoth01.lab.upshift.rdu2.redhat.com/#/namespaces/aicoe-ci/pipelineruns/$(params.pipelinerun_name)",
+                "target_url": "https://tekton-dashboard-openshift-pipelines.apps.ocp4.prod.psi.redhat.com/#/namespaces/aicoe-infra-prod/pipelineruns/$(params.pipelinerun_name)",
                 "description": description,
                 "context": "aicoe-ci/pre-commit-check"
             }
