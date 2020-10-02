@@ -14,6 +14,7 @@ spec:
     - name: build-stratergy
     - name: dockerfile-path
     - name: build-source-script
+    - name: custom-tag
     - name: registry
     - name: registry-org
     - name: registry-project
@@ -45,6 +46,7 @@ spec:
             build-stratergy: ""
             dockerfile-path: ""
             build-source-script: ""
+            custom-tag: ""
             registry: "quay.io"
             registry-org: "thoth-station"
             registry-project: ""
@@ -61,6 +63,7 @@ spec:
         echo -n $(yq r .aicoe-ci.yaml build.registry-org) > $(results.registry-org.path)
         echo -n $(yq r .aicoe-ci.yaml build.build-stratergy) > $(results.build-stratergy.path)
         echo -n $(yq r .aicoe-ci.yaml build.dockerfile-path) > $(results.dockerfile-path.path)
+        echo -n $(yq r .aicoe-ci.yaml build.custom-tag) > $(results.custom-tag.path)
         echo -n $(yq r .aicoe-ci.yaml build.build-source-script) > $(results.build-source-script.path)
         echo -n $(yq r .aicoe-ci.yaml build.registry-project) > $(results.registry-project.path)
         echo -n $(yq r -j .aicoe-ci.yaml pytest-env) > $(results.pytest-env.path)

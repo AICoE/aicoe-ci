@@ -21,6 +21,9 @@ spec:
     - name: build_source_script
       description: Specify a URL for the assemble, assemble-runtime and run scripts
       default: ""
+    - name: custom_tag
+      description: additional custom tag to be pushed along.
+      default: ""
     - name: registry
       description: Container image registry.
       default: "quay.io"
@@ -227,6 +230,30 @@ spec:
         --tls-verify=$(params.TLSVERIFY) \
         $(params.repo_name)-$(params.git_ref) \
         docker://$(params.registry)/$(params.registry_org)/$registry_repo:$(params.git_ref)
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
+        - name: quay-creds
+          mountPath: /pushsecret/
+          readOnly: true
+
+    - name: push-custom-tag
+      image: quay.io/buildah/stable
+      script: |
+        if [ -z "$(params.registry_project)" ]; then
+          registry_repo=$(params.repo_name)
+        else
+          registry_repo=$(params.registry_project)
+        fi
+        if [ ! -z "$(params.custom_tag)" ]; then
+          buildah push \
+          --authfile=/pushsecret/.dockerconfigjson \
+          --tls-verify=$(params.TLSVERIFY) \
+          $(params.repo_name)-$(params.git_ref) \
+          docker://$(params.registry)/$(params.registry_org)/$registry_repo:$(params.custom_tag)
+        fi
       securityContext:
         privileged: true
       volumeMounts:
