@@ -273,7 +273,8 @@ spec:
 
         status_url = "/repos/{}/issues/{}/comments".format(os.getenv('REPOFULLNAME'),os.getenv('ISSUENUMBER'))
         issue_tag = """$(params.issue_body)""".split(":")[-1].strip()
-        issue_body = "Successfully built and delivered the image.\nCan be found at:[$(params.registry)/$(params.registry_org)/$(params.registry_project):{}](https://$(params.registry)/$(params.registry_org)/$(params.registry_project):{})".format(issue_tag,issue_tag)
+        registry_repo="$(params.registry_project)" if "$(params.registry_project)" else "$(params.repo_name)"
+        issue_body = "Successfully built and delivered the image.\nImage can be found at:[$(params.registry)/$(params.registry_org)/{}:{}](https://$(params.registry)/$(params.registry_org)/{}:{})".format(registry_repo,issue_tag,registry_repo,issue_tag)
         data = {
             "body": issue_body
         }
