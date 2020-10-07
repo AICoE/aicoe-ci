@@ -230,7 +230,7 @@ spec:
         --authfile=/pushsecret/.dockerconfigjson \
         --tls-verify=$(params.TLSVERIFY) \
         $(params.pr_repo)-$(params.pr_number) \
-        docker://$(params.registry)/$(params.registry_org)/$registry_repo:$(params.pr_number)
+        docker://$(params.registry)/$(params.registry_org)/$registry_repo:pr-$(params.pr_number)
       securityContext:
         privileged: true
       volumeMounts:
