@@ -1,0 +1,27 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Condition
+metadata:
+  name: issue-check
+spec:
+  params:
+    - name: issue_title
+      description: Type of Issue.
+    - name: issue_pipeline_title
+      description: Issue to be served by pipeline task.
+    - name: pipelinerun_name
+      description: pipelinerun associated.
+    - name: event_action
+      type: string
+  check:
+    image: quay.io/openshift/origin-cli:latest
+    script: |
+      ACTION="opened reopened"
+      if echo $ACTION | grep -w $(params.event_action) > /dev/null; then
+          if [ "$(params.issue_title)" == "$(params.issue_pipeline_title)" ]; then
+            exit 0
+          else
+            exit 1
+          fi
+      else
+          oc delete pipelinerun $(params.pipelinerun_name)
+      fi

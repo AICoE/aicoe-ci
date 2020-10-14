@@ -6,10 +6,10 @@ commonLabels:
   app.kubernetes.io/version: v1.0.0
 resources:
   - ../conditions/action-check.yaml
-  - ../conditions/approve-comment-check.yaml
   - ../conditions/config-check.yaml
   - ../conditions/custom-pipeline-check.yaml
   - ../conditions/deploy-comment-check.yaml
+  - ../conditions/issue-check.yaml
   - ../conditions/retest-comment-check.yaml
   - ../conditions/upload-pypi-check.yaml
   - ../tasks/configuration-task.yaml
@@ -25,6 +25,7 @@ resources:
   - ../tasks/pre-commit-py38-check.yaml
   - ../tasks/pytest-checks.yaml
   - ../tasks/pytest-py38-checks.yaml
+  - ../tasks/repo-upstream-sync.yaml
   - ../tasks/resource.yaml
   - ../tasks/status-task.yaml
   - ../tasks/tag-build.yaml
