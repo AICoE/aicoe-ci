@@ -1,0 +1,52 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: example-issue
+spec:
+  params:
+    # issue params
+    - name: event_action
+      description: Action of Issue.
+    - name: issue_number
+      description: Issue number.
+    - name: issue_state
+      description: State of the Issue.
+    - name: issue_title
+      description: Title of the Issue.
+    - name: issue_body
+      description: Body of the Issue.
+    - name: issue_author_association
+      description: Author association of the Issue.
+    - name: issue_author
+      description: Author of the Issue.
+    - name: repo_name
+      description: The git repository issue was raised in.
+    - name: repo_full_name
+      description: The git repository full name.
+    - name: repo_url
+      description: The git repository url
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+      - name: repo
+        type: git
+      - name: ubi
+        type: image
+
+  steps:
+    - name: check-ops
+      image: $(resources.inputs.s2i-thoth.url)
+      securityContext:
+        privileged: true
+      script: |
+        echo "$(params.event_action)"
+        echo "$(params.issue_number)"
+        echo "$(params.issue_state)"
+        echo "$(params.issue_title)"
+        echo "$(params.issue_body)"
+        echo "$(params.issue_author_association)"
+        echo "$(params.issue_author)"
+        echo "$(params.repo_name)"
+        echo "$(params.repo_full_name)"
+        echo "$(params.repo_url)"

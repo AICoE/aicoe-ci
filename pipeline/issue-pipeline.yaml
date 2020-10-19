@@ -38,17 +38,6 @@ spec:
       type: image
 
   tasks:
-    - name: issue-check
-      taskRef:
-        name: issue-check
-      params:
-        - name: event_action
-          value: $(params.event_action)
-        - name: issue_title
-          value: $(params.issue_title)
-        - name: pipelinerun_name
-          value: $(params.pipelinerun_name)
-
     - name: configuration
       taskRef:
         name: configuration
@@ -56,12 +45,21 @@ spec:
         inputs:
           - name: repo
             resource: git-repo
-      runAfter:
-        - issue-check
 
     - name: issue-release-run
       taskRef:
         name: issue-release
+      conditions:
+        - conditionRef: issue-check
+          params:
+            - name: event_action
+              value: $(params.event_action)
+            - name: issue_title
+              value: $(params.issue_title)
+            - name: pipelinerun_name
+              value: $(params.pipelinerun_name)
+            - name: issue_pipeline_title
+              value: "Deliver Container Image"
       params:
         - name: event_action
           value: $(params.event_action)
@@ -105,5 +103,47 @@ spec:
             resource: git-repo
           - name: ubi
             resource: ubi
-      # runAfter:
-      #   - issue-check
+
+    - name: upstream-sync-issue-run
+      taskRef:
+        name: repo-upstream-sync
+      conditions:
+        - conditionRef: issue-check
+          params:
+            - name: event_action
+              value: $(params.event_action)
+            - name: issue_title
+              value: $(params.issue_title)
+            - name: pipelinerun_name
+              value: $(params.pipelinerun_name)
+            - name: issue_pipeline_title
+              value: "Upstream Sync Up"
+      params:
+        - name: event_action
+          value: $(params.event_action)
+        - name: issue_number
+          value: $(params.issue_number)
+        - name: issue_state
+          value: $(params.issue_state)
+        - name: issue_title
+          value: $(params.issue_title)
+        - name: issue_body
+          value: $(params.issue_body)
+        - name: issue_author_association
+          value: $(params.issue_author_association)
+        - name: issue_author
+          value: $(params.issue_author)
+        - name: repo_name
+          value: $(params.repo_name)
+        - name: repo_full_name
+          value: $(params.repo_full_name)
+        - name: repo_url
+          value: $(params.repo_url)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
+          - name: repo
+            resource: git-repo
+          - name: ubi
+            resource: ubi
