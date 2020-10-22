@@ -25,7 +25,9 @@ spec:
     - name: repo_full_name
       description: The git repository full name.
     - name: repo_url
-      description: The git repository url
+      description: The git repository url.
+    - name: default_branch
+      description: The git repository default branch.
     - name: pipelinerun_name
       description: pipelinerun associated.
 
@@ -71,7 +73,7 @@ spec:
               type: git
               params:
                 - name: revision
-                  value: master
+                  value: $(params.default_branch)
                 - name: url
                   value: $(params.repo_url)
           - name: s2i-thoth

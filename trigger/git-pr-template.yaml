@@ -15,7 +15,9 @@ spec:
     - name: pr_url
       description: The pr url.
     - name: repo_url
-      description: The git repository url
+      description: The git repository url.
+    - name: default_branch
+      description: The git repository default branch.
     - name: event_action
       description: Action performed on Pull request.
       default: "DEFAULT"
@@ -68,7 +70,7 @@ spec:
               type: git
               params:
                 - name: revision
-                  value: master
+                  value: $(params.default_branch)
                 - name: url
                   value: $(params.repo_url)
           - name: s2i-thoth

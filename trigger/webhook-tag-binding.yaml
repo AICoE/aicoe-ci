@@ -14,3 +14,5 @@ spec:
     value: $(body.repo_name)
   - name: repo_url
     value: $(body.repo_url)
+  - name: default_branch
+    value: $(body.default_branch)

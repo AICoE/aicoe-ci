@@ -13,7 +13,9 @@ spec:
     - name: repo_name
       description: The git repository title.
     - name: repo_url
-      description: The git repository url
+      description: The git repository url.
+    - name: default_branch
+      description: The git repository default branch.
     - name: pipelinerun_name
       description: pipelinerun associated.
 
@@ -39,6 +41,8 @@ spec:
             value: $(params.repo_name)
           - name: repo_url
             value: $(params.repo_url)
+          - name: default_branch
+            value: $(params.default_branch)
           - name: uid
             value: $(uid)
           - name: pipelinerun_name
@@ -49,7 +53,7 @@ spec:
               type: git
               params:
                 - name: revision
-                  value: master
+                  value: $(params.default_branch)
                 - name: url
                   value: $(params.repo_url)
           - name: s2i-thoth
