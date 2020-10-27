@@ -5,9 +5,6 @@ metadata:
 spec:
   params:
     # buildah params
-    - name: PATH_CONTEXT
-      default: .
-      description: The location of the path to run s2i from.
     - name: TLSVERIFY
       default: "false"
       description:
@@ -34,6 +31,9 @@ spec:
     - name: registry_secret
       description: Registry image push secret.
       default: "thoth-station-thoth-pusher-secret"
+    - name: context_path
+      description: The location of the path to run s2i from.
+      default: .
     - name: dockerfile
       description: Path to the Dockerfile to build.
       default: Dockerfile
@@ -85,7 +85,7 @@ spec:
         $(params.dockerfile) \
         -t \
         $(params.repo_name)-$(params.git_ref) \
-        .
+        $(params.context_path)
       volumeMounts:
         - mountPath: /var/lib/containers
           name: varlibcontainers
