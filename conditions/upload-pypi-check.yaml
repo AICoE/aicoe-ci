@@ -9,7 +9,7 @@ spec:
     - name: ubi
       type: image
   check:
-    image: mikefarah/yq:3.3.1
+    image: quay.io/harshad16/yq:latest
     workingDir: /workspace/repo
     script: |
       if [[ -f setup.py ]]; then

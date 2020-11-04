@@ -42,7 +42,7 @@ spec:
         git checkout workbranch
 
     - name: gather-info
-      image: mikefarah/yq:3.3.1
+      image: quay.io/harshad16/yq:latest
       workingDir: /workspace/repo
       script: |
         if [[ ! -f .aicoe-ci.yaml ]]; then
