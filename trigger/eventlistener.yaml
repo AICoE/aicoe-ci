@@ -16,7 +16,7 @@ spec:
             eventTypes:
               - pull_request
       bindings:
-        - name: git-pr-binding
+        - ref: git-pr-binding
       template:
         name: git-pr-template
 
@@ -29,7 +29,7 @@ spec:
             eventTypes:
               - issue_comment
       bindings:
-        - name: git-issue-comment-binding
+        - ref: git-issue-comment-binding
       template:
         name: git-pr-template
 
@@ -42,7 +42,7 @@ spec:
             eventTypes:
               - create
       bindings:
-        - name: git-tag-binding
+        - ref: git-tag-binding
       template:
         name: git-tag-template
 
@@ -55,12 +55,12 @@ spec:
             eventTypes:
               - issues
       bindings:
-        - name: git-issue-binding
+        - ref: git-issue-binding
       template:
         name: git-issue-template
 
     - name: webhook-tag-release
       bindings:
-        - name: webhook-tag-binding
+        - ref: webhook-tag-binding
       template:
         name: git-tag-template
