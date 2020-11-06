@@ -450,7 +450,7 @@ spec:
         name: tag-deploy
       params:
         - name: git_ref
-          value: $(params.pr_number)
+          value: pr-$(params.pr_number)
         - name: repo_name
           value: $(params.pr_repo)
         - name: registry
