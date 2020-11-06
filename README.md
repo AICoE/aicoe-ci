@@ -40,14 +40,12 @@ command: `/deploy`
 
 ### Architectural decisions
 
-We keep track of architectural decisions using lightweight architectural decision records. More information on the
-used format is available at https://adr.github.io/madr/. General information about architectural decision records
-is available at https://adr.github.io/ .
+We keep track of architectural decisions using lightweight architectural decision records. More information on the used format is available at <https://adr.github.io/madr/>. General information about architectural decision records is available at <https://adr.github.io/> .
 
 Architectural decisions
 
-* [ADR-0000](docs/adr/0000-use-markdown-architectural-decision-records.md) - Use Markdown Architectural Decision Records
-* [ADR-0001](docs/adr/0001-use-gpl3-as-license.md) - Use GNU GPL as license
+- [ADR-0000](docs/adr/0000-use-markdown-architectural-decision-records.md) - Use Markdown Architectural Decision Records
+- [ADR-0001](docs/adr/0001-use-gpl3-as-license.md) - Use GNU GPL as license
 
 ## Getting Started
 
@@ -111,7 +109,7 @@ build:
   registry-secret: thoth-station-thoth-pusher-secret # pre-exists in ci
 ```
 
-- registry-secret registry-secret already setup and available for AICoE in running aicoe-ci instance.
+- `registry-secret` are to be pre setup and would be available for AICoE in running aicoe-ci instance.
 
 Quay Organization | Secret value
 ----------------- | ----------------------------------
@@ -119,6 +117,19 @@ AICoE             | aicoe-pusher-secret
 Thoth-Station     | thoth-station-thoth-pusher-secret
 OpenDataHub       | opendatahub-thoth-pusher-secret
 ODH-Jupyterhub    | odh-jupyterhub-thoth-pusher-secret
+
+It is the responsibility of the Users/Developer to setup a robot or a serviceaccount in the image registry and pass on the kubernetes secret containing `.dockerconfigjson` secret. On the quay repository, the robot can be setup and the kubernetes secret of the robot can be passed to the aicoe-ci instance. This secret would be setup in the instance and would be available for the users to specific as a registry-secret. Steps to setup robot in quay and configure it to the quay repository:
+
+- First, we need to create a robot in the Organization (also possible to setup in individual account).<br>
+  Adding a robot account<br>
+  Click on Create Robot Account and enter a name for the account. The username will become namespace+accountname where namespace is the name of the user or Organization.<br>
+  ![quay-robot](/docs/quay-robots.png)
+
+- Click on the Robot creation, goto kubernetes secret and pass on that information to aicoe-ci instance. Currently you would have to pass it on by contacting us, we are still trying to figure out some alternative
+
+- Once the secret is passed we could get that secret to the aicoe-ci instance, then it would be ready to be used as `registry-secret`.
+
+**NOTE**: Developer has to provide that robot **write** access to the repository, they wish to build and push container image.
 
 ## How to Contribute
 
