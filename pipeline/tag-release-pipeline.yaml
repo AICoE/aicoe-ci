@@ -138,9 +138,40 @@ spec:
       runAfter:
         - tag-check
 
+    - name: tag-sibling-run
+      taskRef:
+        name: tag-sibling
+      conditions:
+        - conditionRef: sibling-check
+          resources:
+            - name: repo
+              resource: git-repo
+      params:
+        - name: git_ref
+          value: $(params.git_ref)
+        - name: repo_name
+          value: $(params.repo_name)
+        - name: sibling_project_org
+          value: $(tasks.configuration.results.sibling-project-org)
+        - name: sibling_project_name
+          value: $(tasks.configuration.results.sibling-project)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
+          - name: repo
+            resource: git-repo
+      runAfter:
+        - tag-check
+
     - name: tag-deploy-run
       taskRef:
         name: tag-deploy
+      conditions:
+        - conditionRef: deployment-check
+          resources:
+            - name: repo
+              resource: git-repo
       params:
         - name: git_ref
           value: $(params.git_ref)

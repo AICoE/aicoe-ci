@@ -10,8 +10,10 @@ resources:
   - conditions/config-check.yaml
   - conditions/custom-pipeline-check.yaml
   - conditions/deploy-comment-check.yaml
+  - conditions/deployment-check.yaml
   - conditions/issue-check.yaml
   - conditions/retest-comment-check.yaml
+  - conditions/sibling-check.yaml
   - conditions/upload-pypi-check.yaml
   - tasks/configuration-task.yaml
   - tasks/custom-pipeline.yaml
@@ -32,6 +34,7 @@ resources:
   - tasks/tag-check.yaml
   - tasks/tag-deploy-task.yaml
   - tasks/tag-release-task.yaml
+  - tasks/tag-sibling.yaml
   - tasks/tox-checks.yaml
   - tasks/upload-pypi.yaml
   - pipeline/issue-pipeline.yaml

@@ -1,0 +1,70 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: tag-sibling
+spec:
+  params:
+    # tag params
+    - name: git_ref
+      description: Git reference value.
+    - name: repo_name
+      description: The git repository title.
+    - name: sibling_project_org
+      description: Sibling configuration repository's organization.
+    - name: sibling_project_name
+      description: Sibling configuration repository.
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+      - name: repo
+        type: git
+
+  steps:
+    - name: git-clone-config-repo
+      image: $(resources.inputs.s2i-thoth.url)
+      securityContext:
+        privileged: true
+      script: |
+        export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+        git clone git@github.com:$(params.sibling_project_org)/$(params.sibling_project_name) /workspace/configrepo
+      volumeMounts:
+        - name: ssh-config
+          mountPath: /tekton/home/.ssh
+
+    - name: git-push
+      image: $(resources.inputs.s2i-thoth.url)
+      securityContext:
+        privileged: true
+      workingDir: /workspace/configrepo
+      env:
+        - name: GITHUB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: user-name
+        - name: GITHUB_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: user-email
+      script: |
+        git config --local user.email "$GITHUB_EMAIL"
+        git config --local user.name "$GITHUB_USERNAME"
+        git remote -v
+        export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+        git fetch origin
+        git tag $(params.git_ref)
+        git push origin --tags
+      volumeMounts:
+        - name: ssh-config
+          mountPath: /tekton/home/.ssh
+
+  volumes:
+    - name: ssh-config
+      secret:
+        secretName: auth-secret
+        items:
+          - key: ssh-privatekey
+            mode: 0600
+            path: id_rsa

@@ -27,6 +27,8 @@ spec:
     - name: deploy-project-name
     - name: deploy-image-name
     - name: overlay-contextpath
+    - name: sibling-project
+    - name: sibling-project-org
   steps:
     - name: gather-info
       image: quay.io/harshad16/yq:latest
@@ -56,6 +58,9 @@ spec:
             project-name: "thoth-application"
             image-name: ""
             overlay-contextpath: ""
+          sibling:
+            sibling-project-org: ""
+            sibling-project: ""
         EOF
         fi
         echo -n $(yq r .aicoe-ci.yaml build.registry) > $(results.registry.path)
@@ -66,6 +71,8 @@ spec:
         echo -n $(yq r .aicoe-ci.yaml build.custom-tag) > $(results.custom-tag.path)
         echo -n $(yq r .aicoe-ci.yaml build.build-source-script) > $(results.build-source-script.path)
         echo -n $(yq r .aicoe-ci.yaml build.registry-project) > $(results.registry-project.path)
+        echo -n $(yq r .aicoe-ci.yaml sibling.sibling-project-org) > $(results.sibling-project-org.path)
+        echo -n $(yq r .aicoe-ci.yaml sibling.sibling-project) > $(results.sibling-project.path)
         echo -n $(yq r -j .aicoe-ci.yaml pytest-env) > $(results.pytest-env.path)
         if [ -z "$(yq r .aicoe-ci.yaml build.registry-secret)" ]; then
           echo -n "thoth-station-thoth-pusher-secret" > $(results.registry-secret.path)
