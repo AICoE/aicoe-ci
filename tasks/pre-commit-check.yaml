@@ -30,7 +30,7 @@ spec:
         git checkout workbranch
 
     - name: run-pre-commit
-      image: quay.io/thoth-station/thoth-precommit:v0.10.3
+      image: quay.io/thoth-station/thoth-precommit:v0.12.1
       resources:
         limits:
           memory: "2Gi"

@@ -33,19 +33,19 @@ spec:
         git checkout workbranch
 
     - name: check-pip-version
-      image: quay.io/thoth-station/thoth-pytest:v0.10.2
+      image: quay.io/thoth-station/thoth-pytest:v0.12.1
       workingDir: /workspace/repo
       script: |
         pip3 --version
 
     - name: check-micropipenv
-      image: quay.io/thoth-station/thoth-pytest:v0.10.2
+      image: quay.io/thoth-station/thoth-pytest:v0.12.1
       workingDir: /workspace/repo
       script: |
         micropipenv --version
 
     - name: run-pytest
-      image: quay.io/thoth-station/thoth-pytest:v0.10.2
+      image: quay.io/thoth-station/thoth-pytest:v0.12.1
       resources:
         limits:
           memory: "2Gi"
