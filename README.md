@@ -131,6 +131,18 @@ It is the responsibility of the Users/Developer to setup a robot or a serviceacc
 
 **NOTE**: Developer has to provide that robot **write** access to the repository, they wish to build and push container image.
 
+#### Configuring Deploy requirements
+
+AICoE-CI enable users to utilize the GitOps power and update manifest files with relevant information from the builds.<br>
+User can point the context path and repository of the imagestream manifest, that has to be updated with the newly built available image tag.
+
+```yaml
+deploy:
+  project-org: thoth-station # Organization on Github contianing the Repository..
+  project-name: thoth-application # Repository on Github containing the kustomize manifests.
+  overlay-contextpath: example/overlays/test/imagestreamtag.yaml # Imagestream manifest where tag is to be updated.
+```
+
 ## How to Contribute
 
 - For Overview on AICoE-CI Pipeline, check: [AICoE-CI Development]()
