@@ -18,6 +18,7 @@ resources:
   - tasks/configuration-task.yaml
   - tasks/custom-pipeline.yaml
   - tasks/init-task.yaml
+  - tasks/issue-pypi-release-task.yaml
   - tasks/issue-release-task.yaml
   - tasks/pr-build-release.yaml
   - tasks/pr-build.yaml
