@@ -25,6 +25,6 @@ spec:
     - name: repo_full_name
       value: $(body.repository.full_name)
     - name: repo_url
-      value: $(body.repository.ssh_url)
+      value: $(body.repository.html_url)
     - name: default_branch
       value: $(body.repository.default_branch)
