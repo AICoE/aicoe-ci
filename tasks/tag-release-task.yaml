@@ -171,6 +171,7 @@ spec:
               --env THAMOS_DEBUG=$(params.THAMOS_DEBUG) \
               --env THAMOS_VERBOSE=$(params.THAMOS_VERBOSE) \
               --env THOTH_PROVENANCE_CHECK=$(params.THOTH_PROVENANCE_CHECK) \
+              --env GIT_REPO_NAME=$(params.repo_name) \
               --loglevel=$(params.LOGLEVEL) \
               --as-dockerfile /gen-source/Containerfile
             else
