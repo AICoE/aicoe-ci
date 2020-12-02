@@ -182,6 +182,7 @@ spec:
               --assemble-user=root \
               --assemble-runtime-user=root \
               --loglevel=$(params.LOGLEVEL) \
+              --env GIT_REPO_NAME=$(params.repo_name) \
               --as-dockerfile /gen-source/Containerfile
             fi
           fi
