@@ -99,5 +99,5 @@ spec:
             post_status(description, context)
         if os.path.isfile('tox.ini') and tox:
             description="The pytest test pending."
-            context="aicoe-ci/pytest-check"
+            context="aicoe-ci/tox-check"
             post_status(description, context)

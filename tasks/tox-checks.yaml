@@ -30,7 +30,7 @@ spec:
         git checkout workbranch
 
     - name: run-tox
-      image: docker.io/frenzymadness/fedora-python-tox:latest
+      image: docker.io/fedorapython/fedora-python-tox:latest
       workingDir: /workspace/repo
       script: |
         if [[ -f tox.ini ]]; then
