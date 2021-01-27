@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonLabels:
+  app.kubernetes.io/name: aicoe-ci
+  app.kubernetes.io/component: tekton
+  app.kubernetes.io/version: v1.0.0
+  app.kubernetes.io/managed-by: aicoe-thoth-devops
+resources:
+  - ../../../conditions
+  - ../../../tasks
+  - ../../../pipeline
+  - ../../../trigger
+  - binding.yaml
+  - role.yaml
+  - serviceaccount.yaml
+  - thoth-notification.yaml
+generators:
+  - secret-generator.yaml
+patchesJson6902:
+  - path: job-generate-name.yaml
+    target:
+      group: batch
+      version: v1
+      kind: Job
+      name: chat-notification-succeeded-
+  - path: job-generate-name.yaml
+    target:
+      group: batch
+      version: v1
+      kind: Job
+      name: chat-notification-failed-

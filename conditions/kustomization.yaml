@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - action-check.yaml
+  - config-check.yaml
+  - custom-pipeline-check.yaml
+  - deploy-comment-check.yaml
+  - deployment-check.yaml
+  - issue-check.yaml
+  - retest-comment-check.yaml
+  - sibling-check.yaml
+  - upload-pypi-check.yaml

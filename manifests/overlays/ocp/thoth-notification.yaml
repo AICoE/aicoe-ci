@@ -1,0 +1,62 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: chat-notification-succeeded-
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      containers:
+        - name: chat-notification
+          image: registry.access.redhat.com/ubi8/ubi
+          command:
+            - "curl"
+            - "-X"
+            - "POST"
+            - "-H"
+            - "Content-Type: application/json; charset=UTF-8"
+            - "-d"
+            - "{'text':'I have successfully synchronized *aicoe-ci* to *OCP*, see <https://argocd-server-aicoe-argocd.apps.ocp4.prod.psi.redhat.com/applications/prod-aicoe-ci|ArgoCD UI> 🚀'}"
+            - "$(THOTH_DEVOPS_WEBHOOK_URL)"
+          env:
+            - name: THOTH_DEVOPS_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: chat-notification
+                  key: thoth-devops
+      restartPolicy: Never
+  backoffLimit: 2
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: chat-notification-failed-
+  annotations:
+    argocd.argoproj.io/hook: SyncFail
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      containers:
+        - name: chat-notification
+          image: registry.access.redhat.com/ubi8/ubi
+          command:
+            - "curl"
+            - "-X"
+            - "POST"
+            - "-H"
+            - "Content-Type: application/json; charset=UTF-8"
+            - "-d"
+            - "{'text':'🔥 *FAILED* syncing *AICoE-CI* components to *OCP*, see <https://argocd-server-aicoe-argocd.apps.ocp4.prod.psi.redhat.com/applications/prod-aicoe-ci|ArgoCD UI>'}"
+            - "$(THOTH_DEVOPS_WEBHOOK_URL)"
+          env:
+            - name: THOTH_DEVOPS_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: chat-notification
+                  key: thoth-devops
+      restartPolicy: Never
+  backoffLimit: 2
