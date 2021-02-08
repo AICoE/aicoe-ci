@@ -4,9 +4,6 @@ resources:
   - eventlistener.yaml
   - git-issue-comment-binding.yaml
   - git-issue-binding.yaml
-  - git-issue-template.yaml
   - git-pr-binding.yaml
-  - git-pr-template.yaml
   - git-tag-binding.yaml
-  - git-tag-template.yaml
   - webhook-tag-binding.yaml

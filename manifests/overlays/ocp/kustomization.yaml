@@ -10,6 +10,7 @@ resources:
   - ../../../tasks
   - ../../../pipeline
   - ../../../trigger
+  - ../../../upgradetriggertemplate
   - binding.yaml
   - role.yaml
   - serviceaccount.yaml
