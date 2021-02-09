@@ -91,9 +91,9 @@ spec:
              break
           fi
         done
-        echo "{\"spec\":{\"tags\":[{\"name\":\"latest\",\"from\":{\"kind\":\"DockerImage\",\"name\":\"$(params.registry)/$(params.registry_org)/$registry_repo:\"${TAG//[[:space:]]/}\"\"},\"importPolicy\":{},\"referencePolicy\":{\"type\":\"Source\"}}]}}" | yq -P m -d"$cnt" -i -x $contextpath -
+        echo "{\"spec\":{\"tags\":[{\"name\":\"latest\",\"from\":{\"kind\":\"DockerImage\",\"name\":\"$(params.registry)/$(params.registry_org)/$registry_repo:${TAG//[[:space:]]/}\"},\"importPolicy\":{},\"referencePolicy\":{\"type\":\"Source\"}}]}}" | yq -P m -d"$cnt" -i -x $contextpath -
       else
-        echo "{\"spec\":{\"tags\":[{\"name\":\"latest\",\"from\":{\"kind\":\"DockerImage\",\"name\":\"$(params.registry)/$(params.registry_org)/$registry_repo:\"${TAG//[[:space:]]/}\"\"},\"importPolicy\":{},\"referencePolicy\":{\"type\":\"Source\"}}]}}" | yq -P m -i -x $contextpath -
+        echo "{\"spec\":{\"tags\":[{\"name\":\"latest\",\"from\":{\"kind\":\"DockerImage\",\"name\":\"$(params.registry)/$(params.registry_org)/$registry_repo:${TAG//[[:space:]]/}\"},\"importPolicy\":{},\"referencePolicy\":{\"type\":\"Source\"}}]}}" | yq -P m -i -x $contextpath -
       fi
 
   - name: git-push
