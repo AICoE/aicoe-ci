@@ -113,11 +113,14 @@ spec:
             name: auth-secret
             key: user-email
     script: |
+      set +x
+      TAG=$(echo "$(params.issue_body)" | awk -F ':' '{print $2}')
+      set -x
       git config --local user.email "$GITHUB_EMAIL"
       git config --local user.name "$GITHUB_USERNAME"
       git status
       git add .
-      git commit -m ":ship: Deploy the Tag $(params.git_ref) for $(params.repo_name)"
+      git commit -m ":ship: Deploy the Tag ${TAG//[[:space:]]/} for $(params.repo_name)"
       export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
       git push --set-upstream origin master
     volumeMounts:
