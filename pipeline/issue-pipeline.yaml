@@ -85,6 +85,8 @@ spec:
           value: $(tasks.configuration.results.base-image)
         - name: build_stratergy
           value: $(tasks.configuration.results.build-stratergy)
+        - name: dockerfile_path
+          value: $(tasks.configuration.results.dockerfile-path)
         - name: build_source_script
           value: $(tasks.configuration.results.build-source-script)
         - name: registry
@@ -103,6 +105,56 @@ spec:
             resource: git-repo
           - name: ubi
             resource: ubi
+
+    - name: issue-deploy-run
+      taskRef:
+        name: issue-deploy
+      conditions:
+        - conditionRef: deployment-check
+          resources:
+            - name: repo
+              resource: git-repo
+      params:
+        - name: event_action
+          value: $(params.event_action)
+        - name: issue_number
+          value: $(params.issue_number)
+        - name: issue_state
+          value: $(params.issue_state)
+        - name: issue_title
+          value: $(params.issue_title)
+        - name: issue_body
+          value: $(params.issue_body)
+        - name: issue_author_association
+          value: $(params.issue_author_association)
+        - name: issue_author
+          value: $(params.issue_author)
+        - name: repo_name
+          value: $(params.repo_name)
+        - name: repo_full_name
+          value: $(params.repo_full_name)
+        - name: repo_url
+          value: $(params.repo_url)
+        - name: registry
+          value: $(tasks.configuration.results.registry)
+        - name: registry_org
+          value: $(tasks.configuration.results.registry-org)
+        - name: registry_project
+          value: $(tasks.configuration.results.registry-project)
+        - name: deploy_project_org
+          value: $(tasks.configuration.results.deploy-project-org)
+        - name: deploy_project_name
+          value: $(tasks.configuration.results.deploy-project-name)
+        - name: deploy_image_name
+          value: $(tasks.configuration.results.deploy-image-name)
+        - name: overlay_contextpath
+          value: $(tasks.configuration.results.overlay-contextpath)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
+      runAfter:
+        - issue-release-run
 
     - name: issue-pypi-release-run
       taskRef:

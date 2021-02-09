@@ -4,6 +4,7 @@ resources:
   - configuration-task.yaml
   - custom-pipeline.yaml
   - init-task.yaml
+  - issue-deploy-task.yaml
   - issue-pypi-release-task.yaml
   - issue-release-task.yaml
   - pr-build-release.yaml

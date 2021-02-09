@@ -1,0 +1,134 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: issue-deploy
+spec:
+  params:
+    # tag params
+    - name: event_action
+      description: Action of Issue.
+    - name: issue_number
+      description: Issue number.
+    - name: issue_state
+      description: State of the Issue.
+    - name: issue_title
+      description: Title of the Issue.
+    - name: issue_body
+      description: Body of the Issue.
+    - name: issue_author_association
+      description: Author association of the Issue.
+    - name: issue_author
+      description: Author of the Issue.
+    - name: repo_full_name
+      description: The git repository full name.
+    - name: repo_url
+      description: The git repository url
+    - name: repo_name
+      description: The git repository title.
+    - name: registry
+      description: Container image registry.
+      default: "quay.io"
+    - name: registry_org
+      description: Name of the registry organization.
+      default: "thoth-station"
+    - name: registry_project
+      description: Name of the project repository.
+      default: ""
+    - name: deploy_project_org
+      description: Deployment configuration repository's organization.
+      default: "thoth-station"
+    - name: deploy_project_name
+      description: Deployment configuration repository.
+      default: "thoth-application"
+    - name: deploy_image_name
+      description: Deployment imagestream name to be used by the application.
+      default: ""
+    - name: overlay_contextpath
+      type: string
+      description: imagestreamtag yaml which is to be updated.
+      default: ""
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+
+  steps:
+  - name: git-clone-config-repo
+    image: $(resources.inputs.s2i-thoth.url)
+    securityContext:
+      privileged: true
+    script: |
+      export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+      git clone git@github.com:$(params.deploy_project_org)/$(params.deploy_project_name) /workspace/configrepo
+    volumeMounts:
+      - name: ssh-config
+        mountPath: /tekton/home/.ssh
+
+  - name: patch-imagetag
+    image: mikefarah/yq:3.2.1
+    workingDir: /workspace/configrepo
+    script: |
+      set +x
+      TAG=$(echo "$(params.issue_body)" | awk -F ':' '{print $2}')
+      set -x
+      if [ -z "$(params.registry_project)" ]; then
+        registry_repo=$(params.repo_name)
+      else
+        registry_repo=$(params.registry_project)
+      fi
+      if [ -z "$(params.overlay_contextpath)" ]; then
+        contextpath=$(params.repo_name)/overlays/test/imagestreamtag.yaml
+      else
+        contextpath=$(params.overlay_contextpath)
+      fi
+      if [ ! -z "$(params.deploy_image_name)" ]; then
+        docs=$(yq r -d'*' $contextpath metadata.name)
+        cnt=0
+        for doc in $docs; do
+          if [ "$doc" != "$(params.deploy_image_name)" ]; then
+             let cnt+=1
+          else
+             break
+          fi
+        done
+        echo "{\"spec\":{\"tags\":[{\"name\":\"latest\",\"from\":{\"kind\":\"DockerImage\",\"name\":\"$(params.registry)/$(params.registry_org)/$registry_repo:\"${TAG//[[:space:]]/}\"\"},\"importPolicy\":{},\"referencePolicy\":{\"type\":\"Source\"}}]}}" | yq -P m -d"$cnt" -i -x $contextpath -
+      else
+        echo "{\"spec\":{\"tags\":[{\"name\":\"latest\",\"from\":{\"kind\":\"DockerImage\",\"name\":\"$(params.registry)/$(params.registry_org)/$registry_repo:\"${TAG//[[:space:]]/}\"\"},\"importPolicy\":{},\"referencePolicy\":{\"type\":\"Source\"}}]}}" | yq -P m -i -x $contextpath -
+      fi
+
+  - name: git-push
+    image: $(resources.inputs.s2i-thoth.url)
+    securityContext:
+      privileged: true
+    workingDir: /workspace/configrepo
+    env:
+      - name: GITHUB_USERNAME
+        valueFrom:
+          secretKeyRef:
+            name: auth-secret
+            key: user-name
+      - name: GITHUB_EMAIL
+        valueFrom:
+          secretKeyRef:
+            name: auth-secret
+            key: user-email
+    script: |
+      git config --local user.email "$GITHUB_EMAIL"
+      git config --local user.name "$GITHUB_USERNAME"
+      git status
+      git add .
+      git commit -m ":ship: Deploy the Tag $(params.git_ref) for $(params.repo_name)"
+      export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+      git push --set-upstream origin master
+    volumeMounts:
+      - name: ssh-config
+        mountPath: /tekton/home/.ssh
+
+  volumes:
+    - name: ssh-config
+      secret:
+        secretName: auth-secret
+        items:
+          - key: ssh-privatekey
+            mode: 0600
+            path: id_rsa
