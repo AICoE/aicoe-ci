@@ -48,13 +48,14 @@ spec:
         import os
         import http.client
 
+
         def post_comment(context):
             with open("/workspace/pr/pr.json") as f:
                 PR_INFO = json.load(f)
-            status_url = "/repos/{}/issues/{}/comments".format(PR_INFO["Base"]["Repo"]["FullName"], PR_INFO["Number"])
-            data = {
-                "body": context
-            }
+            status_url = "/repos/{}/issues/{}/comments".format(
+                PR_INFO["Base"]["Repo"]["FullName"], PR_INFO["Number"]
+            )
+            data = {"body": context}
 
             conn = http.client.HTTPSConnection("api.github.com")
             r = conn.request(
@@ -64,7 +65,8 @@ spec:
                 headers={
                     "User-Agent": "aicoe-ci",
                     "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
-                })
+                },
+            )
             resp = conn.getresponse()
             if not str(resp.status).startswith("2"):
                 print("Error: %d" % (resp.status))
@@ -72,23 +74,24 @@ spec:
             else:
                 print("GitHub comment has been added.")
 
+
         received_comment = """$(params.pr_comment)"""
         received_comment = received_comment.strip().lower()
-        author="$(params.pr_comment_author)"
-        author_association="$(params.pr_comment_author_association)"
+        author = "$(params.pr_comment_author)"
+        author_association = "$(params.pr_comment_author_association)"
         return_comment = ""
         if "/retest" == received_comment:
             if (author_association == "NONE") or (author_association == "FIRST_TIMER"):
-                return_comment=f"Hi @{author},\n you are not authorised to run `/retest` command.\n Please contact a MEMBER."
+                return_comment = f"Hi @{author},\n you are not authorised to run `/retest` command.\n Please contact a MEMBER."
         if "/deploy" == received_comment:
-            if not ((author_association != "OWNER") or (author_association != "MEMBER")): then
-                return_comment=f"Hi @{author},\n you are not authorised to run `/deploy` command.\n Please contact the OWNERS."
+            if not ((author_association != "OWNER") or (author_association != "MEMBER")):
+                return_comment = f"Hi @{author},\n you are not authorised to run `/deploy` command.\n Please contact the OWNERS."
         if return_comment:
             post_comment(return_comment)
 
     - name: oc-create-image
       image: quay.io/openshift/origin-cli:latest
       script: |
-        if [ "$(params.event_action)" == "closed" ]: then
+        if [ "$(params.event_action)" == "closed" ]; then
           oc delete pipelinerun  --selector component=$(params.pr_repo)-pr-$(params.pr_number)
         fi
