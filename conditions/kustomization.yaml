@@ -7,6 +7,9 @@ resources:
   - deploy-comment-check.yaml
   - deployment-check.yaml
   - issue-check.yaml
+  - overlay-deploy.yaml
+  - overlays-pipeline-check.yaml
+  - overlays-set.yaml
   - retest-comment-check.yaml
   - sibling-check.yaml
   - upload-pypi-check.yaml

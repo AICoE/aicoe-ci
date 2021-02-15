@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Condition
+metadata:
+  name: overlays-set
+spec:
+  resources:
+    - name: repo
+      type: git
+    - name: ubi
+      type: image
+  check:
+    image: quay.io/harshad16/yq:latest
+    workingDir: /workspace/repo
+    script: |
+      if [[ ! -f .aicoe-ci.yaml ]]; then
+        cat <<EOF > .aicoe-ci.yaml
+      EOF
+      fi
+      check_list=$(yq r -j .aicoe-ci.yaml check)
+      out=$(echo "$check_list" | grep -w "overlays-build")
+      exit_code=$?
+      if [[ $exit_code -ne 0 ]]; then
+        exit 0
+      else
+        exit 1
+      fi
