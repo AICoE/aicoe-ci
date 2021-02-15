@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: tag-deploy
+  name: overlay-deploy
 spec:
   params:
     # tag params

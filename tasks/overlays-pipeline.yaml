@@ -1,0 +1,178 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: overlays-pipeline
+  labels:
+    app: aicoe-ci
+spec:
+  params:
+    - name: git_ref
+      description: Git reference value.
+    - name: git_ref_type
+      description: Type of ref Tag or Branch.
+    - name: repo_name
+      description: The git repository title.
+    - name: repo_url
+      description: The git repository url.
+    - name: default_branch
+      description: The git repository default branch.
+    - name: uid
+      description: uid of the pipeline.
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+      - name: repo
+        type: git
+
+  steps:
+    - name: overlays-pipelinerun-setup
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        cat <<EOF > overlays-pipelinerun.yaml
+        apiVersion: tekton.dev/v1beta1
+        kind: PipelineRun
+        metadata:
+          name: $(params.repo_name)-overlay-{overlays}-$(params.uid)
+          labels:
+            app: aicoe-ci
+            project: $(params.repo_name)
+            overlay: {overlay}
+            component: custom-overlays-build-pipeline
+        spec:
+          serviceAccountName: aicoe-ci
+          pipelineRef:
+            name: overlays-release-pipeline
+          params:
+            - name: git_ref
+              value: $(params.git_ref)
+            - name: git_ref_type
+              value: $(params.git_ref_type)
+            - name: repo_name
+              value: $(params.repo_name)
+            - name: repo_url
+              value: $(params.repo_url)
+            - name: base_image
+              value: ""
+            - name: build_stratergy
+              value: "Source"
+            - name: dockerfile_path
+              value: ""
+            - name: build_source_script
+              value: ""
+            - name: custom_tag
+              value: ""
+            - name: registry
+              value: ""
+            - name: registry_org
+              value: ""
+            - name: registry_project
+              value: ""
+            - name: registry_secret
+              value: {registry_secret}
+            - name: deploy
+              value: ""
+            - name: deploy_project_org
+              value: ""
+            - name: deploy_project_name
+              value: ""
+            - name: deploy_image_name
+              value: ""
+            - name: overlay_contextpath
+              value: ""
+            - name: overlays_name
+              value: ""
+            - name: overlays_dir
+              value: ""
+          resources:
+            - name: git-repo
+              resourceSpec:
+                type: git
+                params:
+                  - name: revision
+                    value: $(params.default_branch)
+                  - name: url
+                    value: $(params.repo_url)
+            - name: s2i-thoth
+              resourceSpec:
+                type: image
+                params:
+                  - name: url
+                    value: $(resources.inputs.s2i-thoth.url)
+        EOF
+
+    - name: overlays-pipeline-setup
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        #!/usr/libexec/platform-python
+        import os
+        import json
+        import yaml
+
+        ci_conf, thoth_conf = {}, {}
+        with open(".aicoe-ci.yaml", "r") as ci_stream:
+            ci_conf = yaml.safe_load(ci_stream)
+
+        if os.path.isfile(".thoth.yaml"):
+            with open(".thoth.yaml", "r") as thoth_stream:
+                thoth_conf = yaml.safe_load(thoth_stream)
+            if thoth_conf.get("overlays_dir"):
+                for runtime_env in thoth_conf["runtime_environments"]:
+                    for overlay_env in ci_conf["overlays"]:
+                        if runtime_env["name"] == overlay_env["name"]:
+                            overlay_env["build"]["base-image"] = runtime_env.get("base_image")
+
+            overlays_dir = ci_conf.get("overlays_dir", "overlays")
+            for overlay_env in ci_conf["overlays"]:
+
+                with open("overlays-pipelinerun.yaml", "r") as pipelinerun_yaml:
+                    pipelinerun = yaml.safe_load(pipelinerun_yaml)
+
+                    overlay_name = overlay_env["name"]
+                    pipelinerun["metadata"]["name"] = pipelinerun["metadata"]["name"].replace(
+                        "{overlays}", overlay_name
+                    )
+                    pipelinerun["metadata"]["labels"]["overlay"] = overlay_name
+
+                    spec_params = []
+                    for param in pipelinerun["spec"]["params"]:
+                        for ele in overlay_env["build"]:
+                            if param["name"] == "_".join(ele.split("-")):
+                                param["value"] = overlay_env["build"].get(ele, "")
+                        for ele in overlay_env.get("deploy", []):
+                            if param["name"] == "overlay_contextpath":
+                                param["value"] = overlay_env["deploy"].get(
+                                    "overlay-contextpath", ""
+                                )
+                            elif param["name"] == "deploy_" + "_".join(ele.split("-")):
+                                param["value"] = overlay_env["deploy"].get(ele, "")
+                        if param["name"] == "deploy":
+                            param["value"] = "deploy" if overlay_env.get("deploy") else ""
+                        if param["name"] == "overlays_name":
+                            param["value"] = overlay_name
+                        if param["name"] == "overlays_dir":
+                            param["value"] = overlays_dir
+                        spec_params.append(param)
+                    pipelinerun["spec"]["params"] = spec_params
+
+                    with open(
+                        f"/workspace/pipelinerun-{overlay_name}.yaml", "w"
+                    ) as output_pipelinerun_yaml:
+                        yaml.dump(
+                            pipelinerun, output_pipelinerun_yaml, default_flow_style=False
+                        )
+
+    - name: start-pipeline
+      image: quay.io/openshift/origin-cli:latest
+      workingDir: /workspace/repo
+      script: |
+        for overlay_file in /workspace/*.yaml
+        do
+          oc apply -f $overlay_file
+        done

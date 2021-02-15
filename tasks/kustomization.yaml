@@ -7,6 +7,9 @@ resources:
   - issue-deploy-task.yaml
   - issue-pypi-release-task.yaml
   - issue-release-task.yaml
+  - overlay-build-task.yaml
+  - overlay-deploy-task.yaml
+  - overlays-pipeline.yaml
   - pr-build-release.yaml
   - pr-build.yaml
   - pr-config.yaml

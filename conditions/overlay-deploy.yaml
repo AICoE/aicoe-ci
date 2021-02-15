@@ -1,0 +1,20 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Condition
+metadata:
+  name: overlay-deploy
+spec:
+  params:
+    - name: deploy
+      type: string
+  resources:
+    - name: repo
+      type: git
+  check:
+    image: quay.io/thoth-station/s2i-thoth-ubi8-py36:latest
+    workingDir: /workspace/repo
+    script: |
+      #!/usr/libexec/platform-python
+      if "$(params.deploy)" == "deploy":
+          exit(0)
+      else:
+          exit(1)

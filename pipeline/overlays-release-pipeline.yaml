@@ -1,0 +1,129 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: overlays-release-pipeline
+  labels:
+    app: aicoe-ci
+spec:
+  params:
+    - name: git_ref
+      type: string
+    - name: git_ref_type
+      type: string
+    - name: repo_name
+      type: string
+    - name: repo_url
+      type: string
+    - name: base_image
+      type: string
+    - name: build_stratergy
+      type: string
+    - name: dockerfile_path
+      type: string
+    - name: build_source_script
+      type: string
+    - name: custom_tag
+      type: string
+    - name: registry
+      type: string
+    - name: registry_org
+      type: string
+    - name: registry_project
+      type: string
+    - name: registry_secret
+      type: string
+    - name: deploy
+      type: string
+    - name: deploy_project_org
+      type: string
+    - name: deploy_project_name
+      type: string
+    - name: deploy_image_name
+      type: string
+    - name: overlay_contextpath
+      type: string
+    - name: overlays_name
+      type: string
+    - name: overlays_dir
+      type: string
+  resources:
+    - name: git-repo
+      type: git
+    - name: s2i-thoth
+      type: image
+
+  tasks:
+    - name: overlay-release-run
+      taskRef:
+        name: overlay-build
+      params:
+        - name: git_ref
+          value: $(params.git_ref)
+        - name: repo_name
+          value: $(params.repo_name)
+        - name: base_image
+          value: $(params.base_image)
+        - name: build_stratergy
+          value: $(params.build_stratergy)
+        - name: dockerfile_path
+          value: $(params.dockerfile_path)
+        - name: build_source_script
+          value: $(params.build_source_script)
+        - name: custom_tag
+          value: $(params.custom_tag)
+        - name: registry
+          value: $(params.registry)
+        - name: registry_org
+          value: $(params.registry_org)
+        - name: registry_project
+          value: $(params.registry_project)
+        - name: registry_secret
+          value: $(params.registry_secret)
+        - name: overlays_name
+          value: $(params.overlays_name)
+        - name: overlays_dir
+          value: $(params.overlays_dir)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
+          - name: repo
+            resource: git-repo
+
+    - name: overlay-deploy-run
+      taskRef:
+        name: overlay-deploy
+      conditions:
+        - conditionRef: overlay-deploy
+          params:
+            - name: deploy
+              value: $(params.deploy)
+          resources:
+            - name: repo
+              resource: git-repo
+      params:
+        - name: git_ref
+          value: $(params.git_ref)
+        - name: repo_name
+          value: $(params.repo_name)
+        - name: registry
+          value: $(params.registry)
+        - name: registry_org
+          value: $(params.registry_org)
+        - name: registry_project
+          value: $(params.registry_project)
+        - name: deploy_project_org
+          value: $(params.deploy_project_org)
+        - name: deploy_project_name
+          value: $(params.deploy_project_name)
+        - name: deploy_image_name
+          value: $(params.deploy_image_name)
+        - name: overlay_contextpath
+          value: $(params.overlay_contextpath)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
+      runAfter:
+        - overlay-release-run
