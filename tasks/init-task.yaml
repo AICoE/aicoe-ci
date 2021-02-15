@@ -81,7 +81,7 @@ spec:
             if (author_association == "NONE") or (author_association == "FIRST_TIMER"):
                 return_comment=f"Hi @{author},\n you are not authorised to run `/retest` command.\n Please contact a MEMBER."
         if "/deploy" == received_comment:
-            if not ((author_association != "OWNER") or (author_association != "MEMBER")); then
+            if not ((author_association != "OWNER") or (author_association != "MEMBER")): then
                 return_comment=f"Hi @{author},\n you are not authorised to run `/deploy` command.\n Please contact the OWNERS."
         if return_comment:
             post_comment(return_comment)
@@ -89,6 +89,6 @@ spec:
     - name: oc-create-image
       image: quay.io/openshift/origin-cli:latest
       script: |
-        if [ "$(params.event_action)" == "closed" ]; then
+        if [ "$(params.event_action)" == "closed" ]: then
           oc delete pipelinerun  --selector component=$(params.pr_repo)-pr-$(params.pr_number)
         fi
