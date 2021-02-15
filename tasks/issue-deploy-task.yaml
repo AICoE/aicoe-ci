@@ -65,7 +65,7 @@ spec:
         mountPath: /tekton/home/.ssh
 
   - name: patch-imagetag
-    image: mikefarah/yq:3.2.1
+    image: quay.io/harshad16/yq:latest
     workingDir: /workspace/configrepo
     script: |
       set +x

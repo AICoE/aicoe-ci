@@ -56,15 +56,12 @@ spec:
           value: $(params.pr_comment_author_association)
       resources:
         inputs:
-          - name: ubi
-            resource: ubi
+          - name: s2i-thoth
+            resource: s2i-thoth
           - name: pr
             resource: pr-source
           - name: repo
             resource: git-repo
-        outputs:
-          - name: pr
-            resource: pr-source
 
     - name: pr-configuration
       taskRef:

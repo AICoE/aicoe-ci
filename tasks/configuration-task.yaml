@@ -9,6 +9,8 @@ spec:
     inputs:
       - name: repo
         type: git
+      - name: s2i-thoth
+        type: image
   results:
     - name: base-image
     - name: build-stratergy

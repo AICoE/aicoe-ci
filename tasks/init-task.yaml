@@ -24,51 +24,67 @@ spec:
     inputs:
       - name: pr
         type: pullRequest
-      - name: ubi
+      - name: s2i-thoth
         type: image
       - name: repo
         type: git
-    outputs:
-      - name: pr
-        type: pullRequest
+
   steps:
     - name: init-ops
-      image: $(resources.inputs.ubi.url)
+      image: $(resources.inputs.s2i-thoth.url)
       workingDir: /workspace/repo
-      resources:
-        limits:
-          memory: "500Mi"
-          cpu: "1"
-        requests:
-          memory: "500Mi"
-          cpu: "1"
       securityContext:
         privileged: true
+      env:
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: token
       script: |
-        set -e
-        cp -r /workspace/pr/ /workspace/output/
+        #!/usr/libexec/platform-python
+        import json
+        import yaml
+        import os
+        import http.client
 
+        def post_comment(context):
+            with open("/workspace/pr/pr.json") as f:
+                PR_INFO = json.load(f)
+            status_url = "/repos/{}/issues/{}/comments"".format(PR_INFO["Base"]["Repo"]["FullName"], PR_INFO["Number"])
+            data = {
+                "body": context
+            }
+
+            conn = http.client.HTTPSConnection("api.github.com")
+            r = conn.request(
+                "POST",
+                status_url,
+                body=json.dumps(data),
+                headers={
+                    "User-Agent": "aicoe-ci",
+                    "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+                })
+            resp = conn.getresponse()
+            if not str(resp.status).startswith("2"):
+                print("Error: %d" % (resp.status))
+                print(resp.read())
+            else:
+                print("GitHub comment has been added.")
+
+        received_comment = """$(params.pr_comment)"""
+        received_comment = received_comment.strip().lower()
         author="$(params.pr_comment_author)"
         author_association="$(params.pr_comment_author_association)"
-        msg=""
-        case $(params.pr_comment) in
-          "/retest" )
-            if [ "$author_association" == "NONE" -o "$author_association" == "FIRST_TIMER" ]; then
-              msg="Hi @$author
-              Unauthorised to run /retest command."
-            fi;;
-          "/deploy" )
-            if ! { [ "$author_association" != "OWNER" -o "$author_association" != "MEMBER" ]; }; then
-              msg="Hi @$author
-              Unauthorised to run /deploy command.
-              Need to be either an OWNER or MEMBER."
-            fi;;
-          * )
-            ;;
-        esac
-        if [ ! -z "$msg" ]; then
-          echo "$msg" > /workspace/output/pr/comments/comment
-        fi
+        return_comment = ""
+        if "/retest" == received_comment:
+            if (author_association == "NONE") or (author_association == "FIRST_TIMER"):
+                return_comment=f"Hi @{author},\n you are not authorised to run `/retest` command.\n Please contact a MEMBER."
+        if "/deploy" == received_comment:
+            if not ((author_association != "OWNER") or (author_association != "MEMBER")); then
+                return_comment=f"Hi @{author},\n you are not authorised to run `/deploy` command.\n Please contact the OWNERS."
+        if return_comment:
+            post_comment(return_comment)
 
     - name: oc-create-image
       image: quay.io/openshift/origin-cli:latest

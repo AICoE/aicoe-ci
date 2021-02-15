@@ -14,30 +14,6 @@ spec:
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
-  name: s2i-thoth-py36
-  labels:
-    app: aicoe-ci
-spec:
-  type: image
-  params:
-    - name: url
-      value: quay.io/thoth-station/s2i-thoth-ubi8-py36:v0.20.1
----
-apiVersion: tekton.dev/v1alpha1
-kind: PipelineResource
-metadata:
-  name: s2i-thoth-py38
-  labels:
-    app: aicoe-ci
-spec:
-  type: image
-  params:
-    - name: url
-      value: quay.io/thoth-station/s2i-thoth-ubi8-py38:v0.20.1
----
-apiVersion: tekton.dev/v1alpha1
-kind: PipelineResource
-metadata:
   name: ubi8-minimal
 spec:
   type: image
@@ -54,15 +30,3 @@ spec:
   params:
     - name: url
       value: registry.access.redhat.com/ubi8/ubi:latest
----
-apiVersion: tekton.dev/v1alpha1
-kind: PipelineResource
-metadata:
-  name: image-base
-  labels:
-    app: aicoe-ci
-spec:
-  type: image
-  params:
-    - name: url
-      value: image-registry.openshift-image-registry.svc:5000/aicoe-ci
