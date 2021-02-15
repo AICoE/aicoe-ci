@@ -51,7 +51,7 @@ spec:
         def post_comment(context):
             with open("/workspace/pr/pr.json") as f:
                 PR_INFO = json.load(f)
-            status_url = "/repos/{}/issues/{}/comments"".format(PR_INFO["Base"]["Repo"]["FullName"], PR_INFO["Number"])
+            status_url = "/repos/{}/issues/{}/comments".format(PR_INFO["Base"]["Repo"]["FullName"], PR_INFO["Number"])
             data = {
                 "body": context
             }
