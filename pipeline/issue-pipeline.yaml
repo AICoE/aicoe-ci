@@ -45,6 +45,8 @@ spec:
         inputs:
           - name: repo
             resource: git-repo
+          - name: s2i-thoth
+            resource: s2i-thoth
 
     - name: issue-release-run
       taskRef:
