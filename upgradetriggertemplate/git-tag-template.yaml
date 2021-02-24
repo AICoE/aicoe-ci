@@ -30,6 +30,7 @@ spec:
           component: tag-$(tt.params.repo_name)
       spec:
         serviceAccountName: aicoe-ci
+        timeout: "2h"
         pipelineRef:
           name: tag-release-pipeline
         params:
