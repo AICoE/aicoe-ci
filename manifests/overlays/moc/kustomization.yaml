@@ -14,5 +14,6 @@ resources:
   - binding.yaml
   - role.yaml
   - serviceaccount.yaml
+  - route.yaml
 generators:
   - secret-generator.yaml
