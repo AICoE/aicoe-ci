@@ -28,6 +28,8 @@ spec:
               secretKey: webhooksecret
             eventTypes:
               - issue_comment
+        - cel:
+            filter: "body.comment.body.startsWith('/retest') || body.comment.body.startsWith('/deploy')"
       bindings:
         - ref: git-issue-comment-binding
       template:
