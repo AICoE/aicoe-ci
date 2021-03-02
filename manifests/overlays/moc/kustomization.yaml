@@ -15,5 +15,6 @@ resources:
   - role.yaml
   - serviceaccount.yaml
   - route.yaml
+  - cleanup-cronjob.yaml
 generators:
   - secret-generator.yaml

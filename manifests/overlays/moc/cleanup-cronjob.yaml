@@ -1,0 +1,60 @@
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: cleanup-pipeline
+spec:
+  lookupPolicy:
+    local: true
+  tags:
+    - name: latest
+      from:
+        kind: DockerImage
+        name: quay.io/harshad16/cleanup-pipelineruns:latest
+      importPolicy: {}
+      referencePolicy:
+        type: Local
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cleanup-pipeline
+  labels:
+    component: cleanup
+spec:
+  schedule: "0 */3 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: null
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: cleanup-pipeline
+          labels:
+            component: cleanup
+        spec:
+          serviceAccountName: "aicoe-ci"
+          containers:
+            - name: cleanup
+              image: "cleanup-pipeline:latest"
+              env:
+                - name: THOTH_LOG_CLEANUP_JOB
+                  value: "INFO"
+                - name: THOTH_CLEANUP_NAMESPACE
+                  value: "opf-ci-pipelines"
+              resources:
+                requests:
+                  memory: "512Mi"
+                  cpu: "500m"
+                limits:
+                  memory: "512Mi"
+                  cpu: "500m"
+              livenessProbe:
+                failureThreshold: 1
+                initialDelaySeconds: 1800
+                periodSeconds: 10
+                tcpSocket:
+                  port: 80
+          restartPolicy: OnFailure
