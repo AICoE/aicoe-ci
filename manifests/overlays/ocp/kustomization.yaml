@@ -16,6 +16,7 @@ resources:
   - serviceaccount.yaml
   - thoth-notification.yaml
   - ultrahook.yaml
+  - cleanup-cronjob.yaml
 generators:
   - secret-generator.yaml
 patchesJson6902:
