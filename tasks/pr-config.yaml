@@ -47,11 +47,7 @@ spec:
       script: |
         if [[ ! -f .aicoe-ci.yaml ]]; then
           cat <<EOF > .aicoe-ci.yaml
-          check:
-            - thoth-pytest
-            - thoth-precommit
-            - thoth-build
-            - thoth-custom-build
+          check: []
           release:
             - upload-pypi-sesheta
           build:

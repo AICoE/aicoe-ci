@@ -26,5 +26,5 @@ spec:
           else:
               exit(0)
       else:
-        print("Configuration file available")
+        print("Configuration file unavailable")
         exit(1)
