@@ -43,6 +43,8 @@ spec:
               secretKey: webhooksecret
             eventTypes:
               - create
+        - cel:
+            filter: "body.ref_type == 'tag'"
       bindings:
         - ref: git-tag-binding
       template:
@@ -56,6 +58,8 @@ spec:
               secretKey: webhooksecret
             eventTypes:
               - issues
+        - cel:
+            filter: "body.action in ['opened','reopened']"
       bindings:
         - ref: git-issue-binding
       template:

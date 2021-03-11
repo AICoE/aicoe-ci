@@ -30,15 +30,6 @@ spec:
       type: image
 
   tasks:
-    - name: tag-check
-      taskRef:
-        name: tag-check
-      params:
-        - name: git_ref_type
-          value: $(params.git_ref_type)
-        - name: pipelinerun_name
-          value: $(params.pipelinerun_name)
-
     - name: configuration
       taskRef:
         name: configuration
@@ -48,8 +39,6 @@ spec:
             resource: git-repo
           - name: s2i-thoth
             resource: s2i-thoth
-      runAfter:
-        - tag-check
 
     - name: overlays-pipeline-run
       taskRef:
@@ -80,8 +69,6 @@ spec:
             resource: s2i-thoth
           - name: repo
             resource: git-repo
-      runAfter:
-        - tag-check
 
     - name: custom-pipeline-run
       taskRef:
@@ -112,8 +99,6 @@ spec:
             resource: s2i-thoth
           - name: repo
             resource: git-repo
-      runAfter:
-        - tag-check
 
     - name: tag-publish-pypi-run
       taskRef:
@@ -134,8 +119,6 @@ spec:
             resource: s2i-thoth
           - name: repo
             resource: git-repo
-      runAfter:
-        - tag-check
 
     - name: tag-release-run
       taskRef:
@@ -176,8 +159,6 @@ spec:
             resource: s2i-thoth
           - name: repo
             resource: git-repo
-      runAfter:
-        - tag-check
 
     - name: tag-sibling-run
       taskRef:
@@ -202,8 +183,6 @@ spec:
             resource: s2i-thoth
           - name: repo
             resource: git-repo
-      runAfter:
-        - tag-check
 
     - name: tag-deploy-run
       taskRef:

@@ -15,13 +15,8 @@ spec:
   check:
     image: quay.io/openshift/origin-cli:latest
     script: |
-      ACTION="opened reopened"
-      if echo $ACTION | grep -w $(params.event_action) > /dev/null; then
-          if [ "$(params.issue_title)" == "$(params.issue_pipeline_title)" ]; then
-            exit 0
-          else
-            exit 1
-          fi
+      if [ "$(params.issue_title)" == "$(params.issue_pipeline_title)" ]; then
+        exit 0
       else
-          oc delete pipelinerun $(params.pipelinerun_name)
+        exit 1
       fi
