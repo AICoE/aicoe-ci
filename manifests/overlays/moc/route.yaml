@@ -3,7 +3,6 @@ kind: Route
 metadata:
   name: el-aicoe-ci-listener
 spec:
-  host: el-aicoe-ci-listener-opf-ci-pipelines.apps.cnv.massopen.cloud
   port:
     targetPort: http-listener
   to:
