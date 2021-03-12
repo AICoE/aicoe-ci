@@ -235,6 +235,9 @@ spec:
         docker://$(params.registry)/$(params.registry_org)/$registry_repo:pr-$(params.pr_number)
       securityContext:
         privileged: true
+      resources:
+        limits:
+          memory: "8Gi"
       volumeMounts:
         - name: varlibcontainers
           mountPath: /var/lib/containers
