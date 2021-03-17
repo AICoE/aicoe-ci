@@ -15,6 +15,8 @@ spec:
               secretKey: webhooksecret
             eventTypes:
               - pull_request
+        - cel:
+            filter: "body.action in ['opened', 'closed', 'synchronize', 'reopened', 'created']"
       bindings:
         - ref: git-pr-binding
       template:
