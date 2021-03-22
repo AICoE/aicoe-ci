@@ -16,6 +16,5 @@ resources:
   - serviceaccount.yaml
   - route.yaml
   - cleanup-cronjob.yaml
-  - tekton-dashboard.enc.yaml
 generators:
   - secret-generator.yaml
