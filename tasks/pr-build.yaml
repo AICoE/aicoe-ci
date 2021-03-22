@@ -216,7 +216,7 @@ spec:
             status_url = "/repos/{}/statuses/{}".format(PR_INFO["Base"]["Repo"]["FullName"], PR_INFO["Head"]["Sha"])
             data = {
                 "state": state,
-                "target_url": "https://tekton-dashboard-openshift-pipelines.apps.ocp4.prod.psi.redhat.com/#/namespaces/aicoe-infra-prod/pipelineruns/$(params.pipelinerun_name)",
+                "target_url": "http://tekton-dashboard-tekton-pipelines.apps.zero.massopen.cloud/#/namespaces/opf-ci-pipelines/pipelineruns/$(params.pipelinerun_name)",
                 "description": description,
                 "context": "aicoe-ci/build-check"
             }
