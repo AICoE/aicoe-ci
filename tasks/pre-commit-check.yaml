@@ -31,13 +31,6 @@ spec:
 
     - name: run-pre-commit
       image: quay.io/thoth-station/thoth-precommit:v0.12.2
-      resources:
-        limits:
-          memory: "2Gi"
-          cpu: "2"
-        requests:
-          memory: "2Gi"
-          cpu: "2"
       workingDir: /workspace/repo
       script: |
         if [[ -f .pre-commit-config.yaml ]]; then

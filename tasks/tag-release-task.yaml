@@ -199,7 +199,7 @@ spec:
       resources:
         limits:
           memory: "8Gi"
-          cpu: "4"
+          cpu: "2"
         requests:
           memory: "2Gi"
           cpu: "2"

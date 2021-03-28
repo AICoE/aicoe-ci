@@ -46,13 +46,6 @@ spec:
 
     - name: run-pytest
       image: quay.io/thoth-station/thoth-pytest-ubi8-py38:v0.12.4
-      resources:
-        limits:
-          memory: "2Gi"
-          cpu: "2"
-        requests:
-          memory: "2Gi"
-          cpu: "2"
       workingDir: /workspace/repo
       script: |
         if [[ -n "$(params.pytest_env)" ]]; then
