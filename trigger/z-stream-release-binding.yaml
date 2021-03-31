@@ -1,0 +1,16 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: z-stream-release-binding
+  labels:
+    app: aicoe-ci
+spec:
+  params:
+  - name: git_ref
+    value: $(body.ref)
+  - name: git_ref_type
+    value: $(body.ref_type)
+  - name: repo_url
+    value: "git@github.com:operate-first/apps.git"
+  - name: default_branch
+    value: "master"

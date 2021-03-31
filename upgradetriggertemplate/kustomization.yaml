@@ -5,3 +5,4 @@ resources:
   - git-issue-template.yaml
   - git-pr-template.yaml
   - git-tag-template.yaml
+  - z-stream-release-template.yaml
