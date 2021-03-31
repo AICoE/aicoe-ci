@@ -61,7 +61,7 @@ spec:
             eventTypes:
               - issues
         - cel:
-            filter: "body.issue.title in ['Deliver Container Image','Deliver Missing Module','Upstream Sync Up']"
+            filter: "(body.issue.title in ['Deliver Container Image','Deliver Missing Module','Upstream Sync Up']) && (body.action in ['opened', 'closed', 'reopened'])"
       bindings:
         - ref: git-issue-binding
       template:
