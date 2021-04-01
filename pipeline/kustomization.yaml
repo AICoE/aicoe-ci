@@ -5,3 +5,4 @@ resources:
   - overlays-release-pipeline.yaml
   - pull-request-pipeline.yaml
   - tag-release-pipeline.yaml
+  - z-stream-release-pipeline.yaml

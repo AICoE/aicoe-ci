@@ -28,3 +28,4 @@ resources:
   - tag-sibling.yaml
   - tox-checks.yaml
   - upload-pypi.yaml
+  - z-stream-release-task.yaml

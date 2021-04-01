@@ -1,0 +1,45 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: z-stream-release-template
+  labels:
+    app: aicoe-ci
+spec:
+  params:
+    - name: git_ref
+      description: Git reference value.
+    - name: git_ref_type
+      description: Type of ref Tag or Branch.
+    - name: repo_url
+      description: The git repository url.
+    - name: default_branch
+      description: The git repository default branch.
+    - name: pipelinerun_name
+      description: pipelinerun associated.
+
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        name: z-stream-release-$(uid)
+        labels:
+          app: aicoe-ci
+          project: "operate-first-apps"
+          component: "operate-first-apps"
+      spec:
+        serviceAccountName: aicoe-ci
+        timeout: "2h"
+        pipelineRef:
+          name: z-stream-release-pipeline
+        params:
+          - name: git_ref
+            value: $(tt.params.git_ref)
+          - name: repo_url
+            value: $(tt.params.repo_url)
+        resources:
+          - name: s2i-thoth
+            resourceRef:
+              name: thoth-s2i
+          - name: ubi
+            resourceRef:
+              name: ubi8

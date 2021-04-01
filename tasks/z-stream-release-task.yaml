@@ -1,0 +1,113 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: z-stream-release
+spec:
+  params:
+    # tag params
+    - name: git_ref
+      description: Git reference value.
+    - name: repo_url
+      description: Git url for the repository.
+
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+
+  steps:
+    - name: z-stream-update
+      image: quay.io/operate-first/opf-toolbox:v0.3.2
+      workingDir: /workspace/
+      securityContext:
+        privileged: true
+      script: |
+        export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+        git clone $(params.repo_url) /workspace/apps
+        cd /workspace/apps
+        ./scripts/set-odh-release.sh $(params.git_ref)
+      volumeMounts:
+        - name: ssh-config
+          mountPath: /tekton/home/.ssh
+
+    - name: git-commit
+      image: $(resources.inputs.s2i-thoth.url)
+      securityContext:
+        privileged: true
+      workingDir: /workspace/apps
+      env:
+        - name: GITHUB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: user-name
+        - name: GITHUB_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: user-email
+      script: |
+        git config --local user.email "$GITHUB_EMAIL"
+        git config --local user.name "$GITHUB_USERNAME"
+        git status
+        git checkout -b z-stream-update-$(params.git_ref)
+        git add .
+        git commit -m ":ship: Syncing repository with upstream opendatahub/odh-manifests"
+        export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+        git push --set-upstream origin z-stream-update-$(params.git_ref)
+      volumeMounts:
+        - name: ssh-config
+          mountPath: /tekton/home/.ssh
+
+    - name: raise-pull-request
+      workingDir: /workspace/repo
+      env:
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: token
+        - name: ODH_TAG
+          value: $(params.git_ref)
+      image: $(resources.inputs.s2i-thoth.url)
+      script: |
+        #!/usr/libexec/platform-python
+        import json
+        import os
+        import http.client
+
+        status_url = "/repos/operate-first/apps/pulls"
+        issue_body = f"Syncing repository with upstream\n z-stream release version: {os.environ['ODH_TAG']}\n"
+        head = f"z-stream-update-{os.environ['ODH_TAG']}"
+        base = "master"
+        data = {
+            "title":"sync up with upstream opendatahub odh-manifests",
+            "head": head,
+            "base": base,
+            "body": issue_body,
+        }
+
+        conn = http.client.HTTPSConnection("api.github.com")
+        r = conn.request(
+            "POST",
+            status_url,
+            body=json.dumps(data),
+            headers={
+                "User-Agent": "aicoe-ci",
+                "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+            })
+        resp = conn.getresponse()
+        if not str(resp.status).startswith("2"):
+            print("Error: %d" % (resp.status))
+            print(resp.read())
+        else:
+            print("Successful: %d" % (resp.status))
+
+  volumes:
+    - name: ssh-config
+      secret:
+        secretName: auth-secret
+        items:
+          - key: ssh-privatekey
+            mode: 0600
+            path: id_rsa

@@ -7,3 +7,4 @@ resources:
   - git-pr-binding.yaml
   - git-tag-binding.yaml
   - webhook-tag-binding.yaml
+  - z-stream-release-binding.yaml
