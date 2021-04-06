@@ -3,6 +3,11 @@ secrets-*.yaml
 secrets/
 thoth-ci.2020-04-14.private-key.pem
 application_default_credentials.json
+custom-role/
+examples/
+setup.sh
+teardown.sh
+tekton-setup.sh
 .env
 .vscode
 .lock
