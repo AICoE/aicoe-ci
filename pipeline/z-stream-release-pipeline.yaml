@@ -9,7 +9,13 @@ spec:
   params:
     - name: git_ref
       type: string
-    - name: repo_url
+    - name: opf_org
+      type: string
+    - name: opf_repo
+      type: string
+    - name: opf_repo_url
+      type: string
+    - name: opf_default_branch
       type: string
   resources:
     - name: s2i-thoth
@@ -24,8 +30,14 @@ spec:
       params:
         - name: git_ref
           value: $(params.git_ref)
-        - name: repo_url
-          value: $(params.repo_url)
+        - name: opf_org
+          value: $(params.opf_org)
+        - name: opf_repo
+          value: $(params.opf_repo)
+        - name: opf_repo_url
+          value: $(params.opf_repo_url)
+        - name: opf_default_branch
+          value: $(params.opf_default_branch)
       resources:
         inputs:
           - name: s2i-thoth

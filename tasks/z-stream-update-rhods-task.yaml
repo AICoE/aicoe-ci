@@ -1,0 +1,127 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: z-stream-update-rhods
+spec:
+  params:
+    # tag params
+    - name: git_ref
+      description: Git reference value.
+    - name: repo_url
+      description: Git url for the repository.
+    - name: default_branch
+      description: The git repository default branch.
+
+    - name: rhods_org
+      description: The rhods organization.
+    - name: rhods_repo
+      description: The rhods repository.
+    - name: rhods_repo_url
+      description: Git url for the rhods repository.
+    - name: rhods_default_branch
+      description: The git repository rhods default branch.
+
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+
+  steps:
+    - name: z-stream-update
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/
+      securityContext:
+        privileged: true
+      env:
+        - name: GITHUB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: user-name
+        - name: GITHUB_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: user-email
+      script: |
+        git clone $(params.repo_url) /workspace/app
+        cd /workspace/app
+        git config --local user.email "$GITHUB_EMAIL"
+        git config --local user.name "$GITHUB_USERNAME"
+        export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+        git fetch origin 'refs/tags/*:refs/tags/*'
+        old_tag=$(git describe --abbrev=0 $(params.git_ref)^)
+        git remote add local $(params.rhods_repo_url)
+        git fetch local
+        git checkout -b odh-release-$(params.git_ref) local/$(params.rhods_default_branch)
+        for commit_hash in $(git rev-list --reverse $old_tag..$(params.git_ref))
+        do
+          git cherry-pick $commit_hash
+        done
+
+        git log --oneline --reverse $old_tag..$(params.git_ref) > /workspace/rhods-cherry-pick.txt
+        git push --set-upstream local odh-release-$(params.git_ref)
+      volumeMounts:
+        - name: ssh-config
+          mountPath: /tekton/home/.ssh
+
+    - name: raise-pull-request
+      workingDir: /workspace/app
+      env:
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: token
+        - name: ODH_TAG
+          value: $(params.git_ref)
+        - name: RHODS_DEFAULT_BRANCH
+          value: $(params.rhods_default_branch)
+        - name: RHODS_ORG
+          value: $(params.rhods_org)
+        - name: RHODS_REPO
+          value: $(params.rhods_repo)
+      image: $(resources.inputs.s2i-thoth.url)
+      script: |
+        #!/usr/libexec/platform-python
+        import json
+        import os
+        import http.client
+
+        status_url = f"/repos/{os.getenv('RHODS_ORG')}/{os.getenv('RHODS_REPO')}/pulls"
+        issue_body = f"The pull request cherry picks commits from latest release.\n z-stream release version: {os.getenv('ODH_TAG')}\n Picked commits details:\n "
+        issue_body = issue_body + " ".join(open("/workspace/rhods-cherry-pick.txt","r").readlines())
+        head = f"odh-release-{os.getenv('ODH_TAG')}"
+        base = os.getenv("RHODS_DEFAULT_BRANCH","master")
+        title = f"Sync up with upstream ODH release {os.getenv('ODH_TAG')}"
+        data = {
+            "title": title,
+            "head": head,
+            "base": base,
+            "body": issue_body,
+        }
+
+        conn = http.client.HTTPSConnection("api.github.com")
+        r = conn.request(
+            "POST",
+            status_url,
+            body=json.dumps(data),
+            headers={
+                "User-Agent": "aicoe-ci",
+                "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+            })
+        resp = conn.getresponse()
+        if not str(resp.status).startswith("2"):
+            print("Error: %d" % (resp.status))
+            print(resp.read())
+        else:
+            print("Successful: %d" % (resp.status))
+
+  volumes:
+    - name: ssh-config
+      secret:
+        secretName: auth-secret
+        items:
+          - key: ssh-privatekey
+            mode: 0600
+            path: id_rsa

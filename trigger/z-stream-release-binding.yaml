@@ -11,6 +11,24 @@ spec:
   - name: git_ref_type
     value: $(body.ref_type)
   - name: repo_url
-    value: "git@github.com:operate-first/apps.git"
+    value: $(body.repository.html_url)
   - name: default_branch
+    value: $(body.repository.default_branch)
+
+  - name: opf_repo_url
+    value: "git@github.com:operate-first/apps.git"
+  - name: opf_default_branch
     value: "master"
+  - name: opf_repo
+    value: "apps"
+  - name: opf_org
+    value: "operate-first"
+
+  - name: rhods_repo_url
+    value: "git@github.com:red-hat-data-services/odh-manifests.git"
+  - name: rhods_default_branch
+    value: "master"
+  - name: rhods_repo
+    value: "odh-manifests"
+  - name: rhods_org
+    value: "red-hat-data-services"

@@ -14,6 +14,25 @@ spec:
       description: The git repository url.
     - name: default_branch
       description: The git repository default branch.
+
+    - name: opf_repo_url
+      description: operate-first repository url.
+    - name: opf_default_branch
+      description: operate-first repository default branch.
+    - name: opf_repo
+      description: operate-first repository.
+    - name: opf_org
+      description: operate-first organization.
+
+    - name: rhods_repo_url
+      description: RHODS repository url.
+    - name: rhods_default_branch
+      description: RHODS repository default_branch.
+    - name: rhods_repo
+      description: RHODS repository.
+    - name: rhods_org
+      description: RHODS organization.
+
     - name: pipelinerun_name
       description: pipelinerun associated.
 
@@ -34,8 +53,50 @@ spec:
         params:
           - name: git_ref
             value: $(tt.params.git_ref)
+          - name: opf_org
+            value: $(tt.params.opf_org)
+          - name: opf_repo
+            value: $(tt.params.opf_repo)
+          - name: opf_repo_url
+            value: $(tt.params.opf_repo_url)
+          - name: opf_default_branch
+            value: $(tt.params.opf_default_branch)
+        resources:
+          - name: s2i-thoth
+            resourceRef:
+              name: thoth-s2i
+          - name: ubi
+            resourceRef:
+              name: ubi8
+
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        name: z-stream-update-rhods-$(uid)
+        labels:
+          app: aicoe-ci
+          project: "rhods-apps"
+          component: "rhods-apps"
+      spec:
+        serviceAccountName: aicoe-ci
+        timeout: "2h"
+        pipelineRef:
+          name: z-stream-update-rhods
+        params:
+          - name: git_ref
+            value: $(tt.params.git_ref)
           - name: repo_url
             value: $(tt.params.repo_url)
+          - name: default_branch
+            value: $(tt.params.default_branch)
+          - name: rhods_org
+            value: $(tt.params.rhods_org)
+          - name: rhods_repo
+            value: $(tt.params.rhods_repo)
+          - name: rhods_repo_url
+            value: $(tt.params.rhods_repo_url)
+          - name: rhods_default_branch
+            value: $(tt.params.rhods_default_branch)
         resources:
           - name: s2i-thoth
             resourceRef:
