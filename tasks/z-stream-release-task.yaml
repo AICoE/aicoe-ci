@@ -7,8 +7,14 @@ spec:
     # tag params
     - name: git_ref
       description: Git reference value.
-    - name: repo_url
-      description: Git url for the repository.
+    - name: opf_repo_url
+      description: operate-first repository url.
+    - name: opf_default_branch
+      description: operate-first repository default branch.
+    - name: opf_repo
+      description: operate-first repository.
+    - name: opf_org
+      description: operate-first organization.
 
   resources:
     inputs:
@@ -23,7 +29,7 @@ spec:
         privileged: true
       script: |
         export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
-        git clone $(params.repo_url) /workspace/apps
+        git clone $(params.opf_repo_url) /workspace/apps
         cd /workspace/apps
         ./scripts/set-odh-release.sh $(params.git_ref)
       volumeMounts:
@@ -52,7 +58,7 @@ spec:
         git status
         git checkout -b z-stream-update-$(params.git_ref)
         git add .
-        git commit -m ":ship: Syncing repository with upstream opendatahub/odh-manifests"
+        git commit -m ":arrow_up: Upgrade ODH to $(params.git_ref)"
         export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
         git push --set-upstream origin z-stream-update-$(params.git_ref)
       volumeMounts:
@@ -69,6 +75,12 @@ spec:
               key: token
         - name: ODH_TAG
           value: $(params.git_ref)
+        - name: OPF_DEFAULT_BRANCH
+          value: $(params.opf_default_branch)
+        - name: OPF_ORG
+          value: $(params.opf_org)
+        - name: OPF_REPO
+          value: $(params.opf_repo)
       image: $(resources.inputs.s2i-thoth.url)
       script: |
         #!/usr/libexec/platform-python
@@ -76,12 +88,13 @@ spec:
         import os
         import http.client
 
-        status_url = "/repos/operate-first/apps/pulls"
-        issue_body = f"Syncing repository with upstream\n z-stream release version: {os.environ['ODH_TAG']}\n"
-        head = f"z-stream-update-{os.environ['ODH_TAG']}"
-        base = "master"
+        status_url = f"/repos/{os.getenv('OPF_ORG')}/{os.getenv('OPF_REPO')}/pulls"
+        issue_body = f"Syncing repository with ODH release.\n z-stream release version: {os.getenv('ODH_TAG')}\n"
+        head = f"z-stream-update-{os.getenv('ODH_TAG')}"
+        base = os.getenv("OPF_DEFAULT_BRANCH","master")
+        title = f"Upgrade ODH to {os.getenv('ODH_TAG')}"
         data = {
-            "title":"sync up with upstream opendatahub odh-manifests",
+            "title": title,
             "head": head,
             "base": base,
             "body": issue_body,
