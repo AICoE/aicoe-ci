@@ -29,3 +29,4 @@ resources:
   - tox-checks.yaml
   - upload-pypi.yaml
   - z-stream-release-task.yaml
+  - z-stream-update-rhods-task.yaml

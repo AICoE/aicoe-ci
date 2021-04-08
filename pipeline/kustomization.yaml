@@ -6,3 +6,4 @@ resources:
   - pull-request-pipeline.yaml
   - tag-release-pipeline.yaml
   - z-stream-release-pipeline.yaml
+  - z-stream-update-rhods.yaml
