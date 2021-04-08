@@ -1,0 +1,52 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: z-stream-update-rhods
+  labels:
+    app: aicoe-ci
+spec:
+  params:
+    - name: git_ref
+      type: string
+    - name: repo_url
+      type: string
+    - name: default_branch
+      type: string
+    - name: rhods_org
+      type: string
+    - name: rhods_repo
+      type: string
+    - name: rhods_repo_url
+      type: string
+    - name: rhods_default_branch
+      type: string
+  resources:
+    - name: s2i-thoth
+      type: image
+    - name: ubi
+      type: image
+
+  tasks:
+    - name: z-stream-update-rhods-run
+      taskRef:
+        name: z-stream-update-rhods
+      params:
+        - name: git_ref
+          value: $(params.git_ref)
+        - name: repo_url
+          value: $(params.repo_url)
+        - name: default_branch
+          value: $(params.default_branch)
+        - name: rhods_org
+          value: $(params.rhods_org)
+        - name: rhods_repo
+          value: $(params.rhods_repo)
+        - name: rhods_repo_url
+          value: $(params.rhods_repo_url)
+        - name: rhods_default_branch
+          value: $(params.rhods_default_branch)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
