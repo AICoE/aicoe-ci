@@ -56,7 +56,7 @@ spec:
         git checkout -b odh-release-$(params.git_ref) local/$(params.rhods_default_branch)
         for commit_hash in $(git rev-list --reverse $old_tag..$(params.git_ref))
         do
-          git cherry-pick --skip $commit_hash
+          git cherry-pick $commit_hash
         done
 
         git log --oneline --reverse $old_tag..$(params.git_ref) > /workspace/rhods-cherry-pick.txt
