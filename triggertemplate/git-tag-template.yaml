@@ -26,8 +26,8 @@ spec:
         name: tag-release-$(uid)
         labels:
           app: aicoe-ci
-          project: $(params.repo_name)
-          component: tag-$(params.repo_name)
+          project: $(tt.params.repo_name)
+          component: tag-$(tt.params.repo_name)
       spec:
         serviceAccountName: aicoe-ci
         timeout: "2h"
@@ -35,15 +35,15 @@ spec:
           name: tag-release-pipeline
         params:
           - name: git_ref
-            value: $(params.git_ref)
+            value: $(tt.params.git_ref)
           - name: git_ref_type
-            value: $(params.git_ref_type)
+            value: $(tt.params.git_ref_type)
           - name: repo_name
-            value: $(params.repo_name)
+            value: $(tt.params.repo_name)
           - name: repo_url
-            value: $(params.repo_url)
+            value: $(tt.params.repo_url)
           - name: default_branch
-            value: $(params.default_branch)
+            value: $(tt.params.default_branch)
           - name: uid
             value: $(uid)
           - name: pipelinerun_name
@@ -54,9 +54,9 @@ spec:
               type: git
               params:
                 - name: revision
-                  value: $(params.default_branch)
+                  value: $(tt.params.default_branch)
                 - name: url
-                  value: $(params.repo_url)
+                  value: $(tt.params.repo_url)
           - name: s2i-thoth
             resourceRef:
               name: thoth-s2i

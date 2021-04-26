@@ -39,29 +39,29 @@ spec:
         name: aicoe-pipelinerun-$(uid)
         labels:
           app: aicoe-ci
-          project: $(params.pr_repo)
-          component: $(params.pr_repo)-pr-$(params.pr_number)
+          project: $(tt.params.pr_repo)
+          component: $(tt.params.pr_repo)-pr-$(tt.params.pr_number)
       spec:
         serviceAccountName: aicoe-ci
         pipelineRef:
           name: pull-request-pipeline
         params:
           - name: event_action
-            value: $(params.event_action)
+            value: $(tt.params.event_action)
           - name: pr_number
-            value: $(params.pr_number)
+            value: $(tt.params.pr_number)
           - name: pr_repo
-            value: $(params.pr_repo)
+            value: $(tt.params.pr_repo)
           - name: repo_url
-            value: $(params.repo_url)
+            value: $(tt.params.repo_url)
           - name: repo_full_name
-            value: $(params.repo_full_name)
+            value: $(tt.params.repo_full_name)
           - name: pr_comment
-            value: $(params.pr_comment)
+            value: $(tt.params.pr_comment)
           - name: pr_comment_author
-            value: $(params.pr_comment_author)
+            value: $(tt.params.pr_comment_author)
           - name: pr_comment_author_association
-            value: $(params.pr_comment_author_association)
+            value: $(tt.params.pr_comment_author_association)
           - name: pipelinerun_name
             value: aicoe-pipelinerun-$(uid)
         resources:
@@ -70,9 +70,9 @@ spec:
               type: git
               params:
                 - name: revision
-                  value: $(params.default_branch)
+                  value: $(tt.params.default_branch)
                 - name: url
-                  value: $(params.repo_url)
+                  value: $(tt.params.repo_url)
           - name: s2i-thoth
             resourceRef:
               name: thoth-s2i
@@ -84,7 +84,7 @@ spec:
               type: pullRequest
               params:
                 - name: url
-                  value: $(params.pr_url)
+                  value: $(tt.params.pr_url)
               secrets:
                 - fieldName: authToken
                   secretName: auth-secret

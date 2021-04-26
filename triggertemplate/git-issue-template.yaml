@@ -38,33 +38,33 @@ spec:
         name: aicoe-issue-$(uid)
         labels:
           app: aicoe-ci
-          project: $(params.repo_name)
-          component: $(params.repo_name)-issue-$(params.issue_number)
+          project: $(tt.params.repo_name)
+          component: $(tt.params.repo_name)-issue-$(tt.params.issue_number)
       spec:
         serviceAccountName: aicoe-ci
         pipelineRef:
           name: issue-pipeline
         params:
           - name: event_action
-            value: $(params.event_action)
+            value: $(tt.params.event_action)
           - name: issue_number
-            value: $(params.issue_number)
+            value: $(tt.params.issue_number)
           - name: issue_state
-            value: $(params.issue_state)
+            value: $(tt.params.issue_state)
           - name: issue_title
-            value: $(params.issue_title)
+            value: $(tt.params.issue_title)
           - name: issue_body
-            value: $(params.issue_body)
+            value: $(tt.params.issue_body)
           - name: issue_author_association
-            value: $(params.issue_author_association)
+            value: $(tt.params.issue_author_association)
           - name: issue_author
-            value: $(params.issue_author)
+            value: $(tt.params.issue_author)
           - name: repo_name
-            value: $(params.repo_name)
+            value: $(tt.params.repo_name)
           - name: repo_full_name
-            value: $(params.repo_full_name)
+            value: $(tt.params.repo_full_name)
           - name: repo_url
-            value: $(params.repo_url)
+            value: $(tt.params.repo_url)
           - name: pipelinerun_name
             value: aicoe-issue-$(uid)
         resources:
@@ -73,9 +73,9 @@ spec:
               type: git
               params:
                 - name: revision
-                  value: $(params.default_branch)
+                  value: $(tt.params.default_branch)
                 - name: url
-                  value: $(params.repo_url)
+                  value: $(tt.params.repo_url)
           - name: s2i-thoth
             resourceRef:
               name: thoth-s2i
