@@ -20,7 +20,7 @@ spec:
       bindings:
         - ref: git-pr-binding
       template:
-        name: git-pr-template
+        ref: git-pr-template
 
     - name: github-pull-request-comment
       interceptors:
@@ -35,7 +35,7 @@ spec:
       bindings:
         - ref: git-issue-comment-binding
       template:
-        name: git-pr-template
+        ref: git-pr-template
 
     - name: github-tag-release
       interceptors:
@@ -50,7 +50,7 @@ spec:
       bindings:
         - ref: git-tag-binding
       template:
-        name: git-tag-template
+        ref: git-tag-template
 
     - name: github-issue-release
       interceptors:
@@ -65,7 +65,7 @@ spec:
       bindings:
         - ref: git-issue-binding
       template:
-        name: git-issue-template
+        ref: git-issue-template
 
     # z-stream release pipeline for operate-first
     - name: odh-z-stream-release
@@ -81,10 +81,10 @@ spec:
       bindings:
         - ref: z-stream-release-binding
       template:
-        name: z-stream-release-template
+        ref: z-stream-release-template
 
     - name: webhook-tag-release
       bindings:
         - ref: webhook-tag-binding
       template:
-        name: git-tag-template
+        ref: git-tag-template
