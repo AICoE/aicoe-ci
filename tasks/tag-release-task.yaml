@@ -51,8 +51,8 @@ spec:
       default: "0"
 
     # s2i thoth params
-    - name: ENABLE_PIPENV
-      description: Set this variable to use Pipenv.
+    - name: UPGRADE_PIP_TO_LATEST
+      description: Set this variable to have the 'pip' program and related python packages be upgraded.
       default: "1"
     - name: THOTH_ADVISE
       description: Advise the recommended stack by Thoth.
@@ -130,6 +130,7 @@ spec:
             /usr/local/bin/s2i build \
             $(params.PATH_CONTEXT) \
             $(params.base_image) \
+            --env UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST) \
             --env THAMOS_RUNTIME_ENVIRONMENT="" \
             --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
             --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \
@@ -156,6 +157,9 @@ spec:
               /usr/local/bin/s2i build \
               $(params.PATH_CONTEXT) \
               $(params.base_image) \
+              --env UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST) \
+              --env IMAGE_NAME="$(params.registry)/$(params.registry_org)/$(params.registry_project)" \
+              --env IMAGE_TAG=$(params.git_ref) \
               --env THAMOS_RUNTIME_ENVIRONMENT="" \
               --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
               --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \
@@ -259,6 +263,123 @@ spec:
         - name: quay-creds
           mountPath: /pushsecret/
           readOnly: true
+
+    - name: send-for-image-analysis
+      image: $(resources.inputs.s2i-thoth.url)
+      env:
+        - name: MANAGEMENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: thoth
+              key: management-api-token
+      script: |
+        #!/usr/libexec/platform-python
+        import requests
+        import os
+        image_analysis_url="https://management.moc.thoth-station.ninja/api/v1/analyze?"
+        import time
+        headers = {'Content-type': 'application/json'}
+        if any(img in "$(params.base_image)" for img in ['s2i-custom', 's2i-minimal', 's2i-generic', 's2i-thoth']):
+            print('Push Step is completed.')
+            image_analysis_params = {
+                "secret": os.getenv("MANAGEMENT_SECRET"),
+                "image": "$(params.registry)/$(params.registry_org)/$(params.registry_project):$(params.git_ref)",
+                "environment_type": "runtime",
+                "verify_tls": True,
+              }
+            headers = {'Content-type': 'application/json'}
+            image_analysis_response = requests.post(image_analysis_url, headers=headers, params=image_analysis_params)
+            if image_analysis_response.status_code == 202:
+                print('Successfully submitted for image analysis.')
+            else:
+                print('Submit attempt for image analysis has Failed.')
+                print('Reason:{}'.format(image_analysis_response.text))
+      volumeMounts:
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
+
+  sidecars:
+    - name: send-for-build-analysis
+      image: $(resources.inputs.s2i-thoth.url)
+      env:
+        - name: base_image
+          value: $(params.base_image)
+        - name: registry
+          value: $(params.registry)
+        - name: registry_org
+          value: $(params.registry_org)
+        - name: registry_project
+          value: $(params.registry_project)
+        - name: git_ref
+          value: $(params.git_ref)
+      script: |
+        #!/usr/libexec/platform-python
+        import requests
+        import os
+        import time
+        import json
+        from thoth.common import OpenShift
+
+        openshift = OpenShift()
+        url_host=openshift.openshift_api_url
+        url_token=openshift.token
+        pod_id = os.getenv("HOSTNAME")
+        namespace="aicoe-ci"
+        build_analysis_url="https://khemenu.thoth-station.ninja/api/v1/build-analysis"
+        headers = {'Content-type': 'application/json'}
+        log = ""
+        build_params = {"container": "step-build"}
+        required_cont = {'state':'running'}
+        status_endpoint = "{}/api/v1/namespaces/{}/pods/{}".format(url_host,namespace,pod_id)
+
+        while ('running' in required_cont['state']):
+            print('Waiting for container step-build, It is still running...')
+            time.sleep(30)
+            status_response = requests.get(
+                status_endpoint,
+                headers={
+                    "Authorization": "Bearer {}".format(url_token),
+                    "Content-Type": "application/json",
+                },
+                verify=False,
+                params=build_params
+            )
+            status_response=status_response.json()
+            for cont in status_response["status"]["containerStatuses"]:
+                if cont['name'] =='step-build':
+                    required_cont = cont
+                    break
+
+        if 'terminated' in required_cont['state']:
+            print('Build Step is completed.')
+            log_endpoint = "{}/api/v1/namespaces/{}/pods/{}/log".format(url_host,namespace,pod_id)
+            log_response = requests.get(
+                log_endpoint,
+                headers={
+                    "Authorization": "Bearer {}".format(url_token),
+                    "Content-Type": "application/json",
+                },
+                verify=False,
+                params=build_params
+            )
+            log = log_response.text
+
+            build_analysis = {
+                "base_image": os.getenv('base_image'),
+                "build_log": {
+                  "apiversion": "",
+                  "kind": "\"BuildLog\"\n",
+                  "log": json.dumps(log),
+                  "metadata": "string"
+                },
+                "output_image": "{}/{}/{}:{}".format(os.getenv('registry'),os.getenv('registry_org'),os.getenv('registry_project'),os.getenv('git_ref'))
+              }
+            build_analysis_response = requests.post(build_analysis_url, headers=headers, data=json.dumps(build_analysis))
+            if build_analysis_response.status_code == 202:
+                print('Successfully submitted for build analysis.')
+            else:
+                print('Submit attempt for build analysis has Failed.')
+                print('Reason:{}'.format(build_analysis_response.text))
 
   volumes:
     - name: varlibcontainers

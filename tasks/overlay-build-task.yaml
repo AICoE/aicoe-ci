@@ -57,14 +57,8 @@ spec:
       default: "0"
 
     # s2i thoth params
-    - name: ENABLE_PIPENV
-      description: Set this variable to use Pipenv.
-      default: "1"
     - name: UPGRADE_PIP_TO_LATEST
       description: Set this variable to have the 'pip' program and related python packages be upgraded.
-      default: "1"
-    - name: WEB_CONCURRENCY
-      description: Set this to change the default setting for the number of workers.
       default: "1"
     - name: THOTH_ADVISE
       description: Advise the recommended stack by Thoth.
@@ -156,9 +150,8 @@ spec:
             /usr/local/bin/s2i build \
             $(params.PATH_CONTEXT) \
             $(params.base_image) \
-            --env THAMOS_RUNTIME_ENVIRONMENT=$(params.overlays_name) \
             --env UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST) \
-            --env WEB_CONCURRENCY=$(params.WEB_CONCURRENCY) \
+            --env THAMOS_RUNTIME_ENVIRONMENT=$(params.overlays_name) \
             --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
             --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \
             --env THOTH_DRY_RUN=$(params.THOTH_DRY_RUN) \
