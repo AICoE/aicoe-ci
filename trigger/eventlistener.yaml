@@ -18,7 +18,8 @@ spec:
         - cel:
             filter: "body.action in ['opened', 'closed', 'synchronize', 'reopened', 'created']"
       bindings:
-        - ref: git-pr-binding
+        - kind: TriggerBinding
+          ref: git-pr-binding
       template:
         ref: git-pr-template
 
@@ -33,7 +34,8 @@ spec:
         - cel:
             filter: "body.comment.body.startsWith('/retest') || body.comment.body.startsWith('/deploy')"
       bindings:
-        - ref: git-issue-comment-binding
+        - kind: TriggerBinding
+          ref: git-issue-comment-binding
       template:
         ref: git-pr-template
 
@@ -48,7 +50,8 @@ spec:
         - cel:
             filter: "body.ref_type == 'tag'"
       bindings:
-        - ref: git-tag-binding
+        - kind: TriggerBinding
+          ref: git-tag-binding
       template:
         ref: git-tag-template
 
@@ -63,7 +66,8 @@ spec:
         - cel:
             filter: "(body.issue.title in ['Deliver Container Image','Deliver Missing Module','Upstream Sync Up']) && (body.action in ['opened', 'reopened'])"
       bindings:
-        - ref: git-issue-binding
+        - kind: TriggerBinding
+          ref: git-issue-binding
       template:
         ref: git-issue-template
 
@@ -79,12 +83,14 @@ spec:
         - cel:
             filter: "(body.ref_type == 'tag') && (body.repository.full_name == 'opendatahub-io/odh-manifests')"
       bindings:
-        - ref: z-stream-release-binding
+        - kind: TriggerBinding
+          ref: z-stream-release-binding
       template:
         ref: z-stream-release-template
 
     - name: webhook-tag-release
       bindings:
-        - ref: webhook-tag-binding
+        - kind: TriggerBinding
+          ref: webhook-tag-binding
       template:
         ref: git-tag-template
