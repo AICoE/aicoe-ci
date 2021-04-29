@@ -14,7 +14,7 @@ roleRef:
   name: aicoe-ci-role
 ---
 kind: RoleBinding
-apiVersion: authorization.openshift.io/v1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: aicoe-ci-webhook-edit
   labels:
@@ -23,10 +23,12 @@ subjects:
   - kind: ServiceAccount
     name: aicoe-ci-webhook
 roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
   name: edit
 ---
 kind: RoleBinding
-apiVersion: authorization.openshift.io/v1
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: aicoe-ci-edit
   labels:
@@ -35,4 +37,6 @@ subjects:
   - kind: ServiceAccount
     name: aicoe-ci
 roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
   name: edit
