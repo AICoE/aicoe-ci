@@ -36,7 +36,7 @@ spec:
         apiVersion: tekton.dev/v1beta1
         kind: PipelineRun
         metadata:
-          name: $(params.repo_name)-overlay-{overlays}-$(params.uid)
+          name: $(params.repo_name)-{overlays}-$(params.uid)
           labels:
             app: aicoe-ci
             project: $(params.repo_name)
