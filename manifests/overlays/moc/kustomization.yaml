@@ -16,6 +16,5 @@ resources:
   - serviceaccount.yaml
   - route.yaml
   - cleanup-cronjob.yaml
-  - openshift-pipeline-rolebinding.yaml
 generators:
   - secret-generator.yaml
