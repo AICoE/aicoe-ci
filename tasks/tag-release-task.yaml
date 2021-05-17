@@ -345,10 +345,14 @@ spec:
                 params=build_params
             )
             status_response=status_response.json()
-            for cont in status_response["status"]["containerStatuses"]:
-                if cont['name'] =='step-build':
-                    required_cont = cont
-                    break
+            if "containerStatuses" in status_response["status"]:
+              for cont in status_response["status"]["containerStatuses"]:
+                  if cont['name'] =='step-build':
+                      required_cont = cont
+                      break
+            else:
+              # logs cant be retrived
+              required_cont = {"state": "failed"}
 
         if 'terminated' in required_cont['state']:
             print('Build Step is completed.')
@@ -380,6 +384,9 @@ spec:
             else:
                 print('Submit attempt for build analysis has Failed.')
                 print('Reason:{}'.format(build_analysis_response.text))
+        else:
+          print("Failed to submit for build analysis.")
+          print("Status Response:", status_response)
 
   volumes:
     - name: varlibcontainers
