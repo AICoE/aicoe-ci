@@ -17,6 +17,8 @@ resources:
   - thoth-notification.yaml
   - ultrahook.yaml
   - cleanup-cronjob.yaml
+  - git-model-binding.yaml
+  - git-model-template.yaml
 generators:
   - secret-generator.yaml
 patchesStrategicMerge:

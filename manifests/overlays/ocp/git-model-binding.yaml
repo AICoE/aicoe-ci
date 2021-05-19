@@ -1,0 +1,22 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: git-model-binding
+  labels:
+    app: aicoe-ci
+spec:
+  params:
+    - name: event_action
+      value: $(body.action)
+    - name: pr_number
+      value: $(body.number)
+    - name: pr_repo
+      value: $(body.repository.name)
+    - name: repo_full_name
+      value: $(body.repository.full_name)
+    - name: pr_url
+      value: $(body.pull_request.html_url)
+    - name: repo_url
+      value: $(body.repository.html_url)
+    - name: default_branch
+      value: $(body.repository.default_branch)
