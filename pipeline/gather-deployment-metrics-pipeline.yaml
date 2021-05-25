@@ -104,7 +104,7 @@ spec:
         name: manifests-deploy
       params:
         - name: deployment_image_url
-          value: "http://elyra-aidevsecops-tutorial-thoth-deployment-examples.apps.zero.massopen.cloud/"
+          value: "$(tasks.gather-metrics-configuration.results.registry)/$(tasks.gather-metrics-configuration.results.registry-org)/$(tasks.gather-metrics-configuration.results.registry-project):pr-$(params.pr_number)"
       resources:
         inputs:
           - name: pipeline-helpers
