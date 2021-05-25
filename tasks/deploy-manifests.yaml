@@ -1,0 +1,40 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: manifests-deploy
+spec:
+  params:
+    - name: deployment_image_url
+      description: Image to pull for deployment.
+  resources:
+    inputs:
+      - name: thoth-ops
+        type: image
+      - name: pipeline-helpers
+        type: image
+      - name: repo
+        type: git
+      - name: pr
+        type: pullRequest
+
+  steps:
+    - name: customize-manifests
+      image: $(resources.inputs.pipeline-helpers.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        python3 /opt/app-root/src/customize_object_deployments.py
+      env:
+        - name: PIPELINE_HELPERS_IMAGE_URL_DEPLOYMENT
+          value: $(params.deployment_image_url)
+
+    - name: deploy-manifests
+      image: $(resources.inputs.thoth-ops.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        oc apply -f customized_service.yaml
+        oc apply -f customized_route.yaml
+        oc apply -f customized_deploymentconfig.yaml

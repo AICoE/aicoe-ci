@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: discover-route
+  labels:
+    app: aicoe-ci
+spec:
+  params:
+    - name: pr_number
+      description: Pull request ID.
+    - name: pr_repo
+      description: The git repository pr was raised to.
+  results:
+    - name: route-name
+
+  steps:
+    - name: store-route-file
+      image: quay.io/openshift/origin-cli:latest
+      script: |
+        oc get route -l component=$(params.pr_repo)-pr-$(params.pr_number) -o json > route.json
+        cat route.json | python3 -c "import sys, json; print('http://' + str(json.load(sys.stdin)['items'][0]['spec']['host']))" > route_name
+        cat route_name
+        echo -n "$(cat route_name)" > $(results.route-name.path)
+

@@ -12,6 +12,9 @@ spec:
     - name: base_image
       description: Base image to be used.
       default: "quay.io/thoth-station/s2i-thoth-ubi8-py36:latest"
+    - name: overlay_name
+      description: overlay to use during build.
+      default: ""
     - name: build_stratergy
       description: stratergy with which image is to build.
       default: ""
@@ -131,7 +134,7 @@ spec:
             /usr/local/bin/s2i build \
             $(params.PATH_CONTEXT) \
             $(params.base_image) \
-            --env THAMOS_RUNTIME_ENVIRONMENT="" \
+            --env THAMOS_RUNTIME_ENVIRONMENT=$(params.overlay_name) \
             --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
             --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \
             --env THOTH_DRY_RUN=$(params.THOTH_DRY_RUN) \
@@ -157,7 +160,7 @@ spec:
               /usr/local/bin/s2i build \
               $(params.PATH_CONTEXT) \
               $(params.base_image) \
-              --env THAMOS_RUNTIME_ENVIRONMENT="" \
+              --env THAMOS_RUNTIME_ENVIRONMENT=$(params.overlay_name) \
               --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
               --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \
               --env THOTH_DRY_RUN=$(params.THOTH_DRY_RUN) \

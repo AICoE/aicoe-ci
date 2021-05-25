@@ -30,3 +30,43 @@ spec:
   params:
     - name: url
       value: registry.access.redhat.com/ubi8/ubi:latest
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: thoth-ops
+spec:
+  type: image
+  params:
+    - name: url
+      value: quay.io/thoth-station/thoth-ops:v0.18.0
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: pipeline-helpers
+spec:
+  type: image
+  params:
+    - name: url
+      value: quay.io/thoth-station/pipeline-helpers@sha256:e92197eca031decb0fd9e913888d6f895360898543f07eaecc1583011d2e7687
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: aicoe-ci-ceph
+data:
+  endpoint: "https://s3.upshift.redhat.com/"
+  bucket: "thoth"
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: thoth-s2i-py38
+  labels:
+    app: aicoe-ci
+spec:
+  type: image
+  params:
+    - name: url
+      value: quay.io/thoth-station/s2i-thoth-ubi8-py38:v0.27.0
