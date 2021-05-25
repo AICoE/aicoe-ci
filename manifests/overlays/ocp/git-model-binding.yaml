@@ -12,8 +12,6 @@ spec:
       value: $(body.number)
     - name: pr_repo
       value: $(body.repository.name)
-    - name: repo_full_name
-      value: $(body.repository.full_name)
     - name: pr_url
       value: $(body.pull_request.html_url)
     - name: repo_url
