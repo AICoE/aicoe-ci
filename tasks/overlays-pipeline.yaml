@@ -36,7 +36,7 @@ spec:
         apiVersion: tekton.dev/v1beta1
         kind: PipelineRun
         metadata:
-          name: $(params.repo_name)-{overlays}-$(params.uid)
+          name: $(params.repo_name)-{overlays}
           labels:
             app: aicoe-ci
             project: $(params.repo_name)
@@ -114,11 +114,12 @@ spec:
         import os
         import json
         import yaml
+        import uuid
 
         ci_conf, thoth_conf = {}, {}
         with open(".aicoe-ci.yaml", "r") as ci_stream:
             ci_conf = yaml.safe_load(ci_stream)
-
+        uid = str(uuid.uuid4())[0:6]
         if os.path.isfile(".thoth.yaml"):
             with open(".thoth.yaml", "r") as thoth_stream:
                 thoth_conf = yaml.safe_load(thoth_stream)
@@ -138,6 +139,7 @@ spec:
                     pipelinerun["metadata"]["name"] = pipelinerun["metadata"]["name"].replace(
                         "{overlays}", overlay_name
                     )
+                    pipelinerun["metadata"]["name"] = pipelinerun["metadata"]["name"] + '-' + uid
                     pipelinerun["metadata"]["labels"]["overlay"] = overlay_name
 
                     spec_params = []
