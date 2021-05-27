@@ -16,7 +16,7 @@ spec:
             eventTypes:
               - pull_request
         - cel:
-            filter: "body.action in ['opened', 'closed', 'synchronize', 'reopened', 'created']"
+            filter: "(body.action in ['opened', 'closed', 'synchronize', 'reopened', 'created']) && (body.repository.name == 'elyra-aidevsecops-tutorial')"
       bindings:
         - ref: git-model-binding
       template:
