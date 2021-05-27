@@ -12,6 +12,8 @@ spec:
       description: repo URL.
     - name: pr_number
       description: Pull request ID.
+    - name: commit_sha
+      description: Commit SHA.
   resources:
     inputs:
       - name: pipeline-helpers
@@ -22,37 +24,8 @@ spec:
         type: pullRequest
       - name: repo
         type: git
-  results:
-    - name: commit-sha
 
   steps:
-    - name: store-commit-sha
-      image: $(resources.inputs.s2i-thoth.url)
-      workingDir: /workspace/repo
-      securityContext:
-        privileged: true
-      script: |
-        #!/usr/bin/env python3
-        import yaml
-        import subprocess
-        import sys
-        import os
-
-        with open("/workspace/pr/pr.json") as f:
-            pr_info = json.load(f)
-
-        commit_sha = pr_info["Sha"]
-        try:
-            command = f"echo -n {str(commit_sha)} > $(results.commit-sha.path)"
-            process_output = subprocess.run(
-                command,
-                shell=True,
-                capture_output=True,
-            )
-
-        except Exception as pipeline_delete:
-            print("Error storing variable: %r", pipeline_delete)
-
     - name: git-checkout-pr-number
       image: $(resources.inputs.s2i-thoth.url)
       workingDir: /workspace/repo
@@ -87,7 +60,7 @@ spec:
         - name: REPO_URL
           value: $(params.repo_url)
         - name: COMMIT_SHA
-          value: $(results.commit-sha)
+          value: $(params.commit_sha)
         - name: THOTH_S3_ENDPOINT_URL
           valueFrom: 
             configMapKeyRef: 

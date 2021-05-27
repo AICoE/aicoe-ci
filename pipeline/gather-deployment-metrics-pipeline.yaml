@@ -141,6 +141,8 @@ spec:
           value: $(params.repo_url)
         - name: pr_number
           value: $(params.pr_number)
+        - name: base_image
+          value: $(tasks.gather-metrics-configuration.results.commit-sha)
       resources:
         inputs:
           - name: pipeline-helpers

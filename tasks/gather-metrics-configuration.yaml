@@ -35,6 +35,8 @@ spec:
       description: Regstry project name.
     - name: registry-secret
       description: Registry secret to push.
+    - name: commit-sha
+      description: Commit SHA-256.
 
   steps:
     - name: prepare-configuration
@@ -45,6 +47,7 @@ spec:
       script: |
         #!/usr/bin/env python3
         import yaml
+        import json
         import subprocess
 
         with open(".aicoe-ci.yaml", "r") as ci_stream:
@@ -67,7 +70,6 @@ spec:
                   build_info = overlay_env.get("build")
                   break
 
-
         with open(f"/tekton/results/overlay_name", 'w') as result:
             result.write(overlay_deploy_name)
 
@@ -87,4 +89,12 @@ spec:
               build_param_ci = "thoth-station-thoth-pusher-secret"
 
           with open(f"/tekton/results/{build_param}", 'w') as result:
-            result.write(build_param_ci)
+              result.write(build_param_ci)
+
+        # Store commit SHA 256
+        with open("/workspace/pr/pr.json") as f:
+            pr_info = json.load(f)
+
+        commit_sha = pr_info["Sha"]
+        with open(f"/tekton/results/commit-sha", 'w') as result:
+            result.write(commit_sha)
