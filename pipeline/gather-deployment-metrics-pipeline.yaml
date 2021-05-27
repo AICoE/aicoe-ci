@@ -141,7 +141,7 @@ spec:
           value: $(params.repo_url)
         - name: pr_number
           value: $(params.pr_number)
-        - name: base_image
+        - name: commit_sha
           value: $(tasks.gather-metrics-configuration.results.commit-sha)
       resources:
         inputs:
