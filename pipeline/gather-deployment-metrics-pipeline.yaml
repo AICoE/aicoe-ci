@@ -59,6 +59,8 @@ spec:
             resource: thoth-s2i-py38
           - name: repo
             resource: git-repo
+          - name: pr
+            resource: pr-source
       runAfter:
         - gather-metrics-check-inputs
 
