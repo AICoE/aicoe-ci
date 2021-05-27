@@ -7,6 +7,22 @@ metadata:
 spec:
   serviceAccountName: aicoe-ci-webhook
   triggers:
+    - name: github-pull-request-model
+      interceptors:
+        - github:
+            secretRef:
+              secretName: github-secret
+              secretKey: webhooksecret
+            eventTypes:
+              - pull_request
+        - cel:
+            filter: "(body.action in ['opened', 'closed', 'synchronize', 'reopened', 'created']) && (body.repository.name == 'elyra-aidevsecops-tutorial')"
+      bindings:
+        - kind: TriggerBinding
+          ref: git-model-binding
+      template:
+        ref: git-model-template
+
     - name: github-pull-request
       interceptors:
         - github:

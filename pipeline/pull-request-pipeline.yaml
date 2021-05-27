@@ -371,6 +371,8 @@ spec:
           value: $(params.pr_number)
         - name: pr_repo
           value: $(params.pr_repo)
+        - name: overlay_name
+          value: ""
         - name: base_image
           value: $(tasks.pr-configuration.results.base-image)
         - name: build_stratergy

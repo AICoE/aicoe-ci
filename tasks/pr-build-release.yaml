@@ -9,6 +9,9 @@ spec:
       description: Pull Request number.
     - name: pr_repo
       description: Pull Request repository.
+    - name: overlay_name
+      description: Overlay which is to be used for application.
+      default: ""
     - name: base_image
       description: Base image to be used.
       default: "quay.io/thoth-station/s2i-thoth-ubi8-py36:latest"
