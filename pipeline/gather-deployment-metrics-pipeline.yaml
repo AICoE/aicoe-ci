@@ -139,6 +139,8 @@ spec:
           value: "$(tasks.discover-route.results.route-name)"
         - name: repo_url
           value: $(params.repo_url)
+        - name: pr_number
+          value: $(params.pr_number)
       resources:
         inputs:
           - name: pipeline-helpers
