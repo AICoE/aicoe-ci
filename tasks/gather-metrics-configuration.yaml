@@ -16,6 +16,8 @@ spec:
         type: image
       - name: repo
         type: git
+      - name: pr
+        type: pullRequest
   results:
     - name: overlay_name
       description: Overlays to install dependencies.
