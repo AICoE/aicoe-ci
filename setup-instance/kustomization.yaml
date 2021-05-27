@@ -14,6 +14,12 @@ resources:
   - ../conditions/upload-pypi-check.yaml
   - ../tasks/configuration-task.yaml
   - ../tasks/custom-pipeline.yaml
+  - ../tasks/deploy-manifests.yaml
+  - ../tasks/discover-route.yaml
+  - ../tasks/gather-and-provide-metrics.yaml
+  - ../tasks/gather-metrics-check-inputs.yaml
+  - ../tasks/gather-metrics-clean-task.yaml
+  - ../tasks/gather-metrics-configuration.yaml
   - ../tasks/init-task.yaml
   - ../tasks/issue-check.yaml
   - ../tasks/issue-release-task.yaml
@@ -37,6 +43,7 @@ resources:
   - ../pipeline/issue-pipeline.yaml
   - ../pipeline/pull-request-pipeline.yaml
   - ../pipeline/tag-release-pipeline.yaml
+  - ../pipeline/gather-deployment-metrics-pipeline.yaml
   - ../manifests/binding.yaml
   - ../manifests/role.yaml
   - ../manifests/serviceaccount.yaml

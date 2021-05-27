@@ -10,8 +10,6 @@ spec:
       description: Pull request ID.
     - name: pr_repo
       description: The git repository pr was raised to.
-    - name: repo_full_name
-      description: The git repository full name.
     - name: pr_url
       description: The pr url.
     - name: repo_url
@@ -21,17 +19,6 @@ spec:
     - name: event_action
       description: Action performed on Pull request.
       default: "DEFAULT"
-    - name: pr_comment
-      description: comment on the pull request.
-      default: "DEFAULT"
-    - name: pr_comment_author
-      description: author of the comment on the pull request.
-      default: "DEFAULT"
-    - name: pr_comment_author_association
-      description: comment author's association.
-      default: "DEFAULT"
-    - name: pipelinerun_name
-      description: pipelinerun associated.
   resourcetemplates:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
@@ -44,7 +31,7 @@ spec:
       spec:
         serviceAccountName: aicoe-ci
         pipelineRef:
-          name: ""
+          name: "gather-deployment-metrics-pipeline"
         params:
           - name: event_action
             value: $(tt.params.event_action)
@@ -54,16 +41,6 @@ spec:
             value: $(tt.params.pr_repo)
           - name: repo_url
             value: $(tt.params.repo_url)
-          - name: repo_full_name
-            value: $(tt.params.repo_full_name)
-          - name: pr_comment
-            value: $(tt.params.pr_comment)
-          - name: pr_comment_author
-            value: $(tt.params.pr_comment_author)
-          - name: pr_comment_author_association
-            value: $(tt.params.pr_comment_author_association)
-          - name: pipelinerun_name
-            value: aicoe-pipelinerun-$(uid)
         resources:
           - name: git-repo
             resourceSpec:
@@ -73,12 +50,15 @@ spec:
                   value: $(tt.params.default_branch)
                 - name: url
                   value: $(tt.params.repo_url)
-          - name: s2i-thoth
+          - name: thoth-s2i-py38
             resourceRef:
-              name: thoth-s2i
-          - name: ubi
+              name: thoth-s2i-py38
+          - name: pipeline-helpers
             resourceRef:
-              name: ubi8
+              name: pipeline-helpers
+          - name: thoth-ops
+            resourceRef:
+              name: thoth-ops
           - name: pr-source
             resourceSpec:
               type: pullRequest

@@ -1,0 +1,169 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: gather-deployment-metrics-pipeline
+  labels:
+    app: aicoe-ci
+spec:
+  params:
+    - name: event_action
+      type: string
+    - name: pr_number
+      type: string
+    - name: pr_repo
+      type: string
+    - name: repo_url
+      type: string
+  resources:
+    - name: git-repo
+      type: git
+    - name: pipeline-helpers
+      type: image
+    - name: thoth-s2i-py38
+      type: image
+    - name: thoth-ops
+      type: image
+    - name: pr-source
+      type: pullRequest
+
+  tasks:
+    - name: gather-metrics-check-inputs
+      taskRef:
+        name: gather-metrics-check-inputs
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: pr_repo
+          value: $(params.pr_repo)
+        - name: event_action
+          value: $(params.event_action)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: thoth-s2i-py38
+          - name: repo
+            resource: git-repo
+
+    - name: gather-metrics-configuration
+      taskRef:
+        name: gather-metrics-configuration
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: pr_repo
+          value: $(params.pr_repo)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: thoth-s2i-py38
+          - name: repo
+            resource: git-repo
+          - name: pr
+            resource: pr-source
+      runAfter:
+        - gather-metrics-check-inputs
+
+    - name: pr-build-release-run
+      taskRef:
+        name: pr-build-release
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: pr_repo
+          value: $(params.pr_repo)
+        - name: base_image
+          value: $(tasks.gather-metrics-configuration.results.base-image)
+        - name: overlay_name
+          value: $(tasks.gather-metrics-configuration.results.overlay_name)
+        - name: build_stratergy
+          value: $(tasks.gather-metrics-configuration.results.build-stratergy)
+        - name: build_source_script
+          value: $(tasks.gather-metrics-configuration.results.build-source-script)
+        - name: dockerfile_path
+          value: $(tasks.gather-metrics-configuration.results.dockerfile-path)
+        - name: registry
+          value: $(tasks.gather-metrics-configuration.results.registry)
+        - name: registry_org
+          value: $(tasks.gather-metrics-configuration.results.registry-org)
+        - name: registry_project
+          value: $(tasks.gather-metrics-configuration.results.registry-project)
+        - name: registry_secret
+          value: $(tasks.gather-metrics-configuration.results.registry-secret)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: thoth-s2i-py38
+          - name: repo
+            resource: git-repo
+          - name: pr
+            resource: pr-source
+      runAfter:
+        - gather-metrics-configuration
+
+    - name: manifests-deploy
+      taskRef:
+        name: manifests-deploy
+      params:
+        - name: deployment_image_url
+          value: "$(tasks.gather-metrics-configuration.results.registry)/$(tasks.gather-metrics-configuration.results.registry-org)/$(tasks.gather-metrics-configuration.results.registry-project):pr-$(params.pr_number)"
+      resources:
+        inputs:
+          - name: pipeline-helpers
+            resource: pipeline-helpers
+          - name: thoth-ops
+            resource: thoth-ops
+          - name: repo
+            resource: git-repo
+          - name: pr
+            resource: pr-source
+      runAfter:
+        - pr-build-release-run
+
+    - name: discover-route
+      taskRef:
+        name: discover-route
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: pr_repo
+          value: $(params.pr_repo)
+      runAfter:
+        - manifests-deploy
+
+    - name: gather-and-provide-metrics
+      taskRef:
+        name: gather-and-provide-metrics
+      params:
+        - name: runtime_environment_test_name
+          value: "test-model"
+        - name: route_deployment
+          value: "$(tasks.discover-route.results.route-name)"
+        - name: repo_url
+          value: $(params.repo_url)
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: commit_sha
+          value: $(tasks.gather-metrics-configuration.results.commit-sha)
+      resources:
+        inputs:
+          - name: pipeline-helpers
+            resource: pipeline-helpers
+          - name: s2i-thoth
+            resource: thoth-s2i-py38
+          - name: repo
+            resource: git-repo
+          - name: pr
+            resource: pr-source
+      runAfter:
+        - discover-route
+
+  finally:
+    - name: delete-deployment
+      taskRef:
+        name: gather-metrics-clean-task
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: pr_repo
+          value: $(params.pr_repo)

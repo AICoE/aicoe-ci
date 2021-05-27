@@ -3,6 +3,12 @@ kind: Kustomization
 resources:
   - configuration-task.yaml
   - custom-pipeline.yaml
+  - deploy-manifests.yaml
+  - discover-route.yaml
+  - gather-and-provide-metrics.yaml
+  - gather-metrics-check-inputs.yaml
+  - gather-metrics-clean-task.yaml
+  - gather-metrics-configuration.yaml
   - init-task.yaml
   - issue-deploy-task.yaml
   - issue-pypi-release-task.yaml

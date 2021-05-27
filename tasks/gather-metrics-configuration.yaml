@@ -1,0 +1,102 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: gather-metrics-configuration
+  labels:
+    app: aicoe-ci
+spec:
+  params:
+    - name: pr_number
+      description: Pull request ID.
+    - name: pr_repo
+      description: The git repository pr was raised to.
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+      - name: repo
+        type: git
+      - name: pr
+        type: pullRequest
+  results:
+    - name: overlay_name
+      description: Overlays to install dependencies.
+    - name: base-image
+      description: Base image used to build image.
+    - name: build-stratergy
+      description: Build strategy.
+    - name: build-source-script
+      description: Build source script.
+    - name: dockerfile-path
+      description: Dockerfile path.
+    - name: registry
+      description: Registry for pushing after build.
+    - name: registry-org
+      description: Registry org name.
+    - name: registry-project
+      description: Regstry project name.
+    - name: registry-secret
+      description: Registry secret to push.
+    - name: commit-sha
+      description: Commit SHA-256.
+
+  steps:
+    - name: prepare-configuration
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        #!/usr/bin/env python3
+        import yaml
+        import json
+        import subprocess
+
+        with open(".aicoe-ci.yaml", "r") as ci_stream:
+          ci_conf = yaml.safe_load(ci_stream)
+
+        print(f".aicoe.yaml is: {ci_conf}")
+        overlays_dir = ci_conf.get("overlays_dir", "overlays")
+
+        if not overlays_dir:
+          print("No overlays in .aicoe.yaml")
+          build_info = ci_conf.get("build")
+          overlay_deploy_name = ""
+
+        else:
+            for overlay_env in ci_conf["overlays"]:
+                if overlay_env.get("deploy", []):
+                  overlay_deploy_name = overlay_env.get("name")
+                  print(f"Overlay with deploy key is called: {overlay_deploy_name}")
+
+                  build_info = overlay_env.get("build")
+                  break
+
+        with open(f"/tekton/results/overlay_name", 'w') as result:
+            result.write(overlay_deploy_name)
+
+        for build_param in [
+          "registry",
+          "base-image",
+          "registry-org",
+          "build-stratergy",
+          "dockerfile-path",
+          "build-source-script",
+          "registry-project",
+          "registry-secret"
+        ]:
+          build_param_ci = build_info.get(build_param, "")
+
+          if build_param == "registry-secret" and not build_param_ci:
+              build_param_ci = "thoth-station-thoth-pusher-secret"
+
+          with open(f"/tekton/results/{build_param}", 'w') as result:
+              result.write(build_param_ci)
+
+        # Store commit SHA 256
+        with open("/workspace/pr/pr.json") as f:
+            pr_info = json.load(f)
+
+        commit_sha = pr_info["Sha"]
+        with open(f"/tekton/results/commit-sha", 'w') as result:
+            result.write(commit_sha)

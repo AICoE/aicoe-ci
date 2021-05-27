@@ -1,0 +1,20 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: gather-metrics-clean-task
+  labels:
+    app: aicoe-ci
+spec:
+  params:
+    - name: pr_number
+      description: Pull request ID.
+    - name: pr_repo
+      description: The git repository pr was raised to.
+
+  steps:
+    - name: oc-remove-all
+      image: quay.io/openshift/origin-cli:latest
+      script: |
+          oc delete dc  -l component=$(params.pr_repo)-pr-$(params.pr_number)
+          oc delete route  -l component=$(params.pr_repo)-pr-$(params.pr_number)
+          oc delete service  -l component=$(params.pr_repo)-pr-$(params.pr_number)
