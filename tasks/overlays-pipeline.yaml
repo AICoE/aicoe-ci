@@ -126,7 +126,7 @@ spec:
             if thoth_conf.get("overlays_dir"):
                 for runtime_env in thoth_conf["runtime_environments"]:
                     for overlay_env in ci_conf["overlays"]:
-                        if runtime_env["name"] == overlay_env["name"]:
+                        if runtime_env["name"] == overlay_env["name"] and "base_image" in runtime_env:
                             overlay_env["build"]["base-image"] = runtime_env.get("base_image")
 
             overlays_dir = ci_conf.get("overlays_dir", "overlays")
