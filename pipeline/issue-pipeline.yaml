@@ -27,6 +27,8 @@ spec:
       type: string
     - name: repo_url
       type: string
+    - name: ssh_url
+      type: string
     - name: pipelinerun_name
       type: string
   resources:
@@ -237,6 +239,8 @@ spec:
           value: $(params.repo_full_name)
         - name: repo_url
           value: $(params.repo_url)
+        - name: ssh_url
+          value: $(params.ssh_url)
       resources:
         inputs:
           - name: s2i-thoth

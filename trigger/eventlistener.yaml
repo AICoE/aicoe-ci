@@ -87,6 +87,23 @@ spec:
       template:
         ref: git-issue-template
 
+    # custom pipeline for rhods
+    - name: rhods-issue-pipeline
+      interceptors:
+        - github:
+            secretRef:
+              secretName: github-secret
+              secretKey: webhooksecret
+            eventTypes:
+              - issues
+        - cel:
+            filter: "(body.issue.title in ['Upstream Sync Up']) && (body.action in ['opened', 'reopened']) && (body.organization.login == 'red-hat-data-services')"
+      bindings:
+        - kind: TriggerBinding
+          ref: git-issue-binding
+      template:
+        ref: git-issue-template
+
     # z-stream release pipeline for operate-first
     - name: odh-z-stream-release
       interceptors:

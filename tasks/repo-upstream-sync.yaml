@@ -25,6 +25,8 @@ spec:
       description: The git repository full name.
     - name: repo_url
       description: The git repository url
+    - name: ssh_url
+      description: The git repository ssh url
   resources:
     inputs:
       - name: s2i-thoth
@@ -94,8 +96,7 @@ spec:
         git config --local user.name "$GITHUB_USERNAME"
         upstream_url=$(cat ssh_url.txt)
         git remote add upstream "$upstream_url"
-        NEW_ORIGIN=$(git remote get-url origin | sed 's/https:\/\//git@/g')
-        git remote set-url origin $NEW_ORIGIN
+        git remote set-url origin $(params.ssh_url)
         git remote -v
         git checkout -b aicoe-ci-rebase-update
         export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'

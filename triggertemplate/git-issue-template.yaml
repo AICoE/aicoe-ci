@@ -26,6 +26,8 @@ spec:
       description: The git repository full name.
     - name: repo_url
       description: The git repository url.
+    - name: ssh_url
+      description: The git repository ssh url.
     - name: default_branch
       description: The git repository default branch.
     - name: pipelinerun_name
@@ -65,6 +67,8 @@ spec:
             value: $(tt.params.repo_full_name)
           - name: repo_url
             value: $(tt.params.repo_url)
+          - name: ssh_url
+            value: $(tt.params.ssh_url)
           - name: pipelinerun_name
             value: aicoe-issue-$(uid)
         resources:
