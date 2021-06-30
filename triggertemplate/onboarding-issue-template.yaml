@@ -1,0 +1,73 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: onboarding-issue-template
+spec:
+  params:
+    - name: event_action
+      description: Action of Issue.
+    - name: issue_number
+      description: Issue number.
+    - name: issue_state
+      description: State of the Issue.
+    - name: issue_title
+      description: Title of the Issue.
+    - name: issue_body
+      description: Body of the Issue.
+    - name: issue_author_association
+      description: Author association of the Issue.
+    - name: issue_author
+      description: Author of the Issue.
+    - name: repo_name
+      description: The git repository issue was raised in.
+    - name: repo_full_name
+      description: The git repository full name.
+    - name: repo_url
+      description: The git repository url.
+    - name: ssh_url
+      description: The git repository ssh url.
+    - name: default_branch
+      description: The git repository default branch.
+    - name: pipelinerun_name
+      description: pipelinerun associated.
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        name: onboarding-issue-$(uid)
+      spec:
+        serviceAccountName: aicoe-ci
+        pipelineRef:
+          name: onboarding-issue-pipeline
+        params:
+          - name: event_action
+            value: $(tt.params.event_action)
+          - name: issue_number
+            value: $(tt.params.issue_number)
+          - name: issue_state
+            value: $(tt.params.issue_state)
+          - name: issue_title
+            value: $(tt.params.issue_title)
+          - name: issue_body
+            value: $(tt.params.issue_body)
+          - name: issue_author_association
+            value: $(tt.params.issue_author_association)
+          - name: issue_author
+            value: $(tt.params.issue_author)
+          - name: repo_name
+            value: $(tt.params.repo_name)
+          - name: repo_full_name
+            value: $(tt.params.repo_full_name)
+          - name: repo_url
+            value: $(tt.params.repo_url)
+          - name: ssh_url
+            value: $(tt.params.ssh_url)
+          - name: pipelinerun_name
+            value: issue-onboarding-$(uid)
+        resources:
+          - name: opf-apps-repo
+            resourceRef:
+              name: opf-apps-repo
+          - name: opfcli-repo
+            resourceRef:
+              name: opfcli-repo

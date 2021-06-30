@@ -1,0 +1,69 @@
+kind: Task
+metadata:
+  name: git-add-release-artifacts
+spec:
+  params:
+    - default: operate-first
+      description: the git organization title.
+      name: git_organization
+      type: string
+    - default: opfcli
+      description: The git repository title.
+      name: git_repository
+      type: string
+    - default: linux-arm linux-arm64 linux-amd64 darwin-amd64
+      description: >-
+        OS strategy with which binaries are built. Inputed as string delineated
+        with spaces, such as "Darwin-amd64 linux-amd64 darwin-amd64" etc.
+      name: build_strategy_OS_x_ARCH
+      type: string
+    - description: The existing or desired tag name.
+      name: git_tag
+      type: string
+  steps:
+    - image: 'quay.io/larsks/opf-go-precommit:latest'
+      name: binary-builds
+      resources: {}
+      script: |
+        cd opfcli;
+        mkdir binaries
+        for build in $(params.build_strategy_OS_x_ARCH); do
+          export GOARCH="$(echo $build | cut -d '-' -f2)"
+          export GOOS="$(echo $build | cut -d '-' -f1)"
+          env | grep GO;
+          make
+          ls -al;
+          mv opfcli-$build ./binaries;
+        done
+      workingDir: /workspace/
+    - image: 'quay.io/thoth-station/s2i-thoth-ubi8-py36:latest'
+      name: push-artifacts
+      resources: {}
+      script: >
+        #!/usr/libexec/platform-python
+        import requests
+        import os
+        import json
+        binaries_base_path="/workspace/repo/binaries";
+        binaries=os.listdir("/workspace/repo/binaries");
+        release=requests.get('https://api.github.com/repos/$(params.git_organization)/$(params.git_repository)/releases/tags/$(params.git_tag)').json();
+        release_url  = release.url
+        release_id_index  =  release_info.index("releases/") + 9;
+        release_id = release_url[(len(release_url)-release_id_index):];
+        upload_url = release.upload_url
+        values={}
+        headers = {'Authorization': 'token {os.getenv("GITHUBTOKEN")}'}
+        for binary in binaries:
+          values['name'] = binary
+          files={'upload_file': open(f'{binaries_base_path}/{binary}', 'rb'), 'name': f'{binary}'}
+          content_length = os.path.getsize(f'{binaries_base_path}/{binary}')
+          headers = {'Content-Type': 'multipart/form-data', 'Content-Length': f'{content_length}'}
+          requests.post("https://uploads.github.com/repos/$(params.git_organization)/$(params.git_repository)/releases/{release_id}/assets/", headers=headers, files=files, values=values);
+          print(response.json()); # print the output of json request to confirm binaries were uploaded
+      env:
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              key: token
+              name: auth-secret
+      workingDir: /workspace/repo

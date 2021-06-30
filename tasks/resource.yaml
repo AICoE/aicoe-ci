@@ -51,6 +51,30 @@ spec:
     - name: url
       value: quay.io/thoth-station/pipeline-helpers:v0.4.1
 ---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: opf-apps-repo
+spec:
+  type: git
+  params:
+    - name: url
+      value: https://github.com/operate-first/apps.git
+    - name: revision
+      value: master
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: opfcli-repo
+spec:
+  type: git
+  params:
+    - name: url
+      value: https://github.com/operate-first/apps.git
+    - name: revision
+      value: automated-releases
+---
 kind: ConfigMap
 apiVersion: v1
 metadata:

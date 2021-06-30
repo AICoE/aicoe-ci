@@ -1,0 +1,68 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: opf-onboarding-issue-pipeline
+spec:
+  resources:
+    - name: opf-apps-repo
+      type: git
+    - name: opfcli-repo
+      type: git
+  params:
+    - name: issue_body
+      type: string
+    - name: pipelinerun_name
+      type: string
+    - name: event_action
+      type: string
+    - name: issue_number
+      type: string
+    - name: issue_state
+      type: string
+    - name: issue_title
+      type: string
+    - name: issue_author_association
+      type: string
+    - name: issue_author
+      type: string
+    - name: repo_name
+      type: string
+    - name: repo_full_name
+      type: string
+    - name: repo_url
+      type: string
+    - name: ssh_url
+      type: string
+  tasks:
+    - name: opf-onboarding-issue
+      taskRef:
+        name: opf-onboarding-issue
+      params:
+        - name: event_action
+          value: $(params.event_action)
+        - name: issue_number
+          value: $(params.issue_number)
+        - name: issue_state
+          value: $(params.issue_state)
+        - name: issue_title
+          value: $(params.issue_title)
+        - name: issue_body
+          value: $(params.issue_body)
+        - name: issue_author_association
+          value: $(params.issue_author_association)
+        - name: issue_author
+          value: $(params.issue_author)
+        - name: repo_name
+          value: $(params.repo_name)
+        - name: repo_full_name
+          value: $(params.repo_full_name)
+        - name: repo_url
+          value: $(params.repo_url)
+        - name: ssh_url
+          value: $(params.ssh_url)
+      resources:
+        inputs:
+          - name: opf-apps
+            resource: opf-apps-repo
+          - name: opfcli
+            resource: opfcli-repo
