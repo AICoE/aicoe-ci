@@ -1,0 +1,53 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-go-binaries
+spec:
+  params:
+    # tag params
+    - name: org_name
+      description: the git organization title.
+      default: "operate-first"
+    - name: repo_name
+      description: The git repository title.
+      default: "opfcli"
+    - name: build_stratergy_OS_x_ARCH
+      description: OS strategy with which binaries are built.
+      default: ["linux-arm", "linux-arm64", "linux-amd64", "darwin-amd64"]
+      type: list
+    - name: GITHUB_TOKEN
+      description: Github token for bot access to the repository.
+    - name: git_release_name
+      description: The desired name of the release.
+    - name: git_tag_name
+      description: The existing or desired tag name.
+
+  resources:
+    inputs:
+      - name: repo
+        type: git
+
+  steps:
+    - name: binary-builds
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      runAfter: 
+        - git-check-release
+      script: |
+      #!/usr/bin/bash
+      #declare -a build_stratergy_OS_x_ARCH=("linux-amd64" "Darwin-amd64" "Linux-arm" "linux-amd");
+      for build in "$(params.build_stratergy_OS_x_ARCH)[@]}";
+      do
+        GOARCH="$(echo $params.build_stratergy_OS_x_ARCH | cut -d '-' -f2)"
+        GOOS="${params.build_stratergy_OS_x_ARCH%%-*}" 
+        make;
+      done;
+    - volumeMounts:
+        - mountPath: /workspace/repo/binaries
+          name: binaries
+
+    - name: push
+      uses: 
+        with:
+          path: /workspace/repo/binaries

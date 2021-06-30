@@ -1,0 +1,116 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: create-github-release
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.12.1"
+    tekton.dev/tags: github
+    tekton.dev/displayName: "create github release"
+spec:
+  params:
+    - name: git_organization
+      description: The organization that owns the repository of which you would like to create a relase.
+      type: string
+      default: "operate-first"
+    - name: git_repository
+      description: The repository that you want to create a release of.
+      type: string
+      default: "opfcli"
+    - name: git_tag
+      description: An existing or desired git tag.
+      type: string
+    - name: git_other_revision
+      type: string
+      description: Git revision to create a release from if tag does tag does not exist (branch, sha, ref…).
+      optional: true
+      default: master
+    - name: GITHUB_TOKEN_SECRET
+      type: string
+      description: Name of the secret holding the github-token.
+      default: github-token
+    - name: GITHUB_TOKEN_SECRET_KEY
+      type: string
+      description: Name of the secret key holding the github-token.
+      default: GITHUB_TOKEN
+    - name: git_release_title
+      type: string
+      description: The title of the release.
+      default: "release ${params.git_tag}"
+    - name: git_release_body
+      type: string
+      optional: true
+      description: The desired body text of the release.
+    - name: git_prerelase_boolean
+      type: boolean
+      default: false
+      description: The boolean that determines if you would like this to be a pre-release.
+    - name: git_draft_release_boolean
+      type: boolean
+      default: false
+      description: The boolean that determines if you would like to save this as a draft instead of publishing. Typical workflow could be having a bot draft release for review by owners/contributors before publishing.
+
+  steps:
+    - name: git-config
+      script: |
+        #!/usr/bin/env bash
+        git clone https://github.com/${git_organization}/${git_repository}.git
+        existing_tags=git tags;
+        if [[ existing_tags -ne *$(params.git_tag)* ]]; then
+          git tag $(git_tag_name);
+          git checkout $(params.git_ref)-build // create the tag here
+        else
+          git checkout tags/$(params.git_ref) -b $(params.git_ref)-build
+        fi
+
+    - name: git-check-release-exists
+      runAfter: git-config
+      script: |
+        #!/usr/bin/env bash
+        release_check_status="$(curl https://api.github.com/repos/${git_organization}/${git_repository}/releases/tags/${git_tag})"
+        if [[ release_check_status=~"url" ]]; then
+          echo "release already exists."
+          exit 1;
+        else
+          exit 0;
+        fi;
+
+    - name: create-release
+      runAfter: git-check-release-exists
+      script: |
+        #!/usr/bin/env bash
+        declare -A data_object
+        if [[ ! -z "$(params.git_other_revision)" ]]; then
+          data_object['target_commitish']=$(params.git_other_revision);
+        fi;
+        if [[ $(params.git_prerelase_boolean) -eq true ]]; then
+          data_object['prerelease']=true;
+        else
+          data_object['prerelease']=false;
+        fi;
+        if [[ $(params.git_draft_release_boolean) -eq true ]]; then
+          data_object['draft']=true;
+        else
+          data_object['draft']=false;
+        fi;
+        if [[ ! -z "$(params.git_release_body)" ]]
+          data_object['body']=$(params.git_release_body);
+        fi;
+        data_object['name']=$(params.git_release_title);
+        data_object['tag_name']=$(params.git_tag)
+
+        curl \
+        -u sehkhet:$GITHUB_TOKEN \
+        -X POST \
+        -H "Accept: application/vnd.github.v3+json" \
+        https://api.github.com/repos/${git_organization}/${git_repository}/releases/ \
+        -d '${data_object}'
+
+
+      env:
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: $(params.GITHUB_TOKEN_SECRET)
+              key: $(params.GITHUB_TOKEN_SECRET_KEY)
