@@ -53,6 +53,7 @@ spec:
 
   steps:
     - name: git-config
+      image: $(resources.inputs.s2i-thoth.url)
       script: |
         #!/usr/bin/env bash
         git clone https://github.com/${git_organization}/${git_repository}.git
@@ -65,7 +66,7 @@ spec:
         fi
 
     - name: git-check-release-exists
-      runAfter: git-config
+      image: $(resources.inputs.s2i-thoth.url)
       script: |
         #!/usr/bin/env bash
         release_check_status="$(curl https://api.github.com/repos/${git_organization}/${git_repository}/releases/tags/${git_tag})"
@@ -77,7 +78,7 @@ spec:
         fi;
 
     - name: create-release
-      runAfter: git-check-release-exists
+      image: $(resources.inputs.s2i-thoth.url)
       script: |
         #!/usr/bin/env bash
         declare -A data_object
