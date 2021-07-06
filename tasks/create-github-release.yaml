@@ -59,8 +59,7 @@ spec:
         git clone https://github.com/${git_organization}/${git_repository}.git
         existing_tags=git tags;
         if [[ existing_tags -ne *$(params.git_tag)* ]]; then
-          git tag $(git_tag_name);
-          git checkout $(params.git_ref)-build // create the tag here
+          git checkout $(params.git_ref)-build
         else
           git checkout tags/$(params.git_ref) -b $(params.git_ref)-build
         fi
@@ -105,8 +104,8 @@ spec:
         -u sehkhet:$GITHUB_TOKEN \
         -X POST \
         -H "Accept: application/vnd.github.v3+json" \
-        https://api.github.com/repos/${git_organization}/${git_repository}/releases/ \
-        -d '${data_object}'
+        -d '${data_object}' \
+        https://api.github.com/repos/${git_organization}/${git_repository}/releases/
 
 
       env:

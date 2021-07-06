@@ -32,22 +32,47 @@ spec:
       workingDir: /workspace/repo
       securityContext:
         privileged: true
-      runAfter: 
+      runAfter:
         - git-check-release
       script: |
       #!/usr/bin/bash
       #declare -a build_stratergy_OS_x_ARCH=("linux-amd64" "Darwin-amd64" "Linux-arm" "linux-amd");
+      mkdkir binaries
       for build in "$(params.build_stratergy_OS_x_ARCH)[@]}";
       do
         GOARCH="$(echo $params.build_stratergy_OS_x_ARCH | cut -d '-' -f2)"
-        GOOS="${params.build_stratergy_OS_x_ARCH%%-*}" 
+        GOOS="${params.build_stratergy_OS_x_ARCH%%-*}"
         make;
       done;
-    - volumeMounts:
-        - mountPath: /workspace/repo/binaries
-          name: binaries
 
     - name: push
-      uses: 
-        with:
-          path: /workspace/repo/binaries
+      workingDir: /workspace/repo
+      runAfter: binary-builds
+      securityContext:
+        privileged: true
+      script:
+        #!/usr/libexec/platform-python
+        import requests
+        import os
+        import time
+        import json
+
+        binaries_base_path = "/workspace/repo/binaries";
+        binaries = os.listdir("/workspace/repo/binaries");
+        release = requests.get('https://api.github.com/repos/${params.git_organization}/${git_repository}/releases/tags/${params.git_tag_name}').json();
+        release_url = release.url
+        release_id_index = release_info.index("releases/") + 9; 
+        release_id = release_url[(len(release_url)-release_id_index):];
+        upload_url = release.upload_url
+        values = {};
+        counter = 3;
+        
+        for binary in binaries:
+          values['name']=binary;
+          values['asset_id']=counter;
+          files = {'upload_file': open('{binaries_base_path}/${binary}', 'rb', 'name': '${binary}')}
+          content_length = os.path.getsize('{binaries_base_path}/${binary}')
+          headers = {'Content-Type': 'multipart/form-data', 'Content-Length': '${content_length'}
+          requests.post("https://uploads.github.com/repos/${params.git_organization}/${git_repository}/releases/{release_id}/assets/" , files=files, values=values);
+          counter++;
+          print(response.json());
