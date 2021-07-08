@@ -137,5 +137,5 @@ spec:
 
         data_object['tag_name']=$(params.git_tag)
 
-
         curl -u $(params.git_user):$(params.GITHUB_TOKEN) -X POST -H "Accept: application/vnd.github.v3+json" -d '${data_object}' -o "./curl-output.txt" https://api.github.com/repos/$(params.git_organization)/$(params.git_repository)/releases
+        cat ./curl-output.txt;
