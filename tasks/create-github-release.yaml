@@ -62,15 +62,19 @@ spec:
       resources:
         limits:
           cpu: 70m
-          memory: 250m
+          memory: 250Mi
         requests:
           cpu: 50m
-          memory: 200m
+          memory: 200Mi
       script: |
-        #!/usr/bin/env bash
-        git clone https://github.com/${git_organization}/${git_repository}.git
-        existing_tags=git tags;
-        if [[ existing_tags -ne *$(params.git_tag)* ]]; then
+        echo $(which git) > dump.txt
+        cd /workspace
+        git clone https://github.com/$(params.git_organization)/$(params.git_repository).git
+        ls /workspace >> dump.txt
+        cd $(params.git_repository);
+        existing_tags= git tag;
+        echo existing_tags >> dump.txt
+        if [[ "${existing_tags}" -ne *"$(params.git_tag)"* ]] ; then  
           git checkout $(params.git_tag)-build
         else
           git checkout tags/$(params.git_tag) -b $(params.git_tag)-build
@@ -79,18 +83,19 @@ spec:
       name: git-check-release-exists
       resources:
         limits:
-          cpu: 70m
-          memory: 250m
-        requests:
           cpu: 50m
-          memory: 200m
+          memory: 250Mi
+        requests:
+          cpu: 70m
+          memory: 200Mi
       script: >
-        #!/usr/bin/env bash
-
         release_check_status="$(curl
-        https://api.github.com/repos/${git_organization}/${git_repository}/releases/tags/${git_tag})"
-
-        if [[ release_check_status=~"url" ]]; then
+        https://api.github.com/repos/$(params.git_organization)/$(params.git_repository)/releases/tags/$(params.git_tag))"
+        unfound_check='{
+          "message": "Not Found",
+          "documentation_url": "https://docs.github.com/rest/reference/repos#get-a-release-by-tag-name"
+        }'
+        if [[ $release_check_status -eq $unfound_check ]]; then
           echo "release already exists."
           exit 1;
         else
@@ -100,14 +105,12 @@ spec:
       name: create-release
       resources:
         limits:
-          cpu: 70m
-          memory: 250m
+          cpu: 170m
+          memory: 250Mi
         requests:
-          cpu: 50m
-          memory: 200m
+          cpu: 150m
+          memory: 200Mi
       script: >
-        #!/usr/bin/env bash
-
         declare -A data_object
 
         if [[ ! -z "$(params.git_ref)" ]]; then
@@ -135,9 +138,4 @@ spec:
         data_object['tag_name']=$(params.git_tag)
 
 
-        curl \
-        -u $git_user:$GITHUB_TOKEN \
-        -X POST \
-        -H "Accept: application/vnd.github.v3+json" \
-        -d '${data_object}' \
-        https://api.github.com/repos/${git_organization}/${git_repository}/releases/
+        curl -u $(params.git_user):$(params.GITHUB_TOKEN) -X POST -H "Accept: application/vnd.github.v3+json" -d '${data_object}' -o "./curl-output.txt" https://api.github.com/repos/$(params.git_organization)/$(params.git_repository)/releases
