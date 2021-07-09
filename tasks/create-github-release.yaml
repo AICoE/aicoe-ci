@@ -12,7 +12,8 @@ spec:
   params:
     - default: sekhet
       description: >-
-        The github user or bot that you would like to be automated to make the release.
+        The github user or bot that you would like to be automated to make the
+        release.
       name: git_user
       type: string
     - default: operate-first
@@ -33,10 +34,6 @@ spec:
         Git revision to create a release from if tag does tag does not exist
         (branch, sha, ref…).
       name: git_ref
-      type: string
-    - default: GITHUB_TOKEN
-      description: Name of the secret key holding the github-token.
-      name: GITHUB_TOKEN
       type: string
     - default: 'release ${params.git_tag}'
       description: The title of the release.
@@ -66,15 +63,23 @@ spec:
         requests:
           cpu: 50m
           memory: 200Mi
-      script: |
+      script: >
         echo $(which git) > dump.txt
+
         cd /workspace
-        git clone https://github.com/$(params.git_organization)/$(params.git_repository).git
+
+        git clone
+        https://github.com/$(params.git_organization)/$(params.git_repository).git
+
         ls /workspace >> dump.txt
+
         cd $(params.git_repository);
+
         existing_tags= git tag;
+
         echo existing_tags >> dump.txt
-        if [[ "${existing_tags}" -ne *"$(params.git_tag)"* ]] ; then  
+
+        if [[ "${existing_tags}" -ne *"$(params.git_tag)"* ]]; then  
           git checkout $(params.git_tag)-build
         else
           git checkout tags/$(params.git_tag) -b $(params.git_tag)-build
@@ -89,19 +94,22 @@ spec:
           cpu: 70m
           memory: 200Mi
       script: >
-        release_check_status="$(curl
+        release_check_status="$(curl -s -o /dev/null -w "%{http_code}"
         https://api.github.com/repos/$(params.git_organization)/$(params.git_repository)/releases/tags/$(params.git_tag))"
-        unfound_check='{
-          "message": "Not Found",
-          "documentation_url": "https://docs.github.com/rest/reference/repos#get-a-release-by-tag-name"
-        }'
-        if [[ $release_check_status -eq $unfound_check ]]; then
+
+        if [[ $release_check_status -eq 200 ]]; then 
           echo "release already exists."
           exit 1;
         else
           exit 0;
         fi;
-    - image: 'quay.io/thoth-station/s2i-thoth-ubi8-py36:latest'
+    - env:
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              key: token
+              name: auth-secret
+      image: 'quay.io/thoth-station/s2i-thoth-ubi8-py36:latest'
       name: create-release
       resources:
         limits:
@@ -110,32 +118,34 @@ spec:
         requests:
           cpu: 150m
           memory: 200Mi
-      script: >
-        declare -A data_object
+      script: |
+        #!/usr/libexec/platform-python
+        import json
+        import os
+        import http.client
 
-        if [[ ! -z "$(params.git_ref)" ]]; then
-          data_object['target_commitish']=$(params.git_ref);
-        fi;
+        status_url =
+        "repos/$(params.git_organization)/$(params.git_repository)/releases"
+        data = {
+            "prerelease"=false,
+            'draft':false,
+            'body':"$(params.git_release_body)",
+            'name':"$(params.git_release_title)",
+            'tag_name':"$(params.git_tag)",
+        }
 
-        if [[ $(params.git_prerelase_boolean) -eq "true" ]]; then
-          data_object['prerelease']=true;
-        else
-          data_object['prerelease']=false;
-        fi;
-
-        if [[ $(params.git_draft_release_boolean) -eq "true" ]]; then
-          data_object['draft']=true;
-        else
-          data_object['draft']=false;
-        fi;
-
-        if [[ ! -z "$(params.git_release_body)" ]]
-          data_object['body']=$(params.git_release_body);
-        fi;
-
-        data_object['name']=$(params.git_release_title);
-
-        data_object['tag_name']=$(params.git_tag)
-
-        curl -u $(params.git_user):$(params.GITHUB_TOKEN) -X POST -H "Accept: application/vnd.github.v3+json" -d '${data_object}' -o "./curl-output.txt" https://api.github.com/repos/$(params.git_organization)/$(params.git_repository)/releases
-        cat ./curl-output.txt;
+        conn = http.client.HTTPSConnection("api.github.com") r = conn.request(
+            "POST",
+            status_url,
+            body=json.dumps(data),
+            headers={
+                "Accept": "application/vnd.github.v3+json"
+                "User-Agent": "$(params.git_user)",
+                "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+            })
+        resp = conn.getresponse() if not str(resp.status).startswith("2"):
+            print("Error: %d" % (resp.status))
+            print(resp.read())
+        else:
+            print("Successful: %d" % (resp.status))
+            print(resp.read())

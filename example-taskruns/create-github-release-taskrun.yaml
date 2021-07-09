@@ -2,10 +2,10 @@ apiVersion: tekton.dev/v1beta1
 kind: TaskRun
 metadata:
   name: issue-release-run
-spec: 
-  taskRef: 
+spec:
+  taskRef:
     name: create-github-release
-  params: 
+  params:
     - name: git_organization
       value: "Gregory-Pereira"
     - name: git_repository
@@ -13,8 +13,6 @@ spec:
     - name: git_tag
       value: "v1.1"
     - name: git_ref
-      value: ""
-    - name: GITHUB_TOKEN
       value: ""
     - name: git_release_title
       value: "sample release title"
