@@ -80,9 +80,6 @@ spec:
         author = "$(params.pr_comment_author)"
         author_association = "$(params.pr_comment_author_association)"
         return_comment = ""
-        if "/retest" == received_comment:
-            if (author_association == "NONE") or (author_association == "FIRST_TIMER"):
-                return_comment = f"Hi @{author},\n you are not authorised to run `/retest` command.\n Please contact a MEMBER."
         if "/deploy" == received_comment:
             if not ((author_association != "OWNER") or (author_association != "MEMBER")):
                 return_comment = f"Hi @{author},\n you are not authorised to run `/deploy` command.\n Please contact the OWNERS."
