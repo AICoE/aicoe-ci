@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonLabels:
+  app.kubernetes.io/name: aicoe-ci
+  app.kubernetes.io/component: tekton
+  app.kubernetes.io/version: v1.0.0
+  app.kubernetes.io/managed-by: aicoe-thoth-devops
+resources:
+  - greg-issue-binding.yaml
+  - greg-issue-pl-resources.yaml
+  - greg-issue-template.yaml
+  - greg-role-bindings.yaml
+  - greg-role.yaml
+  - greg-service-account.yaml
+  - hello-task.yaml
+  - issue-onboarding-run.yaml
+  - issue-onboarding.yaml
+  - small-event-listener.yaml

@@ -1,0 +1,11 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: issue-onboarding-run
+spec:
+  pipelineRef:
+    name: issue-onboarding-pipeline
+  resources:
+    - name: git-repo
+      resourceRef:
+        name: git-repo

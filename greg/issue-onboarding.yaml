@@ -1,0 +1,41 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: issue-onboarding-pipeline
+spec:
+  resources:
+    - name: opf-apps-repo
+      type: git
+  params:
+    - name: event_action
+      type: string
+    - name: issue_number
+      type: string
+    - name: issue_state
+      type: string
+    - name: issue_title
+      type: string
+    - name: issue_body
+      type: string
+    - name: issue_author_association
+      type: string
+    - name: issue_author
+      type: string
+    - name: repo_name
+      type: string
+    - name: repo_full_name
+      type: string
+    - name: repo_url
+      type: string
+    - name: ssh_url
+      type: string
+    - name: pipelinerun_name
+      type: string
+  tasks:
+    - name: echo-hello-world
+      taskRef: 
+        name: echo-hello-world
+      resources:
+        inputs:
+          - name: opf-apps-repo
+            resource: opf-apps-repo

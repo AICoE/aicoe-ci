@@ -1,0 +1,12 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    eventlistener: greg-issue-el
+  name: greg-issue-route
+spec:
+  port:
+    targetPort: http-listener
+  to:
+    kind: Service
+    name: greg-issue-service
