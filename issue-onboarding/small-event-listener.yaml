@@ -1,0 +1,22 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: greg-issue-el
+spec:
+  serviceAccountName: greg-issue-reciever-sa
+  triggers:
+    - name: github-issue-release
+      interceptors:
+        - github:
+            secretRef:
+              secretName: github-secret
+              secretKey: webhooksecret
+            eventTypes:
+              - issues
+        - cel:
+            filter: "(body.issue.title.startsWith('NEW PROJECT')) && (body.action in ['opened'])"
+      bindings:
+        - kind: TriggerBinding
+          ref: greg-issue-binding
+      template:
+        ref: greg-issue-template

@@ -1,0 +1,20 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: recieve-webhook
+spec:
+  resources:
+    inputs:
+      - name: issue
+        type: issue
+      - name: repo
+        type: git
+  steps:
+    - name: merge-pr
+      env:
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: token
+      image: $(resources.inputs.ubi.url)

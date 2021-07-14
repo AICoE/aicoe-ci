@@ -1,0 +1,213 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: repo-upstream-sync
+spec:
+  params:
+    # issue params
+    - name: event_action
+      description: Action of Issue.
+    - name: issue_number
+      description: Issue number.
+    - name: issue_state
+      description: State of the Issue.
+    - name: issue_title
+      description: Title of the Issue.
+    - name: issue_body
+      description: Body of the Issue.
+    - name: issue_author_association
+      description: Author association of the Issue.
+    - name: issue_author
+      description: Author of the Issue.
+    - name: repo_name
+      description: The git repository issue was raised in.
+    - name: repo_full_name
+      description: The git repository full name.
+    - name: repo_url
+      description: The git repository url
+    - name: ssh_url
+      description: The git repository ssh url
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+      - name: repo
+        type: git
+      - name: ubi
+        type: image
+
+  steps:
+    - name: gather-repo-info
+      workingDir: /workspace/repo
+      image: $(resources.inputs.ubi.url)
+      env:
+        - name: REPOFULLNAME
+          value: $(params.repo_full_name)
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: token
+      script: |
+        #!/usr/libexec/platform-python
+        import json
+        import os
+        import http.client
+
+        status_url = "/repos/{}".format(os.getenv('REPOFULLNAME'))
+        conn = http.client.HTTPSConnection("api.github.com")
+        r = conn.request(
+            "GET",
+            status_url,
+            headers={
+                "User-Agent": "aicoe-ci",
+                "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+            })
+        resp = conn.getresponse()
+        if not str(resp.status).startswith("2"):
+            print("Error: %d" % (resp.status))
+            print(resp.read())
+        else:
+            print("Successful: %d" % (resp.status))
+            repo_info_result = resp.read().decode()
+            repo_info = json.loads(repo_info_result)
+            result = open("ssh_url.txt", "w")
+            result.write(repo_info.get("parent").get("ssh_url"))
+            result.close()
+
+    - name: rebase
+      workingDir: /workspace/repo
+      env:
+        - name: GITHUB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: user-name
+        - name: GITHUB_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: user-email
+      image: $(resources.inputs.s2i-thoth.url)
+      securityContext:
+        privileged: true
+      script: |
+        git config --local user.email "$GITHUB_EMAIL"
+        git config --local user.name "$GITHUB_USERNAME"
+        upstream_url=$(cat ssh_url.txt)
+        git remote add upstream "$upstream_url"
+        git remote set-url origin $(params.ssh_url)
+        git remote -v
+        git checkout -b aicoe-ci-rebase-update
+        export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+
+        git pull --rebase upstream master
+        git push -f origin aicoe-ci-rebase-update
+      volumeMounts:
+        - name: ssh-config
+          mountPath: /tekton/home/.ssh
+
+    - name: raise-pull-request
+      workingDir: /workspace/repo
+      env:
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: token
+        - name: ISSUENUMBER
+          value: $(params.issue_number)
+        - name: REPOFULLNAME
+          value: $(params.repo_full_name)
+      image: $(resources.inputs.ubi.url)
+      script: |
+        #!/usr/libexec/platform-python
+        import json
+        import os
+        import http.client
+
+        status_url = "/repos/{}/pulls".format(os.getenv('REPOFULLNAME'))
+        issue_body = f"Syncing repository with upstream.\nRelated-To: #{os.getenv('ISSUENUMBER')}"
+        head = "aicoe-ci-rebase-update"
+        base = "master"
+        data = {
+            "title":"sync up with upstream",
+            "head": head,
+            "base": base,
+            "body": issue_body,
+        }
+
+        conn = http.client.HTTPSConnection("api.github.com")
+        r = conn.request(
+            "POST",
+            status_url,
+            body=json.dumps(data),
+            headers={
+                "User-Agent": "aicoe-ci",
+                "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+            })
+        resp = conn.getresponse()
+        if not str(resp.status).startswith("2"):
+            print("Error: %d" % (resp.status))
+            print(resp.read())
+        else:
+            print("Successful: %d" % (resp.status))
+
+    - name: comment-on-issue
+      env:
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: token
+        - name: ISSUENUMBER
+          value: $(params.issue_number)
+        - name: REPOFULLNAME
+          value: $(params.repo_full_name)
+      image: $(resources.inputs.ubi.url)
+      script: |
+        #!/usr/libexec/platform-python
+        import json
+        import os
+        import http.client
+
+        status_url = "/repos/{}/issues/{}/comments".format(os.getenv('REPOFULLNAME'),os.getenv('ISSUENUMBER'))
+        data = {
+            "body": "closing the issue."
+        }
+
+        conn = http.client.HTTPSConnection("api.github.com")
+        r = conn.request(
+            "POST",
+            status_url,
+            body=json.dumps(data),
+            headers={
+                "User-Agent": "aicoe-ci",
+                "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+            })
+        resp = conn.getresponse()
+        if not str(resp.status).startswith("2"):
+            print("Error: %d" % (resp.status))
+            print(resp.read())
+        else:
+            print(resp.read())
+            data = {
+                "state": "closed"
+            }
+            r = conn.request(
+                "PATCH",
+                "/repos/{}/issues/{}".format(os.getenv('REPOFULLNAME'),os.getenv('ISSUENUMBER')),
+                body=json.dumps(data),
+                headers={
+                    "User-Agent": "aicoe-ci",
+                    "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+                })
+
+  volumes:
+    - name: ssh-config
+      secret:
+        secretName: auth-secret
+        items:
+          - key: ssh-privatekey
+            mode: 0600
+            path: id_rsa
