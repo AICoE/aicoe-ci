@@ -1,0 +1,27 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Condition
+metadata:
+  name: build-check
+spec:
+  resources:
+    - name: repo
+      type: git
+  check:
+    image: quay.io/thoth-station/s2i-thoth-ubi8-py36:v0.14.3
+    workingDir: /workspace/repo
+    script: |
+      #!/usr/libexec/platform-python
+      import yaml
+      import os
+
+      if os.path.isfile('.aicoe-ci.yaml'):
+          with open(".aicoe-ci.yaml", "r") as stream:
+              conf = yaml.safe_load(stream)
+
+          if conf.get("build"):
+              exit(0)
+          else:
+              exit(1)
+      else:
+        print("Configuration file unavailable")
+        exit(1)

@@ -150,6 +150,10 @@ spec:
       taskRef:
         name: tag-release
       conditions:
+        - conditionRef: build-check
+          resources:
+            - name: repo
+              resource: git-repo
         - conditionRef: overlays-set
           resources:
             - name: ubi

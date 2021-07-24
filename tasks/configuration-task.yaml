@@ -23,9 +23,6 @@ spec:
     - name: registry-org
     - name: registry-project
     - name: registry-secret
-    - name: registry-org
-    - name: registry-project
-    - name: registry-secret
     - name: pytest-env
     - name: pulp-index
     - name: deploy-project-org
@@ -66,6 +63,22 @@ spec:
             sibling-project: ""
         EOF
         fi
+        echo -n "" > $(results.base-image.path)
+        echo -n "" > $(results.build-stratergy.path)
+        echo -n "" > $(results.dockerfile-path.path)
+        echo -n "" > $(results.build-source-script.path)
+        echo -n "" > $(results.custom-tag.path)
+        echo -n "" > $(results.registry.path)
+        echo -n "" > $(results.registry-org.path)
+        echo -n "" > $(results.registry-project.path)
+        echo -n "" > $(results.registry-secret.path)
+        echo -n "" > $(results.pytest-env.path)
+        echo -n "" > $(results.deploy-project-org.path)
+        echo -n "" > $(results.deploy-project-name.path)
+        echo -n "" > $(results.deploy-image-name.path)
+        echo -n "" > $(results.overlay-contextpath.path)
+        echo -n "" > $(results.sibling-project.path)
+        echo -n "" > $(results.sibling-project-org.path)
 
     - name: query-config
       image: $(resources.inputs.s2i-thoth.url)
@@ -84,38 +97,44 @@ spec:
         with open(".aicoe-ci.yaml", "r") as stream:
             conf = yaml.safe_load(stream)
 
-            if conf.get("pytest-env"):
-                output = open(f"results.pytest-env.path", "w+")
-                json.dump(conf.get("pytest-env"), output)
-                output.close()
-            for r in conf.get("package-upload", []):
-                if "pulp" == r["instance"]:
-                    for ele in r:
-                        write_to_file(f"results.{ele}.path", r, ele)
-            for ele in conf.get("build", []):
-                if isinstance(conf["build"].get(ele), str):
-                    output = open(f"results.{ele}.path", "w+")
-                    if ele == "registry-secret" and not conf["build"].get(ele):
-                        output.write("thoth-station-thoth-pusher-secret")
-                    else:
-                        output.write(conf["build"].get(ele))
-                    output.close()
-                elif isinstance(conf["build"].get(ele), dict):
-                    output = open(f"results.{ele}.path", "w+")
-                    json.dump(conf["build"].get(ele), output)
-                    output.close()
-            for ele in conf.get("deploy", {}):
-                if ele == "overlay-contextpath":
-                    write_to_file(f"results.{ele}.path", conf["deploy"], ele)
+        if conf.get("pytest-env"):
+            output = open("/tekton/results/pytest-env", "w+")
+            json.dump(conf.get("pytest-env"), output)
+            output.close()
+        for r in conf.get("package-upload", []):
+            if "pulp" == r["instance"]:
+                for ele in r:
+                    write_to_file(f"/tekton/results/{ele}", r, ele)
+        for ele in conf.get("build", []):
+            if isinstance(conf["build"].get(ele), str):
+                output = open(f"/tekton/results/{ele}", "w+")
+                if ele == "registry-secret" and not conf["build"].get(ele):
+                    output.write("thoth-station-thoth-pusher-secret")
                 else:
-                    output = open(f"results.deploy-{ele}.path", "w")
-                    if ele == "project-name" and not conf["deploy"].get(ele):
-                        output.write("thoth-application")
-                    elif ele == "project-org" and not conf["deploy"].get(ele):
-                        output.write("thoth-station")
-                    else:
-                        output.write(conf["deploy"].get(ele))
-                    output.close()
-            for ele in conf.get("sibling", {}):
-                write_to_file(f"results.{ele}.path", conf["sibling"], ele)
-            print("done")
+                    output.write(conf["build"].get(ele))
+                output.close()
+            elif isinstance(conf["build"].get(ele), dict):
+                output = open(f"/tekton/results/{ele}", "w+")
+                json.dump(conf["build"].get(ele), output)
+                output.close()
+        for ele in conf.get("deploy", {}):
+            if ele == "overlay-contextpath":
+                write_to_file(f"/tekton/results/{ele}", conf["deploy"], ele)
+            else:
+                output = open(f"/tekton/results/deploy-{ele}", "w+")
+                if ele == "project-name" and not conf["deploy"].get(ele):
+                    output.write("thoth-application")
+                elif ele == "project-org" and not conf["deploy"].get(ele):
+                    output.write("thoth-station")
+                else:
+                    output.write(conf["deploy"].get(ele))
+                output.close()
+        for ele in conf.get("sibling", {}):
+            write_to_file(f"/tekton/results/{ele}", conf["sibling"], ele)
+        print("done")
+
+    - name: check-results
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      script: |
+        ls -la /tekton/results/
