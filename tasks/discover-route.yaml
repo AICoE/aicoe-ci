@@ -21,4 +21,3 @@ spec:
         cat route.json | python3 -c "import sys, json; print('http://' + str(json.load(sys.stdin)['items'][0]['spec']['host']))" > route_name
         cat route_name
         echo -n "$(cat route_name)" > $(results.route-name.path)
-

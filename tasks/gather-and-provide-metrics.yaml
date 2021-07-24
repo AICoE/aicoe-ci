@@ -62,13 +62,13 @@ spec:
         - name: COMMIT_SHA
           value: $(params.commit_sha)
         - name: THOTH_S3_ENDPOINT_URL
-          valueFrom: 
-            configMapKeyRef: 
+          valueFrom:
+            configMapKeyRef:
               name: aicoe-ci-ceph
               key: endpoint
         - name: THOTH_CEPH_BUCKET
-          valueFrom: 
-            configMapKeyRef: 
+          valueFrom:
+            configMapKeyRef:
               name: aicoe-ci-ceph
               key: bucket
         - name: THOTH_CEPH_KEY_ID
