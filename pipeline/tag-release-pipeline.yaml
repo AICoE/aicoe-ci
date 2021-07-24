@@ -120,6 +120,32 @@ spec:
           - name: repo
             resource: git-repo
 
+    - name: publish-pulp-pypi-run
+      taskRef:
+        name: upload-pulp-pypi
+      conditions:
+        - conditionRef: upload-pulp-pypi-check
+          resources:
+            - name: repo
+              resource: git-repo
+            - name: ubi
+              resource: ubi
+      params:
+        - name: git_ref
+          value: $(params.git_ref)
+        - name: pulp-index
+          value: $(tasks.configuration.results.pulp-index)
+        - name: allow-sdist
+          value: $(tasks.configuration.results.allow-sdist)
+        - name: allow-bdist
+          value: $(tasks.configuration.results.allow-bdist)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
+          - name: repo
+            resource: git-repo
+
     - name: tag-release-run
       taskRef:
         name: tag-release

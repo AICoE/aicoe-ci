@@ -1,0 +1,62 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: upload-pulp-pypi
+  labels:
+    app: aicoe-ci
+spec:
+  params:
+  - name: git_ref
+    description: Git reference value.
+  - name: allow-sdist
+    description: Allow source distribution to be generated and uploaded.
+  - name: allow-bdist
+    description: Allow build wheels to be generated and uploaded.
+  - name: pulp-index
+    description: pulp index repository to upload packages.
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+      - name: repo
+        type: git
+
+  steps:
+    - name: git-init-op
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        git fetch origin --tags
+        git checkout tags/$(params.git_ref) -b workbranch
+
+    - name: build-package
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        if [ "$(params.allow-sdist)" = "True" ]; then
+          python setup.py sdist
+        fi
+        if [ "$(params.allow-bdist)" = "True" ]; then
+          python setup.py bdist_wheel
+        fi
+
+    - name: upload-package
+      image: quay.io/thoth-station/twine:latest
+      workingDir: /workspace/repo
+      env:
+        - name: TWINE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: pulp-pypi-secret
+              key: username
+        - name: TWINE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pulp-pypi-secret
+              key: password
+      script: |
+        twine upload dist/* --repository-url="http://pulp-test-thoth-pulp-experiments.apps.zero.massopen.cloud/pypi/$(params.pulp-index)/simple/"

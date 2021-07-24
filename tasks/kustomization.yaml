@@ -33,6 +33,7 @@ resources:
   - tag-release-task.yaml
   - tag-sibling.yaml
   - tox-checks.yaml
+  - upload-pulp-pypi.yaml
   - upload-pypi.yaml
   - z-stream-release-task.yaml
   - z-stream-update-rhods-task.yaml

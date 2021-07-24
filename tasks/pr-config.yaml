@@ -42,7 +42,7 @@ spec:
         git checkout workbranch
 
     - name: gather-info
-      image: quay.io/harshad16/yq:latest
+      image: $(resources.inputs.s2i-thoth.url)
       workingDir: /workspace/repo
       script: |
         if [[ ! -f .aicoe-ci.yaml ]]; then
@@ -66,28 +66,56 @@ spec:
             overlay-contextpath: ""
         EOF
         fi
-        echo -n $(yq r .aicoe-ci.yaml build.registry) > $(results.registry.path)
-        echo -n $(yq r .aicoe-ci.yaml build.base-image) > $(results.base-image.path)
-        echo -n $(yq r .aicoe-ci.yaml build.registry-org) > $(results.registry-org.path)
-        echo -n $(yq r .aicoe-ci.yaml build.build-stratergy) > $(results.build-stratergy.path)
-        echo -n $(yq r .aicoe-ci.yaml build.dockerfile-path) > $(results.dockerfile-path.path)
-        echo -n $(yq r .aicoe-ci.yaml build.build-source-script) > $(results.build-source-script.path)
-        echo -n $(yq r .aicoe-ci.yaml build.registry-project) > $(results.registry-project.path)
-        echo -n $(yq r -j .aicoe-ci.yaml pytest-env) > $(results.pytest-env.path)
-        if [ -z "$(yq r .aicoe-ci.yaml build.registry-secret)" ]; then
-          echo -n "thoth-station-thoth-pusher-secret" > $(results.registry-secret.path)
-        else
-          echo -n $(yq r .aicoe-ci.yaml build.registry-secret) > $(results.registry-secret.path)
-        fi
-        if [ -z "$(yq r .aicoe-ci.yaml deploy.project-org)" ]; then
-          echo -n "thoth-station" > $(results.deploy-project-org.path)
-        else
-          echo -n $(yq r .aicoe-ci.yaml deploy.project-org) > $(results.deploy-project-org.path)
-        fi
-        if [ -z "$(yq r .aicoe-ci.yaml deploy.project-name)" ]; then
-          echo -n "thoth-application" > $(results.deploy-project-name.path)
-        else
-          echo -n $(yq r .aicoe-ci.yaml deploy.project-name) > $(results.deploy-project-name.path)
-        fi
-        echo -n $(yq r .aicoe-ci.yaml deploy.image-name) > $(results.deploy-image-name.path)
-        echo -n $(yq r .aicoe-ci.yaml deploy.overlay-contextpath) > $(results.overlay-contextpath.path)
+
+    - name: query-config
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      script: |
+        #!/usr/libexec/platform-python
+        import os
+        import json
+        import yaml
+
+        def write_to_file(path, item, content):
+            output = open(path, "w+")
+            output.write(str(item.get(content)))
+            output.close()
+
+        with open(".aicoe-ci.yaml", "r") as stream:
+            conf = yaml.safe_load(stream)
+
+            if conf.get("pytest-env"):
+                output = open(f"results.pytest-env.path", "w+")
+                json.dump(conf.get("pytest-env"), output)
+                output.close()
+            for r in conf.get("package-upload", []):
+                if "pulp" == r["instance"]:
+                    for ele in r:
+                        write_to_file(f"results.{ele}.path", r, ele)
+            for ele in conf.get("build", []):
+                if isinstance(conf["build"].get(ele), str):
+                    output = open(f"results.{ele}.path", "w+")
+                    if ele == "registry-secret" and not conf["build"].get(ele):
+                        output.write("thoth-station-thoth-pusher-secret")
+                    else:
+                        output.write(conf["build"].get(ele))
+                    output.close()
+                elif isinstance(conf["build"].get(ele), dict):
+                    output = open(f"results.{ele}.path", "w+")
+                    json.dump(conf["build"].get(ele), output)
+                    output.close()
+            for ele in conf.get("deploy", {}):
+                if ele == "overlay-contextpath":
+                    write_to_file(f"results.{ele}.path", conf["deploy"], ele)
+                else:
+                    output = open(f"results.deploy-{ele}.path", "w")
+                    if ele == "project-name" and not conf["deploy"].get(ele):
+                        output.write("thoth-application")
+                    elif ele == "project-org" and not conf["deploy"].get(ele):
+                        output.write("thoth-station")
+                    else:
+                        output.write(conf["deploy"].get(ele))
+                    output.close()
+            for ele in conf.get("sibling", {}):
+                write_to_file(f"results.{ele}.path", conf["sibling"], ele)
+            print("done")
