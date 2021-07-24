@@ -23,8 +23,7 @@ spec:
           for r in conf.get("package-upload", []):
               if "pulp" == r["instance"]:
                   exit(0)
-              else:
-                  exit(1)
+          exit(1)
       else:
         print("Configuration file unavailable")
         exit(1)

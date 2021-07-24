@@ -23,7 +23,7 @@ spec:
           for r in conf.get("package-upload", []):
               if "pypi" == r["instance"]:
                   exit(0)
-          if "upload-pypi-sesheta" in conf.get("release",[])
+          if "upload-pypi-sesheta" in conf.get("release",[]):
               exit(0)
           exit(1)
       else:
