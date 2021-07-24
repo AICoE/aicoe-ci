@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Condition
 metadata:
-  name: upload-pypi-check
+  name: upload-pulp-pypi-check
 spec:
   resources:
     - name: repo
@@ -21,11 +21,10 @@ spec:
               conf = yaml.safe_load(stream)
 
           for r in conf.get("package-upload", []):
-              if "pypi" == r["instance"]:
+              if "pulp" == r["instance"]:
                   exit(0)
-          if "upload-pypi-sesheta" in conf.get("release",[])
-              exit(0)
-          exit(1)
+              else:
+                  exit(1)
       else:
         print("Configuration file unavailable")
         exit(1)

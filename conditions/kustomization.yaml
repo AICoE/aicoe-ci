@@ -12,4 +12,5 @@ resources:
   - overlays-set.yaml
   - retest-comment-check.yaml
   - sibling-check.yaml
+  - upload-pulp-pypi-check.yaml
   - upload-pypi-check.yaml
