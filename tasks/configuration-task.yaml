@@ -63,6 +63,8 @@ spec:
             sibling-project: ""
         EOF
         fi
+        echo -n "" > $(results.allow-sdist.path)
+        echo -n "" > $(results.allow-bdist.path)
         echo -n "" > $(results.base-image.path)
         echo -n "" > $(results.build-stratergy.path)
         echo -n "" > $(results.dockerfile-path.path)
@@ -73,6 +75,7 @@ spec:
         echo -n "" > $(results.registry-project.path)
         echo -n "" > $(results.registry-secret.path)
         echo -n "" > $(results.pytest-env.path)
+        echo -n "" > $(results.pulp-index.path)
         echo -n "" > $(results.deploy-project-org.path)
         echo -n "" > $(results.deploy-project-name.path)
         echo -n "" > $(results.deploy-image-name.path)
