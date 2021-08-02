@@ -12,6 +12,7 @@ resources:
   - init-task.yaml
   - issue-deploy-task.yaml
   - issue-pypi-release-task.yaml
+  - issue-pulp-pypi-release-task.yaml
   - issue-release-task.yaml
   - overlay-build-task.yaml
   - overlay-deploy-task.yaml

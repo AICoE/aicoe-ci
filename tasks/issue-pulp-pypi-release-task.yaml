@@ -1,0 +1,136 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: issue-pulp-pypi-release
+spec:
+  params:
+    # tag params
+    - name: event_action
+      description: Action of Issue.
+    - name: issue_number
+      description: Issue number.
+    - name: issue_state
+      description: State of the Issue.
+    - name: issue_title
+      description: Title of the Issue.
+    - name: issue_body
+      description: Body of the Issue.
+    - name: issue_author_association
+      description: Author association of the Issue.
+    - name: issue_author
+      description: Author of the Issue.
+    - name: repo_name
+      description: The git repository issue was raised in.
+    - name: repo_full_name
+      description: The git repository full name.
+    - name: repo_url
+      description: The git repository url
+    - name: allow-sdist
+      description: Allow source distribution to be generated and uploaded.
+    - name: allow-bdist
+      description: Allow build wheels to be generated and uploaded.
+    - name: pulp-index
+      description: pulp index repository to upload packages.
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+      - name: repo
+        type: git
+      - name: ubi
+        type: image
+
+  steps:
+    - name: git-init-op
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        set +ex
+        TAG=$(echo "$(params.issue_body)" | awk -F ':' '{print $2}')
+        set -x
+        git fetch origin --tags
+        git tag "${TAG//[[:space:]]/}"
+        git checkout "${TAG//[[:space:]]/}" -b workbranch
+
+    - name: build-package
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        if [ "$(params.allow-sdist)" = "True" ]; then
+          python setup.py sdist
+        fi
+        if [ "$(params.allow-bdist)" = "True" ]; then
+          python setup.py bdist_wheel
+        fi
+
+    - name: upload-package
+      image: quay.io/thoth-station/twine:latest
+      workingDir: /workspace/repo
+      env:
+        - name: TWINE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: pulp-pypi-secret
+              key: username
+        - name: TWINE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pulp-pypi-secret
+              key: password
+      script: |
+        twine upload dist/* --repository-url="http://pulp-test-thoth-pulp-experiments.apps.zero.massopen.cloud/pypi/$(params.pulp-index)/simple/"
+
+    - name: comment-on-issue
+      env:
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: token
+        - name: ISSUENUMBER
+          value: $(params.issue_number)
+        - name: REPOFULLNAME
+          value: $(params.repo_full_name)
+      image: $(resources.inputs.ubi.url)
+      script: |
+        #!/usr/libexec/platform-python
+        import json
+        import os
+        import http.client
+
+        status_url = "/repos/{}/issues/{}/comments".format(os.getenv('REPOFULLNAME'),os.getenv('ISSUENUMBER'))
+        issue_body = "Successfully Delivered Package module to Pulp PyPI.\nPackage can be found at:[http://pulp-test-thoth-pulp-experiments.apps.zero.massopen.cloud/pypi/$(params.pulp-index)/simple/$(params.repo_name)](http://pulp-test-thoth-pulp-experiments.apps.zero.massopen.cloud/pypi/$(params.pulp-index)/simple/$(params.repo_name))"
+        data = {
+            "body": issue_body
+        }
+
+        conn = http.client.HTTPSConnection("api.github.com")
+        r = conn.request(
+            "POST",
+            status_url,
+            body=json.dumps(data),
+            headers={
+                "User-Agent": "aicoe-ci",
+                "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+            })
+        resp = conn.getresponse()
+        if not str(resp.status).startswith("2"):
+            print("Error: %d" % (resp.status))
+            print(resp.read())
+        else:
+            print(resp.read())
+            data = {
+                "state": "closed"
+            }
+            r = conn.request(
+                "PATCH",
+                "/repos/{}/issues/{}".format(os.getenv('REPOFULLNAME'),os.getenv('ISSUENUMBER')),
+                body=json.dumps(data),
+                headers={
+                    "User-Agent": "aicoe-ci",
+                    "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+                })
