@@ -55,6 +55,7 @@ spec:
         privileged: true
       script: |
         python setup.py sdist bdist_wheel
+        python setup.py --name > package_name.txt
 
     - name: upload-package
       image: quay.io/thoth-station/twine:latest
@@ -85,6 +86,7 @@ spec:
         - name: REPOFULLNAME
           value: $(params.repo_full_name)
       image: $(resources.inputs.ubi.url)
+      workingDir: /workspace/repo
       script: |
         #!/usr/libexec/platform-python
         import json
@@ -92,7 +94,13 @@ spec:
         import http.client
 
         status_url = "/repos/{}/issues/{}/comments".format(os.getenv('REPOFULLNAME'),os.getenv('ISSUENUMBER'))
-        issue_body = "Successfully Delivered Package module to PyPI.\nPackage can be found at:[https://pypi.org/project/$(params.repo_name)](https://pypi.org/project/$(params.repo_name))"
+        package_name  = open("package_name.txt").read().strip()
+        issue_body = (
+            "Successfully Delivered Package module to Pulp PyPI.\n"
+            "Package can be found at: "
+            f"[https://pypi.org/project/{package_name}]"
+            f"(https://pypi.org/project/{package_name})"
+        )
         data = {
             "body": issue_body
         }

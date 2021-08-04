@@ -66,6 +66,7 @@ spec:
         if [ "$(params.allow-bdist)" = "True" ]; then
           python setup.py bdist_wheel
         fi
+        python setup.py --name > package_name.txt
 
     - name: upload-package
       image: quay.io/thoth-station/twine:latest
@@ -96,6 +97,7 @@ spec:
         - name: REPOFULLNAME
           value: $(params.repo_full_name)
       image: $(resources.inputs.ubi.url)
+      workingDir: /workspace/repo
       script: |
         #!/usr/libexec/platform-python
         import json
@@ -103,7 +105,13 @@ spec:
         import http.client
 
         status_url = "/repos/{}/issues/{}/comments".format(os.getenv('REPOFULLNAME'),os.getenv('ISSUENUMBER'))
-        issue_body = "Successfully Delivered Package module to Pulp PyPI.\nPackage can be found at:[http://pulp-test-thoth-pulp-experiments.apps.zero.massopen.cloud/pypi/$(params.pulp-index)/simple/$(params.repo_name)](http://pulp-test-thoth-pulp-experiments.apps.zero.massopen.cloud/pypi/$(params.pulp-index)/simple/$(params.repo_name))"
+        package_name  = open("package_name.txt").read().strip()
+        issue_body = (
+            "Successfully Delivered Package module to Pulp PyPI.\n"
+            "Package can be found at: "
+            f"[https://pulp.operate-first.cloud/pypi/$(params.pulp-index)/simple/{package_name}]"
+            f"(https://pulp.operate-first.cloud/pypi/$(params.pulp-index)/simple/{package_name})"
+        )
         data = {
             "body": issue_body
         }
