@@ -1,0 +1,19 @@
+---
+name: Help with Sesheta invite 
+description: "Create a request to accept invitation for sesheta."
+title: "Help with Sesheta invite"
+labels: [area/cyborgs, bot, sig/cyborgs]
+assignees: [goern, harshad16]
+body:
+    - type: markdown
+      attributes:
+          value: "Sesheta invite are to be manually accepted. Thank you for your patience."
+    - type: input
+      id: github-repo-url
+      attributes:
+          label: GitHub Repo
+          description: |
+              Provide the github repository url where Sesheta was invite as contributor  
+          placeholder: https://github.com/thoth-station/support
+      validations:
+          required: true
