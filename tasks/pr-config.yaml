@@ -107,7 +107,10 @@ spec:
                     write_to_file(f"/tekton/results/{ele}", r, ele)
         for ele in conf.get("build", []):
             if isinstance(conf["build"].get(ele), str):
-                output = open(f"/tekton/results/{ele}", "w+")
+                if ele == "build-strategy":
+                    output = open(f"/tekton/results/build-stratergy", "w+")
+                else:
+                    output = open(f"/tekton/results/{ele}", "w+")
                 if ele == "registry-secret" and not conf["build"].get(ele):
                     output.write("thoth-station-thoth-pusher-secret")
                 else:
