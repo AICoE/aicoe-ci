@@ -1,20 +1,4 @@
 ---
-apiVersion: image.openshift.io/v1
-kind: ImageStream
-metadata:
-  name: cleanup-pipeline
-spec:
-  lookupPolicy:
-    local: true
-  tags:
-    - name: latest
-      from:
-        kind: DockerImage
-        name: quay.io/harshad16/cleanup-pipelineruns:latest
-      importPolicy: {}
-      referencePolicy:
-        type: Local
----
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
@@ -38,7 +22,7 @@ spec:
           serviceAccountName: "aicoe-ci"
           containers:
             - name: cleanup
-              image: "cleanup-pipeline:latest"
+              image: "quay.io/harshad16/cleanup-pipelineruns:latest"
               env:
                 - name: THOTH_LOG_CLEANUP_JOB
                   value: "INFO"
