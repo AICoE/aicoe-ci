@@ -160,6 +160,8 @@ spec:
                             param["value"] = overlay_name
                         if param["name"] == "overlays_dir":
                             param["value"] = overlays_dir
+                        if param["name"] == "base_image":
+                            param["value"] = overlay_env["build"]["base-image"]
                         spec_params.append(param)
                     pipelinerun["spec"]["params"] = spec_params
 
