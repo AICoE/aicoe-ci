@@ -17,6 +17,7 @@ resources:
   - thoth-notification.yaml
   - ultrahook.yaml
   - cleanup-cronjob.yaml
+  - configmap.yaml
 generators:
   - secret-generator.yaml
 patchesStrategicMerge:
