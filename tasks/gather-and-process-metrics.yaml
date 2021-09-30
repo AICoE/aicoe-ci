@@ -1,0 +1,156 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: gather-and-process-metrics
+spec:
+  params:
+    - name: runtime_environment_test_name
+      description: Runtime environment name present in .thoth.yaml for test.
+    - name: test_name
+      description: Test/Feature name to be used with the test type (behave by default)
+    - name: route_deployment
+      description: Route to the deployment model for test.
+    - name: repo_url
+      description: repo URL.
+    - name: commit_sha
+      description: Commit SHA.
+    - name: pr_number
+      description: Pull request ID.
+    - name: pr_repo
+      description: The git repository pr was raised to.
+    - name: overlay_name
+      description: Name of the overlay.
+  resources:
+    inputs:
+      - name: pipeline-helpers
+        type: image
+      - name: s2i-thoth
+        type: image
+      - name: pr
+        type: pullRequest
+      - name: repo
+        type: git
+  results:
+    - name: gather_timestamp_started
+      description: Timestamp gather metrics started
+    - name: gather_timestamp_ended
+      description: Timestamp gather metrics finished
+    - name: pod-name
+      description: Name of the pod deployed
+    - name: metrics.json
+      description: Metrics collected from the test
+    - name: platform_metrics.json
+      description: Metrics collected from the test
+
+  steps:
+    - name: git-checkout-pr-number
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        git fetch origin pull/$(params.pr_number)/head:workbranch
+        git checkout workbranch
+
+    - name: gather-metrics
+      image: $(resources.inputs.pipeline-helpers.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        sleep 40
+        python3 /opt/app-root/src/gather_metrics.py
+      env:
+        - name: PIPELINE_HELPERS_METRICS_FILE_PATH
+          value: "metrics.json"
+        - name: PIPELINE_HELPERS_TEST_RUNTIME_ENVIRONMENT_NAME
+          value: $(params.runtime_environment_test_name)
+        - name: DEPLOYED_MODEL_URL
+          value: "$(params.route_deployment)"
+        - name: PIPELINE_HELPERS_TEST_NAME
+          value: "$(params.test_name)"
+        - name: TUTORIAL_MAX_REQUESTS_TEST
+          value: "100"
+
+    - name: store-pod-name
+      image: quay.io/openshift/origin-cli:latest
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+          oc get pods -l deploymentconfig=$(params.pr_repo)-pr-$(params.pr_number)-$(params.overlay_name) -o json > pod.json
+          cat pod.json | python3 -c "import sys, json; print(str(json.load(sys.stdin)['items'][0]['metadata']['name']))" > pod_name
+          cat pod_name
+          echo -n "$(cat pod_name)" > $(results.pod-name.path)
+
+    - name: gather-platform-metrics
+      image: $(resources.inputs.pipeline-helpers.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        python3 /opt/app-root/src/gather_platform_metrics.py
+      env:
+        - name: PIPELINE_HELPERS_PLATFORM_METRICS_FILE_PATH
+          value: "platform_metrics.json"
+        - name: PIPELINE_HELPERS_DEPLOYMENT_NAMESPACE
+          valueFrom:
+            configMapKeyRef:
+              name: aicoe-ci-config
+              key: namespace
+        - name: THANOS_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: aicoe-ci-config
+              key: namespace
+        - name: THANOS_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: aicoe-ci-secrets
+              key: thanos-access-token
+        - name: PIPELINE_HELPERS_POD_NAME
+          value: $(results.pod-name.path)
+
+    - name: post-process-data
+      image: $(resources.inputs.pipeline-helpers.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      env:
+        - name: REPO_URL
+          value: $(params.repo_url)
+        - name: COMMIT_SHA
+          value: $(params.commit_sha)
+        - name: PIPELINE_HELPERS_METRICS_FILE_PATH
+          value: "metrics.json"
+        - name: PIPELINE_HELPERS_PLATFORM_METRICS_FILE_PATH
+          value: "platform_metrics.json"
+        - name: PIPELINE_HELPERS_DEPLOYMENT_NAMESPACE
+          valueFrom:
+            configMapKeyRef:
+              name: aicoe-ci-config
+              key: namespace
+        - name: PIPELINE_HELPERS_OVERLAY_NAME
+          value: $(params.overlay_name)
+        - name: THOTH_S3_ENDPOINT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: aicoe-ci-config
+              key: endpoint
+        - name: THOTH_CEPH_BUCKET
+          valueFrom:
+            configMapKeyRef:
+              name: aicoe-ci-config
+              key: bucket
+        - name: THOTH_CEPH_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: aicoe-ci-ceph
+              key: key-id
+        - name: THOTH_CEPH_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aicoe-ci-ceph
+              key: secret-key
+      script: |
+        python3 /opt/app-root/src/post_process_metrics.py

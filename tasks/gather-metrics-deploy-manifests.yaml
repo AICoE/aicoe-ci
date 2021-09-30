@@ -4,13 +4,19 @@ metadata:
   name: manifests-deploy
 spec:
   params:
+    - name: pr_number
+      description: Pull Request Number.
     - name: deployment_image_url
       description: Image to pull for deployment.
+    - name: overlay_name
+      description: Overlay name of the deployment.
   resources:
     inputs:
       - name: thoth-ops
         type: image
       - name: pipeline-helpers
+        type: image
+      - name: s2i-thoth
         type: image
       - name: repo
         type: git
@@ -18,6 +24,15 @@ spec:
         type: pullRequest
 
   steps:
+    - name: git-checkout-pr-number
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        git fetch origin pull/$(params.pr_number)/head:workbranch
+        git checkout workbranch
+
     - name: customize-manifests
       image: $(resources.inputs.pipeline-helpers.url)
       workingDir: /workspace/repo
@@ -28,6 +43,8 @@ spec:
       env:
         - name: PIPELINE_HELPERS_IMAGE_URL_DEPLOYMENT
           value: $(params.deployment_image_url)
+        - name: PIPELINE_HELPERS_OVERLAY_NAME
+          value: $(params.overlay_name)
 
     - name: deploy-manifests
       image: $(resources.inputs.thoth-ops.url)
@@ -35,6 +52,9 @@ spec:
       securityContext:
         privileged: true
       script: |
+        cat customized_service.yaml
         oc apply -f customized_service.yaml
+        cat customized_route.yaml
         oc apply -f customized_route.yaml
+        cat customized_deploymentconfig.yaml
         oc apply -f customized_deploymentconfig.yaml

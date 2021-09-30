@@ -1,0 +1,136 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: gather-deployment-metrics-setup-pipeline
+  labels:
+    app: aicoe-ci
+spec:
+  params:
+    - name: event_action
+      type: string
+    - name: pr_number
+      type: string
+    - name: pr_repo
+      type: string
+    - name: repo_url
+      type: string
+    - name: default_branch
+      type: string
+  resources:
+    - name: git-repo
+      type: git
+    - name: pipeline-helpers
+      type: image
+    - name: thoth-s2i-py38
+      type: image
+    - name: thoth-ops
+      type: image
+    - name: pr-source
+      type: pullRequest
+
+  tasks:
+    - name: gather-metrics-check-inputs
+      taskRef:
+        name: gather-metrics-check-inputs
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: pr_repo
+          value: $(params.pr_repo)
+        - name: event_action
+          value: $(params.event_action)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: thoth-s2i-py38
+          - name: repo
+            resource: git-repo
+
+    - name: gather-metrics-configuration
+      taskRef:
+        name: gather-metrics-configuration
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: pr_repo
+          value: $(params.pr_repo)
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: thoth-s2i-py38
+          - name: repo
+            resource: git-repo
+          - name: pr
+            resource: pr-source
+      runAfter:
+        - gather-metrics-check-inputs
+
+    - name: create-gather-metrics-pipelines
+      taskRef:
+        name: gather-metrics-pipeline-creation
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: pr_repo
+          value: $(params.pr_repo)
+        - name: repo_url
+          value: $(params.repo_url)
+        - name: default_branch
+          value: $(params.default_branch)
+        - name: html_repo_url
+          value: "$(tasks.gather-metrics-configuration.results.html-repo-url)"
+        - name: commit_sha
+          value: "$(tasks.gather-metrics-configuration.results.commit-sha)"
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: thoth-s2i-py38
+          - name: repo
+            resource: git-repo
+          - name: pr
+            resource: pr-source
+          - name: thoth-ops
+            resource: thoth-ops
+          - name: pipeline-helpers
+            resource: pipeline-helpers
+      runAfter:
+        - gather-metrics-configuration
+
+    - name: watch-gather-metrics-pipelines
+      taskRef:
+        name: gather-metrics-pipeline-watch
+      resources:
+        inputs:
+          - name: pipeline-helpers
+            resource: pipeline-helpers
+          - name: repo
+            resource: git-repo
+      runAfter:
+        - create-gather-metrics-pipelines
+
+    - name: provide-metrics
+      taskRef:
+        name: provide-metrics
+      resources:
+        inputs:
+          - name: pipeline-helpers
+            resource: pipeline-helpers
+          - name: s2i-thoth
+            resource: thoth-s2i-py38
+          - name: repo
+            resource: git-repo
+          - name: pr
+            resource: pr-source
+      runAfter:
+        - watch-gather-metrics-pipelines
+
+  finally:
+    - name: delete-deployments
+      taskRef:
+        name: gather-metrics-clean-task
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: pr_repo
+          value: $(params.pr_repo)

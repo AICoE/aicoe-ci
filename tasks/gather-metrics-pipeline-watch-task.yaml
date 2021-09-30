@@ -1,0 +1,58 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: gather-metrics-pipeline-watch
+  labels:
+    app: aicoe-ci
+spec:
+  resources:
+    inputs:
+      - name: pipeline-helpers
+        type: image
+      - name: repo
+        type: git
+
+  steps:
+    - name: watch-pipelines
+      image: quay.io/thoth-station/kubectl
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        set -x
+        set -o nounset
+        set -o errexit
+        set -o errtrace
+        set -o pipefail
+        trap 'echo "Aborting due to errexit on line $LINENO. Exit code: $?" >&2' ERR
+
+        while true
+            do
+                pipelines_states=$(
+                    kubectl get pipelineruns --selector component=elyra-aidevsecops-tutorial-pr-446 -o json | python3 -c "import sys, json; print(' '.join([str([str(status['reason']) for status in pipeline['status']['conditions']][0]) for pipeline in json.load(sys.stdin)['items'] if pipeline['spec']['pipelineRef']['name'] == 'gather-deployment-metrics-pipeline']))"
+                )
+                echo $pipelines_states
+                [ $? -eq 0 ] || exit 1
+
+                checks=0
+
+                for i in ${pipelines_states[@]}
+                do
+                    if [ "$i" == "Running" ] || [ "$i" == "Pending" ]; then
+                        checks=`expr $checks + 1`
+                    fi
+                    if [ "$i" == "Succeeded" ] || [ "$i" == "Failed" ]; then
+                        continue
+                    fi
+                done
+                echo $checks
+
+                if [ "$checks" == "0" ]; then
+                    exit 0
+                else
+                    sleep 10s
+                    continue
+                fi
+                    echo "Build exited with checks reported: $checks" 1>&2
+                    exit 1
+            done

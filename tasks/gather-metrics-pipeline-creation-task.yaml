@@ -1,0 +1,301 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: gather-metrics-pipeline-creation
+  labels:
+    app: aicoe-ci
+spec:
+  params:
+    - name: pr_number
+      description: Pull request ID.
+    - name: pr_repo
+      description: The git repository pr was raised to.
+    - name: repo_url
+      description: The git repository url.
+    - name: default_branch
+      description: The git repository default branch.
+    - name: html_repo_url
+      description: Pull request HTML URL
+    - name: commit_sha
+      description: commit SHA
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+      - name: repo
+        type: git
+      - name: pipeline-helpers
+        type: image
+      - name: thoth-ops
+        type: image
+      - name: pr
+        type: pullRequest
+
+  steps:
+    - name: git-checkout-pr-number
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        git fetch origin pull/$(params.pr_number)/head:workbranch
+        git checkout workbranch
+
+    - name: pipelinerun-gather-metrics-setup
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        cat <<EOF > overlays-gather-metrics-pipelinerun.yaml
+        apiVersion: tekton.dev/v1beta1
+        kind: PipelineRun
+        metadata:
+          name: gather-deployment-metrics-{overlays}
+          labels:
+            app: aicoe-ci
+            deployment-name: {overlay}
+            component: $(params.pr_repo)-pr-$(params.pr_number)
+        spec:
+          serviceAccountName: aicoe-ci
+          pipelineRef:
+            name: gather-deployment-metrics-pipeline
+          params:
+            - name: pr_number
+              value: "$(params.pr_number)"
+            - name: pr_repo
+              value: $(params.pr_repo)
+            - name: repo_url
+              value: $(params.repo_url)
+            - name: base_image
+              value: ""
+            - name: build_stratergy
+              value: ""
+            - name: build_source_script
+              value: ""
+            - name: dockerfile_path
+              value: ""
+            - name: registry
+              value: ""
+            - name: registry_org
+              value: ""
+            - name: registry_project
+              value: ""
+            - name: registry_secret
+              value: ""
+            - name: overlay_name
+              value: ""
+            - name: test_name
+              value: ""
+            - name: runtime_environment_test_name
+              value: ""
+            - name: commit_sha
+              value: "$(params.commit_sha)"
+          resources:
+            - name: git-repo
+              resourceSpec:
+                type: git
+                params:
+                  - name: revision
+                    value: $(params.default_branch)
+                  - name: url
+                    value: $(params.repo_url)
+            - name: thoth-s2i-py38
+              resourceSpec:
+                type: image
+                params:
+                  - name: url
+                    value: $(resources.inputs.s2i-thoth.url)
+            - name: pipeline-helpers
+              resourceSpec:
+                type: image
+                params:
+                  - name: url
+                    value: $(resources.inputs.pipeline-helpers.url)
+            - name: thoth-ops
+              resourceSpec:
+                type: image
+                params:
+                  - name: url
+                    value: $(resources.inputs.thoth-ops.url)
+            - name: pr-source
+              resourceSpec:
+                type: pullRequest
+                params:
+                  - name: url
+                    value: $(params.html_repo_url)
+                secrets:
+                  - fieldName: authToken
+                    secretName: auth-secret
+                    secretKey: token
+        EOF
+
+
+    - name: pipelinerun-gather-metrics-overlay-configure
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        #!/usr/bin/env python3
+        import os
+        import json
+        import yaml
+        import uuid
+
+        ci_conf, thoth_conf = {}, {}
+
+        with open(".aicoe-ci.yaml", "r") as ci_stream:
+            ci_conf = yaml.safe_load(ci_stream)
+
+        print(ci_conf)
+        uid = str(uuid.uuid4())[0:6]
+
+        if os.path.isfile(".thoth.yaml"):
+            with open(".thoth.yaml", "r") as thoth_stream:
+                thoth_conf = yaml.safe_load(thoth_stream)
+
+        overlays_dir = ci_conf.get("overlays_dir", "overlays")
+
+        if not ci_conf.get("overlays_dir"):
+
+            if thoth_conf:
+                runtime_env = thoth_conf["runtime_environments"][0]
+                ci_conf["build"]["base-image"] = runtime_env.get("base_image")
+
+            with open("overlays-gather-metrics-pipelinerun.yaml", "r") as pipelinerun_yaml:
+
+                pipelinerun = yaml.safe_load(pipelinerun_yaml)
+
+                overlay_name = ""
+
+                pipelinerun["metadata"]["name"] = pipelinerun["metadata"]["name"].replace(
+                    "{overlays}", overlay_name
+                )
+                pipelinerun["metadata"]["name"] = pipelinerun["metadata"]["name"] + '-' + uid
+                pipelinerun["metadata"]["labels"]["deployment-name"] = overlay_name
+
+                spec_params = []
+
+                for param in pipelinerun["spec"]["params"]:
+
+                    for ele in ci_conf["build"]:
+                        if param["name"] == "_".join(ele.split("-")):
+                            param["value"] = ci_conf["build"].get(ele, "")
+
+                    for ele in ci_conf.get("deploy", []):
+                        if param["name"] == "overlay_contextpath":
+                            param["value"] = ci_conf["deploy"].get(
+                                "overlay-contextpath", ""
+                            )
+
+                        elif param["name"] == "deploy_" + "_".join(ele.split("-")):
+                            param["value"] = ci_conf["deploy"].get(ele, "")
+
+                    if param["name"] == "deploy":
+                        param["value"] = "deploy" if ci_conf.get("deploy") else ""
+
+                    if param["name"] == "base_image":
+                        param["value"] = ci_conf["build"]["base-image"]
+
+                    if param["name"] == "overlay_name":
+                        param["value"] = overlay_name
+
+                    if param["name"] == "runtime_environment_test_name":
+                        param["value"] = ci_conf["gather"]["overlay-name"]
+
+                    if param["name"] == "test_name":
+                        param["value"] = ci_conf["gather"]["name"]
+
+                    spec_params.append(param)
+
+                pipelinerun["spec"]["params"] = spec_params
+
+                with open(
+                    f"/workspace/pipelinerun-{overlay_name}.yaml", "w"
+                ) as output_pipelinerun_yaml:
+                    yaml.dump(
+                        pipelinerun, output_pipelinerun_yaml, default_flow_style=False
+                    )
+        else:
+            if thoth_conf:
+                if thoth_conf.get("overlays_dir"):
+                  for runtime_env in thoth_conf["runtime_environments"]:
+                      for overlay_env in ci_conf["overlays"]:
+                          if runtime_env["name"] == overlay_env["name"] and "base_image" in runtime_env:
+                              overlay_env["build"]["base-image"] = runtime_env.get("base_image")
+
+            for overlay_env in ci_conf["overlays"]:
+
+                print(overlay_env)
+
+                if "deploy" in overlay_env and "build" in overlay_env and "gather" in overlay_env:
+
+                    print(f"Overlay {overlay_env['name']} will be used for gather deployment pipeline.")
+
+                    with open("overlays-gather-metrics-pipelinerun.yaml", "r") as pipelinerun_yaml:
+
+                        pipelinerun = yaml.safe_load(pipelinerun_yaml)
+
+                        overlay_name = overlay_env["name"]
+
+                        pipelinerun["metadata"]["name"] = pipelinerun["metadata"]["name"].replace(
+                            "{overlays}", overlay_name
+                        )
+                        pipelinerun["metadata"]["name"] = pipelinerun["metadata"]["name"] + '-' + uid
+                        pipelinerun["metadata"]["labels"]["deployment-name"] = overlay_name
+
+                        spec_params = []
+
+                        for param in pipelinerun["spec"]["params"]:
+
+                            for ele in overlay_env["build"]:
+                                if param["name"] == "_".join(ele.split("-")):
+                                    param["value"] = overlay_env["build"].get(ele, "")
+
+                            for ele in overlay_env.get("deploy", []):
+                                if param["name"] == "overlay_contextpath":
+                                    param["value"] = overlay_env["deploy"].get(
+                                        "overlay-contextpath", ""
+                                    )
+
+                                elif param["name"] == "deploy_" + "_".join(ele.split("-")):
+                                    param["value"] = overlay_env["deploy"].get(ele, "")
+
+                            if param["name"] == "deploy":
+                                param["value"] = "deploy" if overlay_env.get("deploy") else ""
+
+                            if param["name"] == "base_image":
+                                param["value"] = overlay_env["build"]["base-image"]
+
+                            if param["name"] == "overlay_name":
+                                param["value"] = overlay_name
+
+                            if param["name"] == "runtime_environment_test_name":
+                                param["value"] = overlay_env["gather"]["overlay-name"]
+
+                            if param["name"] == "test_name":
+                                param["value"] = overlay_env["gather"]["name"]
+
+                            spec_params.append(param)
+
+                        pipelinerun["spec"]["params"] = spec_params
+
+                        with open(
+                            f"/workspace/pipelinerun-{overlay_name}.yaml", "w"
+                        ) as output_pipelinerun_yaml:
+                            yaml.dump(
+                                pipelinerun, output_pipelinerun_yaml, default_flow_style=False
+                            )
+                else:
+                    print(f"Discarded overlay {overlay_env['name']}")
+
+
+    - name: start-pipelines
+      image: quay.io/openshift/origin-cli:latest
+      workingDir: /workspace/repo
+      script: |
+        for overlay_file in /workspace/*.yaml
+        do
+          cat $overlay_file && oc apply -f $overlay_file
+        done

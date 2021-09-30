@@ -1,5 +1,5 @@
 ---
-name: Help with Sesheta invite 
+name: Help with Sesheta invite
 description: "Create a request to accept invitation for sesheta."
 title: "Help with Sesheta invite"
 labels: [area/cyborgs, bot, sig/cyborgs]
@@ -13,7 +13,7 @@ body:
       attributes:
           label: GitHub Repo
           description: |
-              Provide the github repository url where Sesheta was invite as contributor  
+              Provide the github repository url where Sesheta was invite as contributor
           placeholder: https://github.com/thoth-station/support
       validations:
           required: true

@@ -7,13 +7,35 @@ metadata:
     app: aicoe-ci
 spec:
   params:
-    - name: event_action
-      type: string
     - name: pr_number
       type: string
     - name: pr_repo
       type: string
     - name: repo_url
+      type: string
+    - name: base_image
+      type: string
+    - name: build_stratergy
+      type: string
+    - name: build_source_script
+      type: string
+    - name: dockerfile_path
+      type: string
+    - name: registry
+      type: string
+    - name: registry_org
+      type: string
+    - name: registry_project
+      type: string
+    - name: registry_secret
+      type: string
+    - name: overlay_name
+      type: string
+    - name: test_name
+      type: string
+    - name: runtime_environment_test_name
+      type: string
+    - name: commit_sha
       type: string
   resources:
     - name: git-repo
@@ -28,42 +50,6 @@ spec:
       type: pullRequest
 
   tasks:
-    - name: gather-metrics-check-inputs
-      taskRef:
-        name: gather-metrics-check-inputs
-      params:
-        - name: pr_number
-          value: $(params.pr_number)
-        - name: pr_repo
-          value: $(params.pr_repo)
-        - name: event_action
-          value: $(params.event_action)
-      resources:
-        inputs:
-          - name: s2i-thoth
-            resource: thoth-s2i-py38
-          - name: repo
-            resource: git-repo
-
-    - name: gather-metrics-configuration
-      taskRef:
-        name: gather-metrics-configuration
-      params:
-        - name: pr_number
-          value: $(params.pr_number)
-        - name: pr_repo
-          value: $(params.pr_repo)
-      resources:
-        inputs:
-          - name: s2i-thoth
-            resource: thoth-s2i-py38
-          - name: repo
-            resource: git-repo
-          - name: pr
-            resource: pr-source
-      runAfter:
-        - gather-metrics-check-inputs
-
     - name: pr-build-release-run
       taskRef:
         name: pr-build-release
@@ -73,23 +59,23 @@ spec:
         - name: pr_repo
           value: $(params.pr_repo)
         - name: base_image
-          value: $(tasks.gather-metrics-configuration.results.base-image)
+          value: $(params.base_image)
         - name: overlay_name
-          value: $(tasks.gather-metrics-configuration.results.overlay_name)
+          value: $(params.overlay_name)
         - name: build_stratergy
-          value: $(tasks.gather-metrics-configuration.results.build-stratergy)
+          value: $(params.build_stratergy)
         - name: build_source_script
-          value: $(tasks.gather-metrics-configuration.results.build-source-script)
+          value: $(params.build_source_script)
         - name: dockerfile_path
-          value: $(tasks.gather-metrics-configuration.results.dockerfile-path)
+          value: $(params.dockerfile_path)
         - name: registry
-          value: $(tasks.gather-metrics-configuration.results.registry)
+          value: $(params.registry)
         - name: registry_org
-          value: $(tasks.gather-metrics-configuration.results.registry-org)
+          value: $(params.registry_org)
         - name: registry_project
-          value: $(tasks.gather-metrics-configuration.results.registry-project)
+          value: $(params.registry_project)
         - name: registry_secret
-          value: $(tasks.gather-metrics-configuration.results.registry-secret)
+          value: $(params.registry_secret)
       resources:
         inputs:
           - name: s2i-thoth
@@ -98,19 +84,23 @@ spec:
             resource: git-repo
           - name: pr
             resource: pr-source
-      runAfter:
-        - gather-metrics-configuration
 
     - name: manifests-deploy
       taskRef:
         name: manifests-deploy
       params:
+        - name: pr_number
+          value: $(params.pr_number)
         - name: deployment_image_url
-          value: "$(tasks.gather-metrics-configuration.results.registry)/$(tasks.gather-metrics-configuration.results.registry-org)/$(tasks.gather-metrics-configuration.results.registry-project):pr-$(params.pr_number)"
+          value: "$(params.registry)/$(params.registry_org)/$(params.registry_project):pr-$(params.pr_number)"
+        - name: overlay_name
+          value: $(params.overlay_name)
       resources:
         inputs:
           - name: pipeline-helpers
             resource: pipeline-helpers
+          - name: s2i-thoth
+            resource: thoth-s2i-py38
           - name: thoth-ops
             resource: thoth-ops
           - name: repo
@@ -128,23 +118,31 @@ spec:
           value: $(params.pr_number)
         - name: pr_repo
           value: $(params.pr_repo)
+        - name: overlay_name
+          value: $(params.overlay_name)
       runAfter:
         - manifests-deploy
 
-    - name: gather-and-provide-metrics
+    - name: gather-and-process-metrics
       taskRef:
-        name: gather-and-provide-metrics
+        name: gather-and-process-metrics
       params:
         - name: runtime_environment_test_name
-          value: "test-model"
+          value: $(params.runtime_environment_test_name)
+        - name: test_name
+          value: $(params.test_name)
         - name: route_deployment
           value: "$(tasks.discover-route.results.route-name)"
         - name: repo_url
           value: $(params.repo_url)
         - name: pr_number
           value: $(params.pr_number)
+        - name: pr_repo
+          value: $(params.pr_repo)
+        - name: overlay_name
+          value: $(params.overlay_name)
         - name: commit_sha
-          value: $(tasks.gather-metrics-configuration.results.commit-sha)
+          value: $(params.commit_sha)
       resources:
         inputs:
           - name: pipeline-helpers
@@ -157,13 +155,3 @@ spec:
             resource: pr-source
       runAfter:
         - discover-route
-
-  finally:
-    - name: delete-deployment
-      taskRef:
-        name: gather-metrics-clean-task
-      params:
-        - name: pr_number
-          value: $(params.pr_number)
-        - name: pr_repo
-          value: $(params.pr_repo)

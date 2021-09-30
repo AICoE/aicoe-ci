@@ -1,19 +1,8 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: gather-and-provide-metrics
+  name: provide-metrics
 spec:
-  params:
-    - name: runtime_environment_test_name
-      description: Runtime environment name present in .thoth.yaml for test.
-    - name: route_deployment
-      description: Route to the deployment model for test.
-    - name: repo_url
-      description: repo URL.
-    - name: pr_number
-      description: Pull request ID.
-    - name: commit_sha
-      description: Commit SHA.
   resources:
     inputs:
       - name: pipeline-helpers
@@ -26,50 +15,26 @@ spec:
         type: git
 
   steps:
-    - name: git-checkout-pr-number
-      image: $(resources.inputs.s2i-thoth.url)
-      workingDir: /workspace/repo
-      securityContext:
-        privileged: true
-      script: |
-        git fetch origin pull/$(params.pr_number)/head:workbranch
-        git checkout workbranch
-
-    - name: gather-metrics
-      image: $(resources.inputs.pipeline-helpers.url)
-      workingDir: /workspace/repo
-      securityContext:
-        privileged: true
-      script: |
-        sleep 40
-        python3 /opt/app-root/src/gather_metrics.py
-      env:
-        - name: PIPELINE_HELPERS_METRICS_FILE_PATH
-          value: "metrics.json"
-        - name: DEPLOYED_MODEL_URL
-          value: "$(params.route_deployment)"
-        - name: TEST_RUNTIME_ENVIRONMENT_NAME
-          value: $(params.runtime_environment_test_name)
-
-    - name: post-process-data
+    - name: aggregate-data
       image: $(resources.inputs.pipeline-helpers.url)
       workingDir: /workspace/repo
       securityContext:
         privileged: true
       env:
-        - name: REPO_URL
-          value: $(params.repo_url)
-        - name: COMMIT_SHA
-          value: $(params.commit_sha)
+        - name: PIPELINE_HELPERS_DEPLOYMENT_NAMESPACE
+          valueFrom:
+            configMapKeyRef:
+              name: aicoe-ci-config
+              key: namespace
         - name: THOTH_S3_ENDPOINT_URL
           valueFrom:
             configMapKeyRef:
-              name: aicoe-ci-ceph
+              name: aicoe-ci-config
               key: endpoint
         - name: THOTH_CEPH_BUCKET
           valueFrom:
             configMapKeyRef:
-              name: aicoe-ci-ceph
+              name: aicoe-ci-config
               key: bucket
         - name: THOTH_CEPH_KEY_ID
           valueFrom:
@@ -82,7 +47,7 @@ spec:
               name: aicoe-ci-ceph
               key: secret-key
       script: |
-        python3 /opt/app-root/src/post_process_metrics.py
+        python3 /opt/app-root/src/aggregate_metrics_results.py
 
     - name: pr-updates
       image: $(resources.inputs.s2i-thoth.url)
