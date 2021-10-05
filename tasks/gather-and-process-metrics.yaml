@@ -69,8 +69,6 @@ spec:
           value: "$(params.route_deployment)"
         - name: PIPELINE_HELPERS_TEST_NAME
           value: "$(params.test_name)"
-        - name: TUTORIAL_MAX_REQUESTS_TEST
-          value: "100"
 
     - name: store-pod-name
       image: quay.io/openshift/origin-cli:latest

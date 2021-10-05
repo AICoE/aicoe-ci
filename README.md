@@ -143,6 +143,11 @@ deploy:
   overlay-contextpath: example/overlays/test/imagestreamtag.yaml # Imagestream manifest where tag is to be updated.
 ```
 
+#### Configuring Gather requirements
+
+AICoE-CI enables Data Scientists and DevOps to receive feedback about deployments of ML applications. Check [here]](docs/gather-metrics-deployments-pipeline.md) for more information.
+
+
 ## How to Contribute
 
 - For Overview on AICoE-CI Pipeline, check: [AICoE-CI Development]()

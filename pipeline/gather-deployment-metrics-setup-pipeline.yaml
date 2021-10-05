@@ -100,6 +100,11 @@ spec:
     - name: watch-gather-metrics-pipelines
       taskRef:
         name: gather-metrics-pipeline-watch
+      params:
+        - name: pr_number
+          value: $(params.pr_number)
+        - name: pr_repo
+          value: $(params.pr_repo)
       resources:
         inputs:
           - name: pipeline-helpers
