@@ -20,8 +20,6 @@ resources:
   - configmap.yaml
 generators:
   - secret-generator.yaml
-patchesStrategicMerge:
-  - listener.yaml
 patchesJson6902:
   - path: job-generate-name.yaml
     target:
