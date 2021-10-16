@@ -32,7 +32,7 @@ spec:
             eventTypes:
               - pull_request
         - cel:
-            filter: "(body.action in ['opened', 'closed', 'synchronize', 'reopened', 'created']) && (body.repository.name != 'prescriptions')"
+            filter: "(body.action in ['opened', 'closed', 'synchronize', 'reopened', 'created']) && (body.repository.name != 'prescriptions') && (body.repository.name != 'solver')"
       bindings:
         - kind: TriggerBinding
           ref: git-pr-binding
@@ -48,7 +48,7 @@ spec:
             eventTypes:
               - issue_comment
         - cel:
-            filter: "(body.comment.body.startsWith('/retest') || body.comment.body.startsWith('/deploy')) && (body.repository.name != 'prescriptions')"
+            filter: "(body.comment.body.startsWith('/retest') || body.comment.body.startsWith('/deploy')) && (body.repository.name != 'prescriptions') && (body.repository.name != 'solver')"
       bindings:
         - kind: TriggerBinding
           ref: git-issue-comment-binding
