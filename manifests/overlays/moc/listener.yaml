@@ -1,0 +1,168 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: aicoe-ci-listener
+  labels:
+    app: aicoe-ci
+spec:
+  serviceAccountName: aicoe-ci-webhook
+  triggers:
+    - name: github-pull-request-model
+      interceptors:
+        - name: "elyra-aidevsecops-tutorial pull request"
+          ref:
+            name: "github"
+          params:
+            - name: "secretRef"
+              value:
+                secretName: github-secret
+                secretKey: webhooksecret
+            - name: "eventTypes"
+              value: ["pull_request"]
+        - name: "CEL filter: elyra-aidevsecops-tutorial pull request"
+          ref:
+            name: "cel"
+          params:
+            - name: "filter"
+              value: "(body.action in ['opened', 'closed', 'synchronize', 'reopened', 'created']) && (body.repository.name == 'elyra-aidevsecops-tutorial')"
+      bindings:
+        - ref: git-model-binding
+      template:
+        name: git-model-template
+
+    - name: github-pull-request
+      interceptors:
+        - name: "elyra-aidevsecops-tutorial pull request"
+          ref:
+            name: "github"
+          params:
+            - name: "secretRef"
+              value:
+                secretName: github-secret
+                secretKey: webhooksecret
+            - name: "eventTypes"
+              value: ["pull_request"]
+        - name: "CEL filter: elyra-aidevsecops-tutorial pull request"
+          ref:
+            name: "cel"
+          params:
+            - name: "filter"
+              value: "body.action in ['opened', 'closed', 'synchronize', 'reopened', 'created']"
+      bindings:
+        - ref: git-pr-binding
+      template:
+        name: git-pr-template
+
+    - name: github-pull-request-comment
+      interceptors:
+        - name: "retest-or-deploy-issue-comment"
+          ref:
+            name: "github"
+          params:
+            - name: "secretRef"
+              value:
+                secretName: github-secret
+                secretKey: webhooksecret
+            - name: "eventTypes"
+              value: ["issue_comment"]
+        - name: "CEL filter: retest or deploy comment"
+          ref:
+            name: "cel"
+          params:
+            - name: "filter"
+              value: "body.comment.body.startsWith('/retest') || body.comment.body.startsWith('/deploy')"
+      bindings:
+        - ref: git-issue-comment-binding
+      template:
+        name: git-pr-template
+
+    - name: github-tag-release
+      interceptors:
+        - name: "github-tag-interceptor"
+          ref:
+            name: "github"
+          params:
+            - name: "secretRef"
+              value:
+                secretName: github-secret
+                secretKey: webhooksecret
+            - name: "eventTypes"
+              value: ["issue_comment"]
+        - name: "CEL filter: retest or deploy comment"
+          ref:
+            name: "cel"
+          params:
+            - name: "filter"
+              value: "body.ref_type == 'tag'"
+      bindings:
+        - ref: git-tag-binding
+      template:
+        name: git-tag-template
+
+    - name: github-issue-release
+      interceptors:
+        - name: "github-issue-release"
+          ref:
+            name: "github"
+          params:
+            - name: "secretRef"
+              value:
+                secretName: github-secret
+                secretKey: webhooksecret
+            - name: "eventTypes"
+              value: ["issues"]
+        - name: "CEL filter: body title Deliver Container Image, Missing modules ad upstream sync-ups and action for open pr"
+          ref:
+            name: "cel"
+          params:
+            - name: "filter"
+              value: "(body.issue.title in ['Deliver Container Image','Deliver Missing Module','Upstream Sync Up']) && (body.action in ['opened', 'reopened'])"
+      bindings:
+        - ref: git-issue-binding
+      template:
+        name: git-issue-template
+
+    - name: opf-issue-release
+      interceptors:
+        - name: "opf-issue-release"
+          ref:
+            name: "github"
+          params:
+            - name: "secretRef"
+              value:
+                secretName: github-secret
+                secretKey: webhooksecret
+            - name: "eventTypes"
+              value: ["issues"]
+        - name: "CEL FILTER: New project requests in operate-first/support"
+          ref:
+            name: "cel"
+          params:
+            - name: "filter"
+              value: "(body.issue.title.startsWith('NEW PROJECT')) && (body.action in ['opened']) && (body.repository.full_name == 'operate-first/support')"
+      bindings:
+        - ref: onboarding-issue-binding
+      template:
+        name: onboarding-issue-template
+
+    # z-stream release pipeline for operate-first
+    - name: odh-z-stream-release
+      interceptors:
+        - github:
+            secretRef:
+              secretName: github-secret
+              secretKey: webhooksecret
+            eventTypes:
+              - create
+        - cel:
+            filter: "(body.ref_type == 'tag') && (body.repository.full_name == 'opendatahub-io/odh-manifests')"
+      bindings:
+        - ref: z-stream-release-binding
+      template:
+        name: z-stream-release-template
+
+    - name: webhook-tag-release
+      bindings:
+        - ref: webhook-tag-binding
+      template:
+        name: git-tag-template
