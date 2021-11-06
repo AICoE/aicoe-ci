@@ -1,0 +1,16 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  name: build-go-binaries-run
+spec:
+  taskRef:
+    name: build-go-binaries
+  params:
+    - name: git_organization
+      value: "operate-first"
+    - name: git_repository
+      value: "opfcli"
+    - name: git_tag
+      value: "v0.2.0"
+    - name: build_strategy_OS_x_ARCH
+      value: "linux-arm|linux-arm64|linux-amd64|darwin-amd64"

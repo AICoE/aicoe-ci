@@ -1,0 +1,140 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: create-github-release
+  labels:
+    app.kubernetes.io/version: "0.1"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.12.1"
+    tekton.dev/tags: github
+    tekton.dev/displayName: "create github release"
+spec:
+  params:
+    - default: sekhet
+      description: >-
+        The github user or bot that you would like to be automated to make the
+        release.
+      name: git_user
+      type: string
+    - default: operate-first
+      description: >-
+        The organization that owns the repository of which you would like to
+        create a relase.
+      name: git_organization
+      type: string
+    - default: opfcli
+      description: The repository that you want to create a release of.
+      name: git_repository
+      type: string
+    - description: An existing or desired git tag.
+      name: git_tag
+      type: string
+    - default: master
+      description: >-
+        Git revision to create a release from if tag does tag does not exist
+        (branch, sha, ref…).
+      name: git_ref
+      type: string
+    - default: 'release ${params.git_tag}'
+      description: The title of the release.
+      name: git_release_title
+      type: string
+    - description: The desired body text of the release.
+      name: git_release_body
+      type: string
+    - default: 'false'
+      description: The boolean that determines if you would like this to be a pre-release.
+      name: git_prerelase_boolean
+      type: string
+    - default: 'false'
+      description: >-
+        The boolean that determines if you would like to save this as a draft
+        instead of publishing. Typical workflow could be having a bot draft
+        release for review by owners/contributors before publishing.
+      name: git_draft_release_boolean
+      type: string
+  steps:
+    - image: 'quay.io/thoth-station/s2i-thoth-ubi8-py36:latest'
+      name: git-config
+      resources:
+        limits:
+          cpu: 70m
+          memory: 250Mi
+        requests:
+          cpu: 50m
+          memory: 200Mi
+      workingDir: /workspace
+      script: >
+        git clone
+        https://github.com/$(params.git_organization)/$(params.git_repository).git
+        cd $(params.git_repository);
+        existing_tags= git tag
+        if [[ "${existing_tags}" -ne *"$(params.git_tag)"* ]]; then
+          git checkout $(params.git_tag)-build
+        else
+          git checkout tags/$(params.git_tag) -b $(params.git_tag)-build
+        fi
+    - image: 'quay.io/thoth-station/s2i-thoth-ubi8-py36:latest'
+      name: git-check-release-exists
+      resources:
+        limits:
+          cpu: 50m
+          memory: 250Mi
+        requests:
+          cpu: 70m
+          memory: 200Mi
+      script: >
+        release_check_status="$(curl -s -o /dev/null -w "%{http_code}"
+        https://api.github.com/repos/$(params.git_organization)/$(params.git_repository)/releases/tags/$(params.git_tag))"
+        if [[ $release_check_status -eq 200 ]]; then
+          echo "release already exists."
+          exit 1;
+        else
+          exit 0;
+        fi;
+    - env:
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              key: token
+              name: auth-secret
+      image: 'quay.io/thoth-station/s2i-thoth-ubi8-py36:latest'
+      name: create-release
+      resources:
+        limits:
+          cpu: 170m
+          memory: 250Mi
+        requests:
+          cpu: 150m
+          memory: 200Mi
+      script: |
+        #!/usr/libexec/platform-python
+        import json
+        import os
+        import http.client
+
+        status_url =
+        "repos/$(params.git_organization)/$(params.git_repository)/releases"
+        data = {
+            "prerelease"=false,
+            'draft':false,
+            'body':"$(params.git_release_body)",
+            'name':"$(params.git_release_title)",
+            'tag_name':"$(params.git_tag)",
+        }
+
+        conn = http.client.HTTPSConnection("api.github.com") r = conn.request(
+            "POST",
+            status_url,
+            body=json.dumps(data),
+            headers={
+                "Accept": "application/vnd.github.v3+json"
+                "User-Agent": "$(params.git_user)",
+                "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+            })
+        resp = conn.getresponse() if not str(resp.status).startswith("2"):
+            print("Error: %d" % (resp.status))
+            print(resp.read())
+        else:
+            print("Successful: %d" % (resp.status))
+            print(resp.read())

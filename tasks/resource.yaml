@@ -54,6 +54,38 @@ spec:
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
+  name: opf-apps-repo
+spec:
+  type: git
+  params:
+    - name: url
+      value: https://github.com/operate-first/apps.git
+    - name: revision
+      value: master
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: opfcli-repo
+spec:
+  type: git
+  params:
+    - name: url
+      value: https://github.com/operate-first/apps.git
+    - name: revision
+      value: automated-releases
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: aicoe-ci-ceph
+data:
+  endpoint: "https://s3.upshift.redhat.com/"
+  bucket: "thoth"
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
   name: thoth-s2i-py38
   labels:
     app: aicoe-ci

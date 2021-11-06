@@ -1,0 +1,30 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: onboarding-issue-binding
+spec:
+  params:
+    - name: event_action
+      value: $(body.action)
+    - name: issue_number
+      value: $(body.issue.number)
+    - name: issue_state
+      value: $(body.issue.state)
+    - name: issue_title
+      value: $(body.issue.title)
+    - name: issue_body
+      value: $(body.issue.body)
+    - name: issue_author_association
+      value: $(body.issue.author_association)
+    - name: issue_author
+      value: $(body.issue.user.login)
+    - name: repo_name
+      value: $(body.repository.name)
+    - name: repo_full_name
+      value: $(body.repository.full_name)
+    - name: repo_url
+      value: $(body.repository.html_url)
+    - name: ssh_url
+      value: $(body.repository.ssh_url)
+    - name: default_branch
+      value: $(body.repository.default_branch)

@@ -86,6 +86,21 @@ spec:
           ref: git-issue-binding
       template:
         ref: git-issue-template
+    - name: github-issue-release
+      interceptors:
+        - github:
+            secretRef:
+              secretName: github-secret
+              secretKey: webhooksecret
+            eventTypes:
+              - issues
+        - cel:
+            filter: "(body.issue.title.startsWith('NEW PROJECT')) && (body.action in ['opened'])"
+      bindings:
+        - kind: TriggerBinding
+          ref: onboarding-issue-binding
+      template:
+        ref: onboarding-issue-template
 
     # custom pipeline for rhods
     - name: rhods-issue-pipeline

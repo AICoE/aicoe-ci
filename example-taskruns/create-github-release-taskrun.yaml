@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  name: issue-release-run
+spec:
+  taskRef:
+    name: create-github-release
+  params:
+    - name: git_organization
+      value: "Gregory-Pereira"
+    - name: git_repository
+      value: "image-to-text"
+    - name: git_tag
+      value: "v1.1"
+    - name: git_ref
+      value: ""
+    - name: git_release_title
+      value: "sample release title"
+    - name: git_release_body
+      value: "this is a sample body"
+    - name: git_prerelase_boolean
+      value: "false"
+    - name: git_draft_release_boolean
+      value: "false"
+    - name: git_user
+      value: "Gregory-Pereira"
