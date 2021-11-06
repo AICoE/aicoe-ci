@@ -75,14 +75,6 @@ spec:
     - name: revision
       value: automated-releases
 ---
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: aicoe-ci-ceph
-data:
-  endpoint: "https://s3.upshift.redhat.com/"
-  bucket: "thoth"
----
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:

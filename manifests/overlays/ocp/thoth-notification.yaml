@@ -2,11 +2,14 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: chat-notification-succeeded-
+  name: aicoe-ci-chat-notification-succeeded-
   annotations:
+    operation: chat-notification
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
 spec:
+  ttlSecondsAfterFinished: 5
+  backoffLimit: 2
   template:
     spec:
       containers:
@@ -28,16 +31,18 @@ spec:
                   name: chat-notification
                   key: thoth-devops
       restartPolicy: Never
-  backoffLimit: 2
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: chat-notification-failed-
+  name: aicoe-ci-chat-notification-failed-
   annotations:
+    operation: chat-notification
     argocd.argoproj.io/hook: SyncFail
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
 spec:
+  ttlSecondsAfterFinished: 5
+  backoffLimit: 2
   template:
     spec:
       containers:
@@ -59,4 +64,3 @@ spec:
                   name: chat-notification
                   key: thoth-devops
       restartPolicy: Never
-  backoffLimit: 2

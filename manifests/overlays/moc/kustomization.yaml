@@ -20,3 +20,10 @@ resources:
   - configmap.yaml
 generators:
   - secret-generator.yaml
+patches:
+  - path: put-into-infra-namespace.yaml
+    target:
+      group: batch
+      version: v1
+      kind: Job
+      annotationSelector: "operation=chat-notification"
