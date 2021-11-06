@@ -2,10 +2,11 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - eventlistener.yaml
-  - git-issue-comment-binding.yaml
   - git-issue-binding.yaml
+  - git-issue-comment-binding.yaml
   - git-model-binding.yaml
   - git-pr-binding.yaml
   - git-tag-binding.yaml
+  - onboarding-issue-binding.yaml
   - webhook-tag-binding.yaml
   - z-stream-release-binding.yaml

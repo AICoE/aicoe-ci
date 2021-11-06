@@ -6,4 +6,5 @@ resources:
   - git-model-template.yaml
   - git-pr-template.yaml
   - git-tag-template.yaml
+  - onboarding-issue-template.yaml
   - z-stream-release-template.yaml

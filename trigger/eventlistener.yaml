@@ -86,6 +86,8 @@ spec:
           ref: git-issue-binding
       template:
         ref: git-issue-template
+
+    # custom onboarding pipeline for operate-first
     - name: github-issue-release
       interceptors:
         - github:
@@ -95,7 +97,7 @@ spec:
             eventTypes:
               - issues
         - cel:
-            filter: "(body.issue.title.startsWith('NEW PROJECT')) && (body.action in ['opened'])"
+            filter: "(body.issue.title.startsWith('NEW PROJECT')) && (body.action in ['opened']) && (body.repository.full_name == 'operate-first/support')"
       bindings:
         - kind: TriggerBinding
           ref: onboarding-issue-binding

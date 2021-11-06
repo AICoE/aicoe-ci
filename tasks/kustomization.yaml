@@ -2,18 +2,25 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - configuration-task.yaml
+  - create-github-release.yaml
   - custom-pipeline.yaml
   - deploy-manifests.yaml
-  - discover-route.yaml
   - gather-and-provide-metrics.yaml
   - gather-metrics-check-inputs.yaml
   - gather-metrics-clean-task.yaml
   - gather-metrics-configuration.yaml
+  - gather-metrics-deploy-manifests.yaml
+  - gather-metrics-deploy-manifests.yaml
+  - gather-metrics-deploy-manifests.yaml
+  - gather-metrics-pipeline-watch-task.yaml
+  - gather-metrics-provide-task.yaml
+  - github-release.yaml
   - init-task.yaml
   - issue-deploy-task.yaml
   - issue-pypi-release-task.yaml
   - issue-pulp-pypi-release-task.yaml
   - issue-release-task.yaml
+  - onboarding-issue-task.yaml
   - overlay-build-task.yaml
   - overlay-deploy-task.yaml
   - overlays-pipeline.yaml

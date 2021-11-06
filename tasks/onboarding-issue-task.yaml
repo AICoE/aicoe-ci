@@ -104,7 +104,7 @@ spec:
       script: |
         #!/opt/app-root/bin/python
         import os
-        import json
+        import jsontasks/
         import yaml
         with open("/workspace/onboard-file.yaml", 'r') as stream:
           data = yaml.safe_load(stream)
@@ -208,7 +208,6 @@ spec:
       script: |
         export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
         git remote add https_pushref https://$GITHUB_USERNAME:$TOKEN@github.com/$GITHUB_USERNAME/apps.git
-        git remote add ssh_pushref git@github.com:Gregory-Pereira/apps.git
         git config --global user.email "$GITHUB_EMAIL"
         git config --global user.name "$GITHUB_USERNAME"
         git branch -r
