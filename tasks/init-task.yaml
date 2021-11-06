@@ -82,12 +82,8 @@ spec:
         return_comment = ""
         if "/deploy" == received_comment:
             with open("./OWNERS", "r") as owners_file:
-                owners = owners_file.readlines()
-                found = False
-            for owner in owners:
-                if owner.find(author) != -1:
-                found = True
-            if not ((author_association != "OWNER") or (author_association != "MEMBER") or (found == True)):
+                owners = yaml.safe_load(owners_file)
+            if not (author_association == "OWNER" or author_association == "MEMBER" or author in owners["approvers"]):
                 return_comment = f"Hi @{author},\n you are not authorised to run `/deploy` command.\n Please contact the OWNERS."
         if return_comment:
             post_comment(return_comment)
