@@ -4,14 +4,13 @@ resources:
   - configuration-task.yaml
   - create-github-release.yaml
   - custom-pipeline.yaml
-  - deploy-manifests.yaml
-  - gather-and-provide-metrics.yaml
+  - gather-and-process-metrics.yaml
   - gather-metrics-check-inputs.yaml
   - gather-metrics-clean-task.yaml
   - gather-metrics-configuration.yaml
   - gather-metrics-deploy-manifests.yaml
-  - gather-metrics-deploy-manifests.yaml
-  - gather-metrics-deploy-manifests.yaml
+  - gather-metrics-discover-route.yaml
+  - gather-metrics-pipeline-creation-task.yaml
   - gather-metrics-pipeline-watch-task.yaml
   - gather-metrics-provide-task.yaml
   - github-release.yaml
