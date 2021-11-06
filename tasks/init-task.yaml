@@ -81,7 +81,9 @@ spec:
         author_association = "$(params.pr_comment_author_association)"
         return_comment = ""
         if "/deploy" == received_comment:
-            if not ((author_association != "OWNER") or (author_association != "MEMBER")):
+            with open("./OWNERS", "r") as owners_file:
+                owners = yaml.safe_load(owners_file)
+            if not (author_association == "OWNER" or author_association == "MEMBER" or author in owners["approvers"]):
                 return_comment = f"Hi @{author},\n you are not authorised to run `/deploy` command.\n Please contact the OWNERS."
         if return_comment:
             post_comment(return_comment)
