@@ -18,21 +18,28 @@ spec:
         type: image
       - name: repo
         type: git
+      # - name: pr
+      #   type: pullRequest
   results:
     - name: check_inputs_failed
       description: Check inputs for running pipeline to gather metrics
 
   steps:
+    - name: git-checkout-pr-number
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        git fetch origin pull/$(params.pr_number)/head:workbranch
+        git checkout workbranch
+
     - name: check-inputs
       image: $(resources.inputs.s2i-thoth.url)
       workingDir: /workspace/repo
       securityContext:
         privileged: true
       env:
-        - name: PIPELINE_PR_REPO
-          value: $(params.pr_repo)
-        - name: PIPELINE_PR_NUMBER
-          value: $(params.pr_number)
         - name: PIPELINE_EVENT_ACTION
           value: $(params.event_action)
       script: |
