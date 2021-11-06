@@ -104,7 +104,7 @@ spec:
       script: |
         #!/opt/app-root/bin/python
         import os
-        import jsontasks/
+        import json
         import yaml
         with open("/workspace/onboard-file.yaml", 'r') as stream:
           data = yaml.safe_load(stream)
