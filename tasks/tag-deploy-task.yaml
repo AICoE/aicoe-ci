@@ -30,9 +30,17 @@ spec:
     - name: deploy_image_name
       description: Deployment imagestream name to be used by the application.
       default: ""
+    - name: init_overlay_contextpath
+      type: string
+      description: imagestreamtag yaml which is to be updated, coming from the init-task.
+      default: ""
     - name: overlay_contextpath
       type: string
-      description: imagestreamtag yaml which is to be updated.
+      description: imagestreamtag yaml which is to be updated, coming from the pr-config task.
+      default: ""
+    - name: overlay_name
+      type: string
+      description: the overlay name to deploy (if one exists).
       default: ""
   resources:
     inputs:
@@ -56,14 +64,21 @@ spec:
     workingDir: /workspace/configrepo
     script: |
       #!/opt/app-root/bin/python
-      import yaml
 
+      import yaml
       registry_repo = "$(params.registry_project)" if "$(params.registry_project)" else "$(params.repo_name)"
-      contextpath = (
-          "$(params.overlay_contextpath)"
-          if "$(params.overlay_contextpath)"
-          else "$(params.repo_name)/overlays/test/imagestreamtag.yaml"
-      )
+
+      if "$(params.init_overlay_contextpath)" == "":
+          if "$(params.overlay_contextpath)" == "" and "$(params.overlay_name)" != "":
+              contextpath = "$(params.repo_name)/manifests/overlays/$(params.overlay_name)/imagestreamtag.yaml"
+          elif "$(params.overlay_contextpath)" == "":
+              contextpath = "$(params.repo_name)/overlays/test/imagestreamtag.yaml"
+          else:
+              contextpath = "$(params.overlay_contextpath)"
+      else:
+          contentpath = "$(params.init_overlay_contextpath)/imagestreamtag.yaml"
+          registry_repo = "$(params.overlay_name)"
+
       image = f"$(params.registry)/$(params.registry_org)/{registry_repo}:$(params.git_ref)"
 
       with open(contextpath, "r") as stream:

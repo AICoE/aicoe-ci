@@ -28,6 +28,9 @@ spec:
         type: image
       - name: repo
         type: git
+  results:
+    - name: overlay_name
+    - name: overlay_contextpath
 
   steps:
     - name: init-ops
@@ -47,7 +50,12 @@ spec:
         import yaml
         import os
         import http.client
+        import re
 
+        def write_to_file(path, item, content):
+            output = open(path, "w+")
+            output.write(str(item.get(content)))
+            output.close()
 
         def post_comment(context):
             with open("/workspace/pr/pr.json") as f:
@@ -85,8 +93,30 @@ spec:
                 owners = yaml.safe_load(owners_file)
             if not (author_association == "OWNER" or author_association == "MEMBER" or author in owners["approvers"]):
                 return_comment = f"Hi @{author},\n you are not authorised to run `/deploy` command.\n Please contact the OWNERS."
+        if re.match("/deploy [a-z,A-Z][a-z,A-Z,\-,0-9]*", received_comment):
+            var_overlay_name = received_comment[8:]
+            output_file = open("/tekton/results/overlay_name", "w+")
+            json.dump(var_overlay_name, output_file)
+            overlay_found = "false"
+            for root, dirs, files in os.walk("/workspace/repo/manifests/"):
+                for name in dirs:
+                    if name == var_overlay_name:
+                        output_file = open("/tekton/results/overlay_contextpath", "w+")
+                        json.dump(root + "/" + var_overlay_name, output_file)
+                        overlay_found = "true"
+            if var_overlay_name != "" and overlay_found == "false":
+                if "return_comment" in locals():
+                    return_comment += f"\nAdditionally, no overlay for name {var_overlay_name} found."
+                else:
+                    return_comment = f"No overlay for name {var_overlay_name} found."
         if return_comment:
             post_comment(return_comment)
+
+    - name: check-results
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      script: |
+        ls -la /tekton/results/
 
     - name: oc-create-image
       image: quay.io/openshift/origin-cli:latest
