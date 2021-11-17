@@ -2,7 +2,7 @@
 
 AICoE-CI is a continuous integration and delivery system based on Tekton-Pipeline/OpenShift-Pipeline.
 
-AICoE-CI is developed with Tekton Pipeline concepts.Pipeline are triggered with Tekton Triggers which functions based on git webhook events.<br>
+AICoE-CI is developed with Tekton Pipeline concepts. Pipelines are triggered with Tekton Triggers which functions based on git webhook events.<br>
 On the webhook triggered events, different pipeline are triggered to provide different services based on Pull Request, Issues and Tag releases.
 
 ## Architecture
@@ -53,7 +53,7 @@ Architectural decisions
 
 Setting up AICoE-CI on to your Github Organization/Repository can be commenced with three simple steps process:
 
-- AICoE-CI is available as [github application](https://github.com/apps/aicoe-ci).<br>
+- AICoE-CI is available as a [github application](https://github.com/apps/aicoe-ci).<br>
   Install and configure the app on your GitHub Organization or Repository.
 
 - Send invite to our friendly cyborg bot as a Contributor: [Sesheta](https://github.com/sesheta)
@@ -71,7 +71,7 @@ It allows the user to configure checks, release modules to pypi, build preferenc
 
 #### Configuring checks and tests
 
-CI provides following checks for pull requests.Each check is independent of each other, so users can pick and choose the tests which they require for there repository. It can be added into the `.aicoe.yaml` configuration file, as shown in the example snippet below.
+AICoE-CI provides following checks for pull requests. Each check is independent of each other, so users can pick and choose the tests which they require for there repository. It can be added into the `.aicoe.yaml` configuration file, as shown in the example snippet below.
 
 ```yaml
 check:
@@ -133,7 +133,7 @@ It is the responsibility of the Users/Developer to setup a robot or a serviceacc
 
 #### Configuring Deploy requirements
 
-AICoE-CI enable users to utilize the GitOps power and update manifest files with relevant information from the builds.<br>
+AICoE-CI enables users to utilize the GitOps power and update manifest files with relevant information from the builds.<br>
 User can point the context path and repository of the imagestream manifest, that has to be updated with the newly built available image tag.
 
 ```yaml
@@ -150,5 +150,4 @@ AICoE-CI enables Data Scientists and DevOps to receive feedback about deployment
 
 ## How to Contribute
 
-- For Overview on AICoE-CI Pipeline, check: [AICoE-CI Development]()
-- For Contribution Details and Setup of dev environment: [Setup and Contribution](docs/how-to-contribute.md)
+For Contribution Details and Setup of dev environment, see [Setup and Contribution](docs/how-to-contribute.md)
