@@ -1,7 +1,7 @@
 # How to contribute
 
 Welcome contributors,<br>
-Please free feel to contribute and help us in efforts to make aicoe-ci application more effective.
+Please free feel to contribute and help us in efforts to make the aicoe-ci application more effective.
 
 Pre-requisite:
 
@@ -35,7 +35,7 @@ AICoE-CI Components:
 
 # Want to step up an instance
 
-AICoE-CI required either Tekton Pipeline and Trigger to be available in the cluster which can be installed either manually or via OpenShift-Pipeline-Operator .<br>
+AICoE-CI requires both Tekton Pipeline and Trigger to be available in the cluster, which can be installed either manually or via OpenShift-Pipeline-Operator .<br>
 Choose based upon your requirements and cluster support. Pipeline and Trigger version is already pinned in the setup instruction.
 
 - Setup Manually Tekton Pipeline and Tekton Trigger in cluster:<br>
