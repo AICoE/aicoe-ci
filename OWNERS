@@ -1,8 +1,12 @@
 # See the OWNERS docs at https://go.k8s.io/owners
 
 approvers:
+  - codificat
   - harshad16
   - goern
+  - tumido
 reviewers:
-  - pacespace
+  - codificat
+  - harshad16
+  - pacospace
   - fridex
