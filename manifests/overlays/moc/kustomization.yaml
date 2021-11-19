@@ -27,3 +27,5 @@ patches:
       version: v1
       kind: Job
       annotationSelector: "operation=chat-notification"
+patchesStrategicMerge:
+  - listener.yaml
