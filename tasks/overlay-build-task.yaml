@@ -129,6 +129,13 @@ spec:
         rm -rf Pipfile Pipfile.lock
         if [ ! -z "$(params.overlays_dir)" ]; then
           cp -rf $(params.overlays_dir)/$(params.overlays_name)/* .
+          mkdir /opt/aicoe-ci
+          if [ -f Pipfile ]; then
+            cp -r Pipfile /opt/aicoe-ci
+          fi
+          if [ -f Pipfile.lock ]; then
+            cp -r Pipfile.lock /opt/aicoe-ci
+          fi
         fi
 
     - name: generate

@@ -132,6 +132,18 @@ spec:
         git tag "${TAG//[[:space:]]/}"
         git checkout "${TAG//[[:space:]]/}" -b workbranch
 
+    - name: pre-package-extract
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      script: |
+        mkdir /opt/aicoe-ci
+        if [ -f Pipfile ]; then
+          cp -r Pipfile /opt/aicoe-ci
+        fi
+        if [ -f Pipfile.lock ]; then
+          cp -r Pipfile.lock /opt/aicoe-ci
+        fi
+
     - name: generate
       image: quay.io/openshift-pipeline/s2i:nightly
       workingDir: /workspace/repo
