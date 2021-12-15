@@ -32,14 +32,14 @@ The pipeline diagram and behaviour can be seen in the following image:
 
 The pipeline is triggered when a new Pull Request is opened on the users repo. To be more precise this particular pipeline is made of 1 + N pipelines, where N is the number of ML models to be deployed.
 
-The `main pipeline` will perform the following steps: 
+The `main pipeline` will perform the following steps:
 - check inputs from `.aicoe.yaml` to verify deployments exist;
-- configure all parameters for the following task; 
-- schedule `N pipelineruns`, where `N` is the number of deployments. 
+- configure all parameters for the following task;
+- schedule `N pipelineruns`, where `N` is the number of deployments.
 
 ![multiple deployments](./multiple-deployments.png)
 
-- watch the N pipelines monitoring status and wait until those will finish (Failed or Succeeded). 
+- watch the N pipelines monitoring status and wait until those will finish (Failed or Succeeded).
 - once the N pipelines finishes, the last task will collect the metrics gathered, post process them and comment on the Pull Request initially opened.
 
 Each of the `N pipelines` will perform the following steps:
