@@ -135,6 +135,8 @@ spec:
     - name: pre-package-extract
       image: $(resources.inputs.s2i-thoth.url)
       workingDir: /workspace/repo
+      securityContext:
+        privileged: true
       script: |
         mkdir /opt/aicoe-ci
         if [ -f Pipfile ]; then
