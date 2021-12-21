@@ -4,7 +4,7 @@ apiVersion: v1
 metadata:
   name: aicoe-ci-ceph
 data:
-  endpoint: "https://s3-rgw-openshift-storage.apps.rick.emea.operate-first.cloud/"
+  endpoint: "https://s3-openshift-storage.apps.smaug.na.operate-first.cloud"
   bucket: "thoth"
   namespace: "opf-ci-pipelines"
   thanos-endpoint: "http://thanos-query-frontend-opf-observatorium.apps.smaug.na.operate-first.cloud/"
