@@ -76,6 +76,13 @@ spec:
       workingDir: /workspace/repo
       securityContext:
         privileged: true
+      resources:
+        limits:
+          memory: "8Gi"
+          cpu: "2"
+        requests:
+          memory: "2Gi"
+          cpu: "2"
       script: |
         buildah bud \
         --tls-verify=$(params.TLSVERIFY) \
