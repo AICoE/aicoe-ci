@@ -32,7 +32,7 @@ spec:
         git checkout tags/$(params.git_ref) -b workbranch
 
     - name: build-package
-      image: $(resources.inputs.s2i-thoth.url)
+      image: quay.io/thoth-station/twine:latest
       workingDir: /workspace/repo
       securityContext:
         privileged: true
