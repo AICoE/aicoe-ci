@@ -31,7 +31,7 @@ spec:
       securityContext:
         privileged: true
       script: |
-        python setup.py sdist bdist_wheel
+        python -m build --sdist --wheel
 
     - name: upload-package
       image: quay.io/thoth-station/twine:latest
