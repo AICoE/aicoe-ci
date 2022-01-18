@@ -87,7 +87,7 @@ spec:
       image: $(resources.inputs.s2i-thoth.url)
       workingDir: /workspace/repo
       script: |
-        #!/usr/libexec/platform-python
+        #!/opt/app-root/bin/python
         import os
         import json
         import yaml

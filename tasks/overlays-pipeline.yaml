@@ -110,7 +110,7 @@ spec:
       securityContext:
         privileged: true
       script: |
-        #!/usr/libexec/platform-python
+        #!/usr/bin/env python3
         import os
         import json
         import yaml
