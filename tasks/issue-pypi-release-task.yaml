@@ -45,7 +45,6 @@ spec:
         TAG=$(echo "$(params.issue_body)" | awk -F ':' '{print $2}')
         set -x
         git fetch origin --tags
-        git tag "${TAG//[[:space:]]/}"
         git checkout "${TAG//[[:space:]]/}" -b workbranch
 
     - name: build-package
@@ -54,7 +53,7 @@ spec:
       securityContext:
         privileged: true
       script: |
-        python setup.py sdist bdist_wheel
+        python -m build --sdist --wheel
         python setup.py --name > package_name.txt
 
     - name: upload-package
