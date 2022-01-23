@@ -327,7 +327,7 @@ spec:
         - name: git_ref
           value: $(params.git_ref)
       script: |
-        #!/usr/libexec/platform-python
+        #!/opt/app-root/bin/python
         import requests
         import os
         import time

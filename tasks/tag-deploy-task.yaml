@@ -52,7 +52,7 @@ spec:
     image: $(resources.inputs.s2i-thoth.url)
     workingDir: /workspace/configrepo
     script: |
-      #!/usr/bin/env python3
+      #!/opt/app-root/bin/python
       import yaml
 
       registry_repo = "$(params.registry_project)" if "$(params.registry_project)" else "$(params.repo_name)"
