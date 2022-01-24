@@ -55,6 +55,8 @@ spec:
               value: $(params.repo_name)
             - name: repo_url
               value: $(params.repo_url)
+            - name: default_branch
+              value: $(params.default_branch)
             - name: base_image
               value: ""
             - name: build_stratergy

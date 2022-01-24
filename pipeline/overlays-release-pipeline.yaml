@@ -47,6 +47,8 @@ spec:
       type: string
     - name: overlays_dir
       type: string
+    - name: default_branch
+      type: string
   resources:
     - name: git-repo
       type: git
@@ -113,6 +115,8 @@ spec:
           value: $(params.registry_org)
         - name: registry_project
           value: $(params.registry_project)
+        - name: default_branch
+          value: $(params.default_branch)
         - name: deploy_project_org
           value: $(params.deploy_project_org)
         - name: deploy_project_name

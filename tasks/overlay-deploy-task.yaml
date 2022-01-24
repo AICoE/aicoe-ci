@@ -18,6 +18,9 @@ spec:
     - name: registry_project
       description: Name of the project repository.
       default: ""
+    - name: default_branch
+      default: master
+      description: Default branch used by the repo.
     - name: deploy_project_org
       description: Deployment configuration repository's organization.
       default: "thoth-station"
@@ -100,7 +103,7 @@ spec:
       git add .
       git commit -m ":ship: Deploy the Tag $(params.git_ref) for $(params.repo_name)"
       export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
-      git push --set-upstream origin master
+      git push --set-upstream origin $(params.default_branch)
     volumeMounts:
       - name: ssh-config
         mountPath: /tekton/home/.ssh

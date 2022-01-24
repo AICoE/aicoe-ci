@@ -61,6 +61,8 @@ spec:
             value: $(tt.params.issue_author_association)
           - name: issue_author
             value: $(tt.params.issue_author)
+          - name: default_branch
+            value: $(tt.params.default_branch)
           - name: repo_name
             value: $(tt.params.repo_name)
           - name: repo_full_name

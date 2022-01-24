@@ -27,6 +27,8 @@ spec:
       type: string
     - name: repo_url
       type: string
+    - name: default_branch
+      type: string
     - name: ssh_url
       type: string
     - name: pipelinerun_name
@@ -141,6 +143,8 @@ spec:
           value: $(params.repo_full_name)
         - name: repo_url
           value: $(params.repo_url)
+        - name: default_branch
+          value: $(params.default_branch)
         - name: registry
           value: $(tasks.configuration.results.registry)
         - name: registry_org

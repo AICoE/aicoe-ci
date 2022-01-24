@@ -227,6 +227,8 @@ spec:
           value: $(params.git_ref)
         - name: repo_name
           value: $(params.repo_name)
+        - name: default_branch
+          value: $(params.default_branch)
         - name: registry
           value: $(tasks.configuration.results.registry)
         - name: registry_org
