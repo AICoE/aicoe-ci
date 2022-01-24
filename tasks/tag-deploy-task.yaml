@@ -75,7 +75,8 @@ spec:
                   for _i, tags in enumerate(doc["spec"]["tags"]):
                       doc["spec"]["tags"][_i]["from"]["name"] = image
           if doc["kind"] == "Job":
-              if doc["metadata"]["name"] == "$(params.deploy_image_name)":
+              if "$(params.deploy_image_name)" in doc["metadata"]["name"]:
+                  doc["metadata"]["name"] = "$(params.deploy_image_name)-$(params.git_ref)"
                   for _i, tags in enumerate(doc["spec"]["template"]["spec"]["containers"]):
                       doc["spec"]["template"]["spec"]["containers"][_i]["image"] = image
 
