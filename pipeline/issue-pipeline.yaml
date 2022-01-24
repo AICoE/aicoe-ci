@@ -93,6 +93,8 @@ spec:
           value: $(tasks.configuration.results.dockerfile-path)
         - name: build_source_script
           value: $(tasks.configuration.results.build-source-script)
+        - name: custom_tag
+          value: $(tasks.configuration.results.custom-tag)
         - name: registry
           value: $(tasks.configuration.results.registry)
         - name: registry_org

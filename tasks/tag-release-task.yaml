@@ -23,7 +23,7 @@ spec:
       default: ""
     - name: custom_tag
       description: additional custom tag to be pushed along.
-      default: ""
+      default: "latest"
     - name: registry
       description: Container image registry.
       default: "quay.io"
