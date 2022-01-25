@@ -26,7 +26,6 @@ resources:
   - ../tasks/pr-build-release.yaml
   - ../tasks/pr-build.yaml
   - ../tasks/pr-config.yaml
-  - ../tasks/pr-merge.yaml
   - ../tasks/pre-commit-check.yaml
   - ../tasks/pre-commit-py38-check.yaml
   - ../tasks/pytest-checks.yaml
@@ -34,11 +33,8 @@ resources:
   - ../tasks/repo-upstream-sync.yaml
   - ../tasks/resource.yaml
   - ../tasks/status-task.yaml
-  - ../tasks/tag-build.yaml
-  - ../tasks/tag-check.yaml
   - ../tasks/tag-deploy-task.yaml
   - ../tasks/tag-release-task.yaml
-  - ../tasks/tox-checks.yaml
   - ../tasks/upload-pypi.yaml
   - ../pipeline/issue-pipeline.yaml
   - ../pipeline/pull-request-pipeline.yaml

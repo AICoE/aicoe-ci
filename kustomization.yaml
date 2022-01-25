@@ -31,7 +31,6 @@ resources:
   - tasks/repo-upstream-sync.yaml
   - tasks/resource.yaml
   - tasks/status-task.yaml
-  - tasks/tag-build.yaml
   - tasks/tag-check.yaml
   - tasks/tag-deploy-task.yaml
   - tasks/tag-release-task.yaml

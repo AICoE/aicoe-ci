@@ -13,7 +13,6 @@ resources:
   - gather-metrics-pipeline-creation-task.yaml
   - gather-metrics-pipeline-watch-task.yaml
   - gather-metrics-provide-task.yaml
-  - github-release.yaml
   - init-task.yaml
   - issue-deploy-task.yaml
   - issue-pypi-release-task.yaml
@@ -26,7 +25,6 @@ resources:
   - pr-build-release.yaml
   - pr-build.yaml
   - pr-config.yaml
-  - pr-merge.yaml
   - pre-commit-check.yaml
   - pre-commit-py38-check.yaml
   - pytest-checks.yaml
@@ -34,12 +32,9 @@ resources:
   - repo-upstream-sync.yaml
   - resource.yaml
   - status-task.yaml
-  - tag-build.yaml
-  - tag-check.yaml
   - tag-deploy-task.yaml
   - tag-release-task.yaml
   - tag-sibling.yaml
-  - tox-checks.yaml
   - upload-pulp-pypi.yaml
   - upload-pypi.yaml
   - z-stream-release-task.yaml
