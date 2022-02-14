@@ -17,6 +17,8 @@ spec:
       type: string
     - name: base_image
       type: string
+    - name: arch
+      type: string
     - name: build_stratergy
       type: string
     - name: dockerfile_path
@@ -66,6 +68,8 @@ spec:
           value: $(params.repo_name)
         - name: base_image
           value: $(params.base_image)
+        - name: arch
+          value: $(params.arch)
         - name: build_stratergy
           value: $(params.build_stratergy)
         - name: dockerfile_path
@@ -109,6 +113,8 @@ spec:
           value: $(params.git_ref)
         - name: repo_name
           value: $(params.repo_name)
+        - name: arch
+          value: $(params.arch)
         - name: registry
           value: $(params.registry)
         - name: registry_org

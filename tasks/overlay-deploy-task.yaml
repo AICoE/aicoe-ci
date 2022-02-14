@@ -9,6 +9,9 @@ spec:
       description: Git reference value.
     - name: repo_name
       description: The git repository title.
+    - name: arch
+      description: ARCH of the image to be built.
+      default: ""
     - name: registry
       description: Container image registry.
       default: "quay.io"
@@ -52,33 +55,40 @@ spec:
         mountPath: /tekton/home/.ssh
 
   - name: patch-imagetag
-    image: quay.io/harshad16/yq:latest
+    image: $(resources.inputs.s2i-thoth.url)
     workingDir: /workspace/configrepo
     script: |
-      if [ -z "$(params.registry_project)" ]; then
-        registry_repo=$(params.repo_name)
-      else
-        registry_repo=$(params.registry_project)
-      fi
-      if [ -z "$(params.overlay_contextpath)" ]; then
-        contextpath=$(params.repo_name)/overlays/test/imagestreamtag.yaml
-      else
-        contextpath=$(params.overlay_contextpath)
-      fi
-      if [ ! -z "$(params.deploy_image_name)" ]; then
-        docs=$(yq r -d'*' $contextpath metadata.name)
-        cnt=0
-        for doc in $docs; do
-          if [ "$doc" != "$(params.deploy_image_name)" ]; then
-             let cnt+=1
-          else
-             break
-          fi
-        done
-        echo "{\"spec\":{\"tags\":[{\"name\":\"latest\",\"from\":{\"kind\":\"DockerImage\",\"name\":\"$(params.registry)/$(params.registry_org)/$registry_repo:$(params.git_ref)\"},\"importPolicy\":{},\"referencePolicy\":{\"type\":\"Source\"}}]}}" | yq -P m -d"$cnt" -i -x $contextpath -
-      else
-        echo "{\"spec\":{\"tags\":[{\"name\":\"latest\",\"from\":{\"kind\":\"DockerImage\",\"name\":\"$(params.registry)/$(params.registry_org)/$registry_repo:$(params.git_ref)\"},\"importPolicy\":{},\"referencePolicy\":{\"type\":\"Source\"}}]}}" | yq -P m -i -x $contextpath -
-      fi
+      #!/opt/app-root/bin/python
+      import yaml
+
+      registry_repo = "$(params.registry_project)" if "$(params.registry_project)" else "$(params.repo_name)"
+      contextpath = (
+          "$(params.overlay_contextpath)"
+          if "$(params.overlay_contextpath)"
+          else "$(params.repo_name)/overlays/test/imagestreamtag.yaml"
+      )
+      if "$(params.arch)":
+          image = f"$(params.registry)/$(params.registry_org)/{registry_repo}:$(params.git_ref)-$(params.arch)"
+      else:
+          image = f"$(params.registry)/$(params.registry_org)/{registry_repo}:$(params.git_ref)"
+
+      with open(contextpath, "r") as stream:
+          conf = list(yaml.safe_load_all(stream))
+
+      for doc in conf:
+          if doc["kind"] == "ImageStream":
+              if doc["metadata"]["name"] == "$(params.deploy_image_name)":
+                  for _i, tags in enumerate(doc["spec"]["tags"]):
+                      doc["spec"]["tags"][_i]["from"]["name"] = image
+          if doc["kind"] == "Job":
+              if "$(params.deploy_image_name)" in doc["metadata"]["name"]:
+                  doc["metadata"]["name"] = "$(params.deploy_image_name)-$(params.git_ref)"
+                  for _i, tags in enumerate(doc["spec"]["template"]["spec"]["containers"]):
+                      doc["spec"]["template"]["spec"]["containers"][_i]["image"] = image
+
+      with open(contextpath, "w") as output_yaml:
+          yaml.dump_all(conf, output_yaml, default_flow_style=False)
+      print("Image update completed")
 
   - name: git-push
     image: $(resources.inputs.s2i-thoth.url)

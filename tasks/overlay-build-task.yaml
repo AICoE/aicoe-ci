@@ -21,6 +21,9 @@ spec:
     - name: build_source_script
       description: Specify a URL for the assemble, assemble-runtime and run scripts
       default: ""
+    - name: arch
+      description: ARCH of the image to be built.
+      default: ""
     - name: custom_tag
       description: additional custom tag to be pushed along.
       default: ""
@@ -126,15 +129,17 @@ spec:
       securityContext:
         privileged: true
       script: |
-        rm -rf Pipfile Pipfile.lock
-        if [ ! -z "$(params.overlays_dir)" ]; then
-          cp -rf $(params.overlays_dir)/$(params.overlays_name)/* .
-          mkdir /opt/aicoe-ci
-          if [ -f Pipfile ]; then
-            cp -r Pipfile /opt/aicoe-ci
-          fi
-          if [ -f Pipfile.lock ]; then
-            cp -r Pipfile.lock /opt/aicoe-ci
+        if [ "$(params.overlays_dir)" != "." ]; then
+          rm -rf Pipfile Pipfile.lock
+          if [ ! -z "$(params.overlays_dir)" ]; then
+            cp -rf $(params.overlays_dir)/$(params.overlays_name)/* .
+            mkdir /opt/aicoe-ci
+            if [ -f Pipfile ]; then
+              cp -r Pipfile /opt/aicoe-ci
+            fi
+            if [ -f Pipfile.lock ]; then
+              cp -r Pipfile.lock /opt/aicoe-ci
+            fi
           fi
         fi
 
@@ -198,15 +203,28 @@ spec:
           memory: "2Gi"
           cpu: "2"
       script: |
-        buildah bud \
-        --storage-driver=overlay \
-        --tls-verify=$(params.TLSVERIFY) \
-        --layers \
-        -f \
-        /gen-source/Containerfile \
-        -t \
-        $(params.repo_name)-$(params.git_ref) \
-        .
+        if [ -z "$(params.arch)" ]; then
+            buildah bud \
+            --storage-driver=overlay \
+            --tls-verify=$(params.TLSVERIFY) \
+            --layers \
+            -f \
+            /gen-source/Containerfile \
+            -t \
+            $(params.repo_name)-$(params.git_ref) \
+            .
+        else
+            buildah bud \
+            --arch="$(params.arch)" \
+            --storage-driver=overlay \
+            --tls-verify=$(params.TLSVERIFY) \
+            --layers \
+            -f \
+            /gen-source/Containerfile \
+            -t \
+            $(params.repo_name)-$(params.git_ref) \
+            .
+        fi
       volumeMounts:
         - mountPath: /var/lib/containers
           name: varlibcontainers
@@ -221,11 +239,16 @@ spec:
         else
           registry_repo=$(params.registry_project)
         fi
+        if [ -z "$(params.arch)" ]; then
+          tag=$(params.git_ref)
+        else
+          tag="$(params.git_ref)-$(params.arch)"
+        fi
         buildah push \
         --authfile=/pushsecret/.dockerconfigjson \
         --tls-verify=$(params.TLSVERIFY) \
         $(params.repo_name)-$(params.git_ref) \
-        docker://$(params.registry)/$(params.registry_org)/$registry_repo:$(params.git_ref)
+        docker://$(params.registry)/$(params.registry_org)/$registry_repo:$tag
       securityContext:
         privileged: true
       volumeMounts:
