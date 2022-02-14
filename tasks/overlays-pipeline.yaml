@@ -59,6 +59,8 @@ spec:
               value: $(params.default_branch)
             - name: base_image
               value: ""
+            - name: arch
+              value: ""
             - name: build_stratergy
               value: "Source"
             - name: dockerfile_path
