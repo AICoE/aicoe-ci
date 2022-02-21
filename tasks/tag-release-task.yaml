@@ -76,6 +76,11 @@ spec:
       description: Disable progressbar for thamos.
       default: "1"
 
+  results:
+      - name: IMAGE_DIGEST
+        description: Digest of the image just built.
+      - name: IMAGE_URL
+        description: URL  of the built Image.
   resources:
     inputs:
       - name: s2i-thoth
@@ -240,6 +245,7 @@ spec:
         buildah push \
         --authfile=/pushsecret/.dockerconfigjson \
         --tls-verify=$(params.TLSVERIFY) \
+        --digestfile /workspace/image-digest \
         $(params.repo_name)-$(params.git_ref) \
         docker://$(params.registry)/$(params.registry_org)/$registry_repo:$(params.git_ref)
       securityContext:
@@ -253,6 +259,17 @@ spec:
         - name: quay-creds
           mountPath: /pushsecret/
           readOnly: true
+
+    - name: digest-to-results
+      image: $(params.BUILDER_IMAGE)
+      script: |
+        if [ -z "$(params.registry_project)" ]; then
+          registry_repo=$(params.repo_name)
+        else
+          registry_repo=$(params.registry_project)
+        fi
+        cat /workspace/image-digest | tee /tekton/results/IMAGE_DIGEST
+        echo $(params.registry)/$(params.registry_org)/$registry_repo:$(params.git_ref) > /tekton/results/IMAGE_URL
 
     - name: push-custom-tag
       image: quay.io/buildah/stable
