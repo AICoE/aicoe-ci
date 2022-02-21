@@ -77,10 +77,10 @@ spec:
       default: "1"
 
   results:
-      - name: IMAGE_DIGEST
-        description: Digest of the image just built.
-      - name: IMAGE_URL
-        description: URL  of the built Image.
+    - name: IMAGE_DIGEST
+      description: Digest of the image just built.
+    - name: IMAGE_URL
+      description: URL  of the built Image.
   resources:
     inputs:
       - name: s2i-thoth
@@ -261,7 +261,7 @@ spec:
           readOnly: true
 
     - name: digest-to-results
-      image: $(params.BUILDER_IMAGE)
+      image: quay.io/buildah/stable
       script: |
         if [ -z "$(params.registry_project)" ]; then
           registry_repo=$(params.repo_name)
