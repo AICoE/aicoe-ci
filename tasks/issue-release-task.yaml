@@ -91,6 +91,11 @@ spec:
     - name: registry_secret
       description: Registry image push secret.
       default: "thoth-station-thoth-pusher-secret"
+  results:
+    - name: IMAGE_DIGEST
+      description: Digest of the image just built.
+    - name: IMAGE_URL
+      description: URL  of the built Image.
   resources:
     inputs:
       - name: s2i-thoth
@@ -260,6 +265,7 @@ spec:
         buildah push \
         --authfile=/pushsecret/.dockerconfigjson \
         --tls-verify=$(params.TLSVERIFY) \
+        --digestfile /workspace/image-digest \
         $(params.repo_name)-$(params.issue_number) \
         docker://$(params.registry)/$(params.registry_org)/$registry_repo:"${TAG//[[:space:]]/}"
       securityContext:
@@ -294,6 +300,20 @@ spec:
         - name: quay-creds
           mountPath: /pushsecret/
           readOnly: true
+
+    - name: digest-to-results
+      image: quay.io/buildah/stable
+      script: |
+        set +x
+        TAG=$(echo "$(params.issue_body)" | awk -F ':' '{print $2}')
+        set -x
+        if [ -z "$(params.registry_project)" ]; then
+          registry_repo=$(params.repo_name)
+        else
+          registry_repo=$(params.registry_project)
+        fi
+        cat /workspace/image-digest | tee /tekton/results/IMAGE_DIGEST
+        echo $(params.registry)/$(params.registry_org)/$registry_repo:"${TAG//[[:space:]]/}" > /tekton/results/IMAGE_URL
 
     - name: comment-on-issue
       env:
