@@ -264,7 +264,7 @@ spec:
       image: quay.io/buildah/stable
       script: |
         if [ -z "$(params.registry_project)" ]; then
-          registry_repo=$(params.repo_name)
+          registry_repo=$(params.pr_repo)
         else
           registry_repo=$(params.registry_project)
         fi

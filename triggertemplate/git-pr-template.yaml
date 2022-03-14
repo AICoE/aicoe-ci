@@ -16,6 +16,8 @@ spec:
       description: The pr url.
     - name: repo_url
       description: The git repository url.
+    - name: ssh_url
+      description: The git repository ssh url.
     - name: default_branch
       description: The git repository default branch.
     - name: event_action
@@ -54,6 +56,10 @@ spec:
             value: $(tt.params.pr_repo)
           - name: repo_url
             value: $(tt.params.repo_url)
+          - name: ssh_url
+            value: $(tt.params.ssh_url)
+          - name: default_branch
+            value: $(tt.params.default_branch)
           - name: repo_full_name
             value: $(tt.params.repo_full_name)
           - name: pr_comment

@@ -18,5 +18,7 @@ spec:
       value: $(body.pull_request.html_url)
     - name: repo_url
       value: $(body.repository.html_url)
+    - name: ssh_url
+      value: $(body.repository.ssh_url)
     - name: default_branch
       value: $(body.repository.default_branch)
