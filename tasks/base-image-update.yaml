@@ -1,0 +1,117 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: base-image-update
+spec:
+  params:
+    - name: repo_full_name
+      description: The git repository full name.
+    - name: repo_url
+      description: The git repository url
+    - name: ssh_url
+      description: The git repository ssh url
+    - name: default_branch
+      description: The git repository default branch.
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+      - name: repo
+        type: git
+
+  steps:
+    - name: run-script
+      workingDir: /workspace/repo
+      image: quay.io/thoth-station/pipeline-helpers:v0.7.0
+      securityContext:
+        privileged: true
+      script: |
+        if [ -f .aicoe-ci.yaml ]; then
+          python /opt/app-root/src/bump_base_image_version.py
+        fi
+        if [ -f .thoth.yaml ]; then
+          CONFIG_FILE_PATH=".thoth.yaml" BASE_IMAGE_FIELD_YAML="base_image" python /opt/app-root/src/bump_base_image_version.py
+        fi
+
+    - name: rebase
+      workingDir: /workspace/repo
+      env:
+        - name: GITHUB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: user-name
+        - name: GITHUB_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: user-email
+      image: $(resources.inputs.s2i-thoth.url)
+      securityContext:
+        privileged: true
+      script: |
+        git config --local user.email "$GITHUB_EMAIL"
+        git config --local user.name "$GITHUB_USERNAME"
+        git remote set-url origin $(params.ssh_url)
+        git checkout -b aicoe-ci-base-image-updater
+        export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+        git add .
+        git commit -m ":ship: Bump up base image initialized in CI."
+        git pull --rebase origin $(params.default_branch)
+        git push -f origin aicoe-ci-base-image-updater
+      volumeMounts:
+        - name: ssh-config
+          mountPath: /tekton/home/.ssh
+
+    - name: raise-pull-request
+      workingDir: /workspace/repo
+      env:
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: token
+        - name: REPOFULLNAME
+          value: $(params.repo_full_name)
+      image: $(resources.inputs.s2i-thoth.url)
+      script: |
+        #!/usr/libexec/platform-python
+        import json
+        import os
+        import http.client
+
+        status_url = "/repos/{}/pulls".format(os.getenv('REPOFULLNAME'))
+        issue_body = f"Automatic update of base-image in CI."
+        head = "aicoe-ci-base-image-updater"
+        base = "$(params.default_branch)"
+        data = {
+            "title":"Automatic update of base-image in CI",
+            "head": head,
+            "base": base,
+            "body": issue_body,
+        }
+
+        conn = http.client.HTTPSConnection("api.github.com")
+        r = conn.request(
+            "POST",
+            status_url,
+            body=json.dumps(data),
+            headers={
+                "User-Agent": "aicoe-ci",
+                "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+            })
+        resp = conn.getresponse()
+        if not str(resp.status).startswith("2"):
+            print("Error: %d" % (resp.status))
+            print(resp.read())
+        else:
+            print("Successful: %d" % (resp.status))
+
+  volumes:
+    - name: ssh-config
+      secret:
+        secretName: auth-secret
+        items:
+          - key: ssh-privatekey
+            mode: 0600
+            path: id_rsa

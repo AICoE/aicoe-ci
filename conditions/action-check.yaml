@@ -6,6 +6,8 @@ spec:
   params:
     - name: event_action
       type: string
+    - name: required_action
+      type: string
   resources:
     - name: ubi
       type: image
@@ -14,7 +16,7 @@ spec:
     securityContext:
       privileged: true
     script: |
-      ACTION="opened reopened synchronize created"
+      ACTION="$(params.required_action)"
       echo $(params.event_action)
       if echo $ACTION | grep -w $(params.event_action) > /dev/null; then
           exit 0
