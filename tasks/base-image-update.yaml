@@ -56,7 +56,7 @@ spec:
         git checkout -b aicoe-ci-base-image-updater
         export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
         git add .
-        git commit -m ":ship: Bump up base image initialized in CI."
+        git commit -m ":ship: Bump up base image initialized in CI." || exit 0
         git pull --rebase origin $(params.default_branch)
         git push -f origin aicoe-ci-base-image-updater
       volumeMounts:
