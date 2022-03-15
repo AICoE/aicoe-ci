@@ -52,25 +52,6 @@ spec:
           - name: s2i-thoth
             resource: s2i-thoth
 
-    - name: base-image-update-run
-      taskRef:
-        name: base-image-update
-      params:
-        - name: repo_url
-          value: $(params.repo_url)
-        - name: ssh_url
-          value: $(params.ssh_url)
-        - name: repo_full_name
-          value: $(params.repo_full_name)
-        - name: default_branch
-          value: $(params.default_branch)
-      resources:
-        inputs:
-          - name: repo
-            resource: git-repo
-          - name: s2i-thoth
-            resource: s2i-thoth
-
     - name: issue-release-run
       taskRef:
         name: issue-release
@@ -337,3 +318,22 @@ spec:
             resource: git-repo
           - name: ubi
             resource: ubi
+
+    - name: base-image-update-run
+      taskRef:
+        name: base-image-update
+      params:
+        - name: repo_url
+          value: $(params.repo_url)
+        - name: ssh_url
+          value: $(params.ssh_url)
+        - name: repo_full_name
+          value: $(params.repo_full_name)
+        - name: default_branch
+          value: $(params.default_branch)
+      resources:
+        inputs:
+          - name: repo
+            resource: git-repo
+          - name: s2i-thoth
+            resource: s2i-thoth
