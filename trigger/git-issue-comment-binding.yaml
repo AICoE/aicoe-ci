@@ -18,6 +18,8 @@ spec:
     value: $(body.issue.html_url)
   - name: repo_url
     value: $(body.repository.html_url)
+  - name: ssh_url
+    value: $(body.repository.ssh_url)
   - name: pr_comment
     value: $(body.comment.body)
   - name: pr_comment_author
