@@ -17,12 +17,12 @@ spec:
       privileged: true
     script: |
       author_association="$(params.pr_comment_author_association)"
-      if ! { [ "$author_association" != "OWNER" -o "$author_association" != "MEMBER" ]; }; then
-          echo "Skipping PR, author is not an OWNER or MEMBER: $author"
-          exit 1
+      if [[ "$author_association" != "OWNER" ]] &&  [[ "$author_association" != "MEMBER" ]];then
+        echo "Skipping PR, author is not an OWNER or MEMBER: $author"
+        exit 1
       fi
 
-      if [ "$(params.pr_comment)" == "/deploy" ]; then
+      if [[ "$(params.pr_comment)" == "/deploy"* ]];then
           exit 0
       else
           exit 1
