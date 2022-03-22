@@ -88,6 +88,8 @@ spec:
         author = "$(params.pr_comment_author)"
         author_association = "$(params.pr_comment_author_association)"
         return_comment = ""
+        open("/tekton/results/overlay_name", "w+").close()
+        open("/tekton/results/overlay_contextpath", "w+").close()
         if "/deploy" == received_comment:
             with open("./OWNERS", "r") as owners_file:
                 owners = yaml.safe_load(owners_file)
@@ -97,12 +99,14 @@ spec:
             var_overlay_name = received_comment[8:]
             output_file = open("/tekton/results/overlay_name", "w+")
             json.dump(var_overlay_name, output_file)
+            output_file.close()
             overlay_found = "false"
             for root, dirs, files in os.walk("/workspace/repo/manifests/"):
                 for name in dirs:
                     if name == var_overlay_name:
                         output_file = open("/tekton/results/overlay_contextpath", "w+")
                         json.dump(root + "/" + var_overlay_name, output_file)
+                        output_file.close()
                         overlay_found = "true"
             if var_overlay_name != "" and overlay_found == "false":
                 if "return_comment" in locals():
