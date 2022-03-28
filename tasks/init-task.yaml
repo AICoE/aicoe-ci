@@ -91,8 +91,11 @@ spec:
         open("/tekton/results/overlay_name", "w+").close()
         open("/tekton/results/overlay_contextpath", "w+").close()
         if "/deploy" == received_comment:
-            with open("./OWNERS", "r") as owners_file:
-                owners = yaml.safe_load(owners_file)
+            if os.path.isfile("./OWNERS"):
+              with open("./OWNERS", "r") as owners_file:
+                  owners = yaml.safe_load(owners_file)
+            else:
+              owners = []
             if not (author_association == "OWNER" or author_association == "MEMBER" or author in owners["approvers"]):
                 return_comment = f"Hi @{author},\n you are not authorised to run `/deploy` command.\n Please contact the OWNERS."
         if re.match("/deploy [a-z,A-Z][a-z,A-Z,\-,0-9]*", received_comment):
