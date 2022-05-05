@@ -176,7 +176,6 @@ spec:
               /usr/local/bin/s2i build \
               $(params.PATH_CONTEXT) \
               $(params.base_image) \
-              --env UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST) \
               --env IMAGE_NAME="$(params.registry)/$(params.registry_org)/$(params.registry_project)" \
               --env IMAGE_TAG=$(params.git_ref) \
               --env THAMOS_RUNTIME_ENVIRONMENT="" \
@@ -307,7 +306,7 @@ spec:
         #!/usr/libexec/platform-python
         import requests
         import os
-        image_analysis_url="https://management.moc.thoth-station.ninja/api/v1/analyze?"
+        image_analysis_url="https://management.prod.thoth-station.ninja/api/v1/analyze?"
         import time
         headers = {'Content-type': 'application/json'}
         if any(img in "$(params.base_image)" for img in ['s2i-custom', 's2i-minimal', 's2i-generic', 's2i-thoth']):
