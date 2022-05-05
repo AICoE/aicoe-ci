@@ -167,7 +167,8 @@ spec:
             /usr/local/bin/s2i build \
             $(params.PATH_CONTEXT) \
             $(params.base_image) \
-            --env UPGRADE_PIP_TO_LATEST=$(params.UPGRADE_PIP_TO_LATEST) \
+            --env IMAGE_NAME="$(params.registry)/$(params.registry_org)/$(params.registry_project)" \
+            --env IMAGE_TAG=$(params.git_ref) \
             --env THAMOS_RUNTIME_ENVIRONMENT=$(params.overlays_name) \
             --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
             --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \

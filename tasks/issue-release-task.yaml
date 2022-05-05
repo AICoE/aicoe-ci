@@ -160,6 +160,7 @@ spec:
       securityContext:
         privileged: true
       script: |
+        TAG=$(echo "$(params.issue_body)" | awk -F ':' '{print $2}')
         if [ -z "$(params.build_stratergy)" ]; then
           if [ -f Dockerfile ]; then
             cp -rf . /gen-source/
@@ -196,6 +197,8 @@ spec:
               /usr/local/bin/s2i build \
               $(params.PATH_CONTEXT) \
               $(params.base_image) \
+              --env IMAGE_NAME="$(params.registry)/$(params.registry_org)/$(params.registry_project)" \
+              --env IMAGE_TAG="${TAG//[[:space:]]/}" \
               --env THAMOS_RUNTIME_ENVIRONMENT="" \
               --env THOTH_ADVISE=$(params.THOTH_ADVISE) \
               --env THOTH_ERROR_FALLBACK=$(params.THOTH_ERROR_FALLBACK) \
