@@ -22,7 +22,7 @@ spec:
   steps:
     - name: run-script
       workingDir: /workspace/repo
-      image: quay.io/thoth-station/pipeline-helpers:v0.7.1
+      image: quay.io/thoth-station/pipeline-helpers:v0.7.2
       securityContext:
         privileged: true
       script: |
