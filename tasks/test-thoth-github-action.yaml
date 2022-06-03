@@ -21,7 +21,7 @@ spec:
       workingDir: /workspace/repo
       securityContext:
         privileged: true
-      script: | 
+      script: |
         sed -i 's/thoth-github-action@.*/thoth-github-action@"$(params.head_commit_hash)"/g' .github/workflows/test_pipfile_cve.yaml
         sed -i 's/thoth-github-action@.*/thoth-github-action@"$(params.head_commit_hash)"/g' .github/workflows/test_pipfile_no_cve.yaml
         sed -i 's/thoth-github-action@.*/thoth-github-action@"$(params.head_commit_hash)"/g' .github/workflows/test_requirements_txt_cve.yaml
