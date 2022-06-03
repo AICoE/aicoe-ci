@@ -1,0 +1,15 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: git-push-binding
+  labels:
+    app: aicoe-ci
+
+spec:
+  params:
+  - name: head_commit_hash
+    value: $(body.head)
+  - name: default_branch
+    value: $(body.repository.default_branch)
+  - name: ssh_url
+    value: $(body.repository.ssh_url)
