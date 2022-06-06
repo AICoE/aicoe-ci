@@ -8,8 +8,10 @@ spec:
       description: The hash of the last commit from the push event
     - name: default_branch
       description: The git repository default branch
+      default: test
     - name: ssh_url
       description: The git repository ssh url
+      default: git@github.com:mayaCostantini/test-thoth-github-action.git
 
   resources:
     inputs:
@@ -58,7 +60,7 @@ spec:
         export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
         git add .
         git commit -m ":white_check_mark: Test the Thoth GitHub Action." || exit 0
-        git pull --rebase origin $(params.default_branch)
+        git pull --rebase origin `test-$(params.head_commit_hash)`
         git push -f origin github-action-tester
       volumeMounts:
         - name: ssh-config
@@ -79,7 +81,7 @@ spec:
         status_url = "/repos/mayaCostantini/test-thoth-github-action/pulls"
         issue_body = f"Test the Thoth GitHub Action."
         head = "github-action-tester"
-        base = "$(params.default_branch)"
+        base = "$test-(params.head_commit_hash)"
         data = {
             "title":"Test the Thoth GitHub Action",
             "head": head,
