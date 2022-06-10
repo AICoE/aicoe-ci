@@ -1,0 +1,114 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: test-thoth-github-action
+spec:
+  params:
+    - name: head_commit_hash
+      description: The hash of the last commit from the push event
+    - name: default_branch
+      description: The git repository default branch
+      default: test
+    - name: ssh_url
+      description: The git repository ssh url
+      default: git@github.com:mayaCostantini/test-thoth-github-action.git
+
+  resources:
+    inputs:
+      - name: repo
+        type: git
+
+  steps:
+    - name: patch-commit-hash
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        sed -i 's/thoth-github-action@.*/thoth-github-action@"$(params.head_commit_hash)"/g' .github/workflows/test_pipfile_cve.yaml
+        sed -i 's/thoth-github-action@.*/thoth-github-action@"$(params.head_commit_hash)"/g' .github/workflows/test_pipfile_no_cve.yaml
+        sed -i 's/thoth-github-action@.*/thoth-github-action@"$(params.head_commit_hash)"/g' .github/workflows/test_requirements_txt_cve.yaml
+        sed -i 's/thoth-github-action@.*/thoth-github-action@"$(params.head_commit_hash)"/g' .github/workflows/test_requirements_txt_no_cve.yaml
+        sed -i 's/thoth-github-action@.*/thoth-github-action@"$(params.head_commit_hash)"/g' .github/workflows/test_setup_cfg_cve.yaml
+        sed -i 's/thoth-github-action@.*/thoth-github-action@"$(params.head_commit_hash)"/g' .github/workflows/test_setup_cfg_no_cve.yaml
+
+        echo " " >> overlays/pipfile-cve/Pipfile
+        echo " " >> overlays/pipfile-no-cve/Pipfile
+        echo " " >> overlays/requirements-txt-cve/requirements.txt
+        echo " " >> overlays/requirements-txt-no-cve/requirements.txt
+        echo " " >> overlays/setup-cfg-cve/setup.cfg
+        echo " " >> overlays/setup-cfg-no-cve/setup.cfg
+    - name: rebase
+      workingDir: /workspace/repo
+      env:
+        - name: GITHUB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: user-name
+        - name: GITHUB_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: user-email
+      securityContext:
+        privileged: true
+      script: |
+        git config --local user.email "$GITHUB_EMAIL"
+        git config --local user.name "$GITHUB_USERNAME"
+        git remote set-url origin $(params.ssh_url)
+        git checkout -b github-action-tester
+        export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+        git add .
+        git commit -m ":white_check_mark: Test the Thoth GitHub Action." || exit 0
+        git pull --rebase origin $(params.default_branch)
+        git push -f origin github-action-tester
+      volumeMounts:
+        - name: ssh-config
+          mountPath: /tekton/home/.ssh
+    - name: raise-pull-request
+      workingDir: /workspace/repo
+      env:
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: token
+      script: |
+        #!/usr/libexec/platform-python
+        import json
+        import os
+        import http.client
+        status_url = "/repos/mayaCostantini/test-thoth-github-action/pulls"
+        issue_body = f"Test the Thoth GitHub Action."
+        head = "github-action-tester"
+        base = "$(params.default_branch)"
+        data = {
+            "title":"Test the Thoth GitHub Action",
+            "head": head,
+            "base": base,
+            "body": issue_body,
+        }
+        conn = http.client.HTTPSConnection("api.github.com")
+        r = conn.request(
+            "POST",
+            status_url,
+            body=json.dumps(data),
+            headers={
+                "User-Agent": "aicoe-ci",
+                "Authorization": "Bearer " + os.environ["GITHUBTOKEN"],
+            })
+        resp = conn.getresponse()
+        if not str(resp.status).startswith("2"):
+            print("Error: %d" % (resp.status))
+            print(resp.read())
+        else:
+            print("Successful: %d" % (resp.status))
+
+  volumes:
+    - name: ssh-config
+      secret:
+        secretName: auth-secret
+        items:
+          - key: ssh-privatekey
+            mode: 0600
+            path: id_rsa
