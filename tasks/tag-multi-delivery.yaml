@@ -1,0 +1,122 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: tag-multi-delivery
+  labels:
+    app: aicoe-ci
+spec:
+  resources:
+    inputs:
+      - name: s2i-thoth
+        type: image
+      - name: repo
+        type: git
+  params:
+    - name: git_ref
+      description: Git reference value.
+    - name: repo_name
+      description: The git repository title.
+    - name: environment-count
+      description: The Number of different environmnets from which to generate a taskrun.
+    - name: registry
+      description: The name of the image registry used (example, quay)
+    - name: registry_org
+      description: The name of the organization containing the project on said image registry.
+    - name: registry_project
+      description: The image repository name withing the given `registry_org` on given `registry`.
+    - name: default_branch
+      description: The default branch of the git repository used to build the image in the image `registry_project`.
+  steps:
+    - name: generate-taskruns
+      image: quay.io/harshad16/yq:latest
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        cat > tag-delploy-taskrun-template.yaml<< EOF
+          apiVersion: tekton.dev/v1beta1
+          kind: TaskRun
+          metadata:
+            name:
+            labels:
+              app: aicoe-ci
+          spec:
+            serviceAccountName: aicoe-ci
+            taskRef:
+              name: tag-deploy
+            params:
+              - name: git_ref
+                value: $(params.git_ref)
+              - name: repo_name
+                value: $(params.repo_name)
+              - name: deploy_project_org
+                value:
+              - name: deploy_project_name
+                value:
+              - name: deploy_image_name
+                value:
+              - name: overlay_contextpath
+                value:
+              - name: default-action
+                value:
+              - name: default_branch
+                value: $(params.default_branch)
+              - name: registry
+                value: $(params.registry)
+              - name: registry_org
+                value: $(params.registry_org)
+              - name: registry_project
+                value: $(params.registry_project)
+            resources:
+              - name: s2i-thoth
+                resourceSpec:
+                  type: image
+                  params:
+                    - name: url
+                      value: $(resources.inputs.s2i-thoth.url)
+        EOF
+    - name: overlays-pipeline-setup
+      image: $(resources.inputs.s2i-thoth.url)
+      workingDir: /workspace/repo
+      securityContext:
+        privileged: true
+      script: |
+        #!/usr/bin/env python3
+
+        import os
+        import json
+        import yaml
+        import uuid
+        isExist = os.path.exists("/workspace/taskruns")
+        if isExist == False:
+          os.mkdir("/workspace/taskruns")
+        ci_conf = {}
+        with open(".aicoe-ci.yaml", "r") as ci_stream:
+            ci_conf = yaml.safe_load(ci_stream)
+        uid = str(uuid.uuid4())[0:6]
+        for env in ci_conf.get("deploy"):
+            with open(f"tag-delploy-taskrun-template.yaml", "r") as taskrun_yaml:
+                taskrun = yaml.safe_load(taskrun_yaml)
+                taskrun["metadata"]["name"] = f"{env}-tag-deploy-taskrun"
+                for index, param in enumerate(taskrun["spec"]["params"]):
+                    if param["name"] == "default-action" and env.get("default-action"):
+                        taskrun["spec"]["params"][index]["value"] = env.get("default-action")
+                    if param["name"] == "deploy_project_org" and env.get("project-org"):
+                        taskrun["spec"]["params"][index]["value"] = env.get("project-org")
+                    if param["name"] == "deploy_project_name" and env.get("project-name"):
+                        taskrun["spec"]["params"][index]["value"] = env.get("project-name")
+                    if param["name"] == "deploy_image_name" and env.get("image-name"):
+                        taskrun["spec"]["params"][index]["value"] = env.get("image-name")
+                    if param["name"] == "overlay_contextpath" and env.get("overlay-contextpath"):
+                        taskrun["spec"]["params"][index]["value"] = env.get("overlay-contextpath")
+                with open(f"/workspace/taskruns/{env}-tag-deploy-taskrun.yaml", "w+") as taskrun_yaml:
+                    yaml.dump(taskrun, taskrun_yaml)
+    - name: start-pipeline
+      image: quay.io/openshift/origin-cli:latest
+      workingDir: /workspace/taskruns
+      script: |
+        ls /workspace/taskruns
+        for overlay_file in $(ls)
+        do
+          cat $overlay_file
+        done

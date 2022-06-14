@@ -217,11 +217,6 @@ spec:
     - name: tag-deploy-run
       taskRef:
         name: tag-deploy
-      conditions:
-        - conditionRef: deployment-check
-          resources:
-            - name: repo
-              resource: git-repo
       params:
         - name: git_ref
           value: $(params.git_ref)
@@ -243,9 +238,42 @@ spec:
           value: $(tasks.configuration.results.deploy-image-name)
         - name: overlay_contextpath
           value: $(tasks.configuration.results.overlay-contextpath)
+        - name: default-action
+          value: $(tasks.configuration.results.default-action)
       resources:
         inputs:
           - name: s2i-thoth
             resource: s2i-thoth
-      runAfter:
-        - tag-release-run
+      when:
+        - input: $(tasks.configuration.results.environment-count)
+          operator: in
+          values: ["0", "1"]
+
+    - name: run-tags-multi-delivery
+      taskRef:
+        name: tag-multi-delivery
+      resources:
+        inputs:
+          - name: s2i-thoth
+            resource: s2i-thoth
+          - name: repo
+            resource: git-repo
+      params:
+        - name: git_ref
+          value: $(params.git_ref)
+        - name: repo_name
+          value: $(params.repo_name)
+        - name: environment-count
+          value: $(tasks.configuration.results.environment-count)
+        - name: registry
+          value:  $(tasks.configuration.results.registry)
+        - name: registry_org
+          value: $(tasks.configuration.results.registry-org)
+        - name: registry_project
+          value: $(tasks.configuration.results.registry-project)
+        - name: default_branch
+          value: $(params.default_branch)
+      when:
+        - input: $(tasks.configuration.results.environment-count)
+          operator: notin
+          values: ["0", "1"]

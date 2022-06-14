@@ -18,6 +18,7 @@ spec:
       - name: s2i-thoth
         type: image
   results:
+    - name: default-action
     - name: base-image
     - name: build-stratergy
     - name: dockerfile-path
@@ -33,6 +34,7 @@ spec:
     - name: deploy-project-name
     - name: deploy-image-name
     - name: overlay-contextpath
+    - name: environment-count
   steps:
     - name: git-init-op
       image: $(resources.inputs.s2i-thoth.url)
@@ -83,7 +85,10 @@ spec:
         echo -n "" > $(results.deploy-project-name.path)
         echo -n "" > $(results.deploy-image-name.path)
         echo -n "" > $(results.overlay-contextpath.path)
+        echo -n "" > $(results.environment-count.path)
 
+
+        ls -la /tekton/results
     - name: query-config
       image: $(resources.inputs.s2i-thoth.url)
       workingDir: /workspace/repo
@@ -116,7 +121,7 @@ spec:
                     for ele in overlay.get("build", []):
                         if isinstance(overlay["build"].get(ele), str):
                             if ele == "build-strategy":
-                                output = open(f"/tekton/results/build-stratergy", "w+")
+                                output = open("/tekton/results/build-stratergy", "w+")
                             else:
                                 output = open(f"/tekton/results/{ele}", "w+")
                             if ele == "registry-secret" and not overlay["build"].get(ele):
@@ -152,18 +157,35 @@ spec:
                 output = open(f"/tekton/results/{ele}", "w+")
                 json.dump(conf["build"].get(ele), output)
                 output.close()
+        environment_count = 0
         for ele in conf.get("deploy", {}):
-            if ele == "overlay-contextpath":
-                write_to_file(f"/tekton/results/{ele}", conf["deploy"], ele)
-            else:
-                output = open(f"/tekton/results/deploy-{ele}", "w+")
-                if ele == "project-name" and not conf["deploy"].get(ele):
-                    output.write("thoth-application")
-                elif ele == "project-org" and not conf["deploy"].get(ele):
-                    output.write("thoth-station")
+            if isinstance(conf["deploy"].get(ele), str):
+                if ele == "overlay-contextpath":
+                    write_to_file(f"/tekton/results/{ele}", conf["deploy"], ele)
                 else:
-                    output.write(conf["deploy"].get(ele))
-                output.close()
+                    output = open(f"/tekton/results/deploy-{ele}", "w+")
+                    if ele == "project-name" and not conf["deploy"].get(ele):
+                        output.write("thoth-application")
+                    elif ele == "project-org" and not conf["deploy"].get(ele):
+                        output.write("thoth-station")
+                    else:
+                        output.write(conf["deploy"].get(ele))
+                    output.close()
+            else:
+                environment_count = environment_count + 1
+                if ele ==  "test":
+                    for element in conf["deploy"].get(ele):
+                        if element == "image-name" or element == "project-org" or element == "project-name":
+                            output = open(f"/tekton/results/deploy-{element}", "w+")
+                            output.write(conf["deploy"]["test"].get(element))
+                            output.close()
+                        else:
+                            output = open(f"/tekton/results/{element}", "w+")
+                            output.write(conf["deploy"]["test"].get(element))
+                            output.close()
+        output = open(f"/tekton/results/environment-count", "w+")
+        output.write(str(environment_count))
+        output.close()
         for ele in conf.get("sibling", {}):
             write_to_file(f"/tekton/results/{ele}", conf["sibling"], ele)
         print("done")

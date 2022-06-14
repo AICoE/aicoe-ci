@@ -42,6 +42,10 @@ spec:
       type: string
       description: the overlay name to deploy (if one exists).
       default: ""
+    - name: default-action
+      type: string
+      description: "wether to open a PR or push directly to upstream. Options: [pr, commit]"
+
   resources:
     inputs:
       - name: s2i-thoth
@@ -53,8 +57,16 @@ spec:
     securityContext:
       privileged: true
     script: |
+
       export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
-      git clone git@github.com:$(params.deploy_project_org)/$(params.deploy_project_name) /workspace/configrepo
+      cd /workspace/configrepo
+      if [[ -z "$(params.deploy_project_org)" ]] && [[ -z "$(params.deploy_project_name)" ]]; then
+        echo "git@github.com:"$(params.registry_org)"/"$(params.registry_project)" /workspace/configrepo"
+        git clone "git@github.com:"$(params.registry_org)"/"$(params.registry_project)".git"
+      else
+        echo "git@github.com:"$(params.deploy_project_org)"/"$(params.deploy_project_name)" /workspace/configrepo"
+        git clone "https://github.com/"$(params.deploy_project_org)"/"$(params.deploy_project_name)""
+      fi
     volumeMounts:
       - name: ssh-config
         mountPath: /tekton/home/.ssh
@@ -66,6 +78,11 @@ spec:
       #!/opt/app-root/bin/python
 
       import yaml
+      import os
+      from os import listdir
+
+      repo_name = os.listdir("/workspace/configrepo")[0]
+
       registry_repo = "$(params.registry_project)" if "$(params.registry_project)" else "$(params.repo_name)"
 
       if "$(params.init_overlay_contextpath)" == "":
@@ -76,12 +93,13 @@ spec:
           else:
               contextpath = "$(params.overlay_contextpath)"
       else:
-          contentpath = "$(params.init_overlay_contextpath)/imagestreamtag.yaml"
+          contextpath = "$(params.init_overlay_contextpath)/imagestreamtag.yaml"
           registry_repo = "$(params.overlay_name)"
 
       image = f"$(params.registry)/$(params.registry_org)/{registry_repo}:$(params.git_ref)"
 
-      with open(contextpath, "r") as stream:
+
+      with open("{}/{}".format(repo_name, contextpath), "r") as stream:
           conf = list(yaml.safe_load_all(stream))
 
       for doc in conf:
@@ -95,7 +113,7 @@ spec:
                   for _i, tags in enumerate(doc["spec"]["template"]["spec"]["containers"]):
                       doc["spec"]["template"]["spec"]["containers"][_i]["image"] = image
 
-      with open(contextpath, "w") as output_yaml:
+      with open("{}/{}".format(repo_name, contextpath), "w") as output_yaml:
           yaml.dump_all(conf, output_yaml, default_flow_style=False)
       print("Image update completed")
 
@@ -116,13 +134,27 @@ spec:
             name: auth-secret
             key: user-email
     script: |
+      repo_name=$(ls ./)
+      cd $repo_name
       git config --local user.email "$GITHUB_EMAIL"
       git config --local user.name "$GITHUB_USERNAME"
       git status
-      git add .
-      git commit -m ":ship: Deploy the Tag $(params.git_ref) for $(params.repo_name)"
-      export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
-      git push --set-upstream origin $(params.default_branch)
+      git remote -v
+      if [[ "$(params.default-action)" == "pr" ]]; then
+        git checkout -b tag_deploy_$(params.git_ref)
+        git add .
+        git commit -m ":ship: Deploy the Tag $(params.git_ref) for "$(params.repo_name)""
+        export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+        git push "git@github.com/"$(params.deploy_project_org)"/"$(params.deploy_project_name)"" -f
+        request="https://api.github.com/"$(params.deploy_project_org)"/"$(params.deploy_project_name)"/compare/master...tag_deploy_$(params.git_ref)?title=Updating_imagestream_for_+$(params.repo_name)&body=Automated_pull_by_sesheta_deploying_tag_$(params.git_ref)"
+        echo $request
+        curl -X POST $request
+      elif [[ $(params.default-action) ==  "commit" ]]; then
+        git add .
+        git commit -m ":ship: Deploy the Tag $(params.git_ref) for $(params.repo_name)"
+        export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+        git push --set-upstream origin "$(params.default_branch)"
+      fi
     volumeMounts:
       - name: ssh-config
         mountPath: /tekton/home/.ssh

@@ -446,12 +446,16 @@ spec:
           value: $(tasks.init-task-run.results.overlay_name)
         - name: overlay_contextpath
           value: $(tasks.pr-configuration.results.overlay-contextpath)
+        - name: default-action
+          value: $(tasks.pr-configuration.results.default-action)
       resources:
         inputs:
           - name: s2i-thoth
             resource: s2i-thoth
-      runAfter:
-        - pr-build-release-run
+      when:
+        - input: $(tasks.pr-configuration.results.environment-count)
+          operator: in
+          values: ["0", "1"]
 
     - name: base-image-update-run
       taskRef:
