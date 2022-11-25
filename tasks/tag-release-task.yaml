@@ -170,7 +170,12 @@ spec:
               mv /gen-source/"$(params.dockerfile_path)" /gen-source/Containerfile
             fi
           elif [ "$(params.build_stratergy)" == "Containerfile" ]; then
-            cp -rf . /gen-source/
+            if [ ! -z "$(params.dockerfile_path)" ]; then
+              cp -rf . /gen-source/
+              mv /gen-source/"$(params.dockerfile_path)" /gen-source/Containerfile
+            else
+              cp -rf . /gen-source/
+            fi
           else
             if [ -z "$(params.build_source_script)" ]; then
               /usr/local/bin/s2i build \
