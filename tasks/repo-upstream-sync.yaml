@@ -99,7 +99,7 @@ spec:
         git remote set-url origin $(params.ssh_url)
         git remote -v
         git checkout -b aicoe-ci-rebase-update
-        export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+        export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
 
         git pull --rebase upstream master
         git push -f origin aicoe-ci-rebase-update
