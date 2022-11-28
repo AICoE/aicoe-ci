@@ -206,7 +206,7 @@ spec:
       workingDir: /workspace/opf-apps/
       image: 'quay.io/larsks/opf-go-precommit:latest'
       script: |
-        export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+        export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
         git remote add https_pushref https://$GITHUB_USERNAME:$TOKEN@github.com/$GITHUB_USERNAME/apps.git
         git config --global user.email "$GITHUB_EMAIL"
         git config --global user.name "$GITHUB_USERNAME"

@@ -48,7 +48,7 @@ spec:
     securityContext:
       privileged: true
     script: |
-      export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+      export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
       git clone git@github.com:$(params.deploy_project_org)/$(params.deploy_project_name) /workspace/configrepo
     volumeMounts:
       - name: ssh-config
@@ -112,7 +112,7 @@ spec:
       git status
       git add .
       git commit -m ":ship: Deploy the Tag $(params.git_ref) for $(params.repo_name)"
-      export GIT_SSH_COMMAND='ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+      export GIT_SSH_COMMAND='ssh -i /tekton/home/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
       git push --set-upstream origin $(params.default_branch)
     volumeMounts:
       - name: ssh-config
