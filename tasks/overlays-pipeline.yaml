@@ -135,7 +135,6 @@ spec:
 
             overlays_dir = ci_conf.get("overlays_dir", "overlays")
             for overlay_env in ci_conf["overlays"]:
-                registry_secret = overlay_env["build"].get("registry_secret", "")
                 with open("overlays-pipelinerun.yaml", "r") as pipelinerun_yaml:
                     pipelinerun = yaml.safe_load(pipelinerun_yaml)
 
