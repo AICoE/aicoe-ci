@@ -101,7 +101,7 @@ spec:
         if re.match("/deploy [a-z,A-Z][a-z,A-Z,\-,0-9]*", received_comment):
             var_overlay_name = received_comment[8:]
             output_file = open("/tekton/results/overlay_name", "w+")
-            json.dump(var_overlay_name, output_file)
+            output_file.write(var_overlay_name)
             output_file.close()
             overlay_found = "false"
             for root, dirs, files in os.walk("/workspace/repo/manifests/"):

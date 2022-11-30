@@ -112,7 +112,8 @@ spec:
         if conf.get("overlays"):
             for overlay in conf.get("overlays", []):
                 overlay_name = overlay.get("name")
-                if $(params.overlay_name) == overlay_name:
+                comment_overlay = "$(params.overlay_name)"
+                if comment_overlay == overlay_name:
                     for ele in overlay.get("build", []):
                         if isinstance(overlay["build"].get(ele), str):
                             if ele == "build-strategy":
